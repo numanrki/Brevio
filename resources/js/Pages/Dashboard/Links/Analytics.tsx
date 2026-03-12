@@ -119,11 +119,10 @@ export default function Analytics({
                             <button
                                 key={r}
                                 onClick={() => changeRange(r)}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ${
-                                    range === r
+                                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200 ${range === r
                                         ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
                                         : 'text-gray-500 hover:text-gray-300'
-                                }`}
+                                    }`}
                             >
                                 {RANGE_LABELS[r] || r}
                             </button>
