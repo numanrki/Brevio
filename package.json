@@ -27,6 +27,7 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
-        "qrcode.react": "^4.2.0"
+        "qrcode.react": "^4.2.0",
+        "recharts": "^3.8.0"
     }
 }

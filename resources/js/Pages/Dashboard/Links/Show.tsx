@@ -277,8 +277,15 @@ export default function Show({ url, clicks_stats }: Props) {
 
                 {/* Clicks Chart */}
                 <div className="rounded-xl bg-gray-900 border border-gray-800 overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-800">
+                    <div className="px-6 py-4 border-b border-gray-800 flex items-center justify-between">
                         <h3 className="text-lg font-semibold text-white">Clicks (Last 30 Days)</h3>
+                        <Link
+                            href={urlHelper(`/dashboard/links/${url.id}/analytics`)}
+                            className="inline-flex items-center gap-2 px-4 py-2 text-xs font-medium text-violet-400 bg-violet-500/10 border border-violet-500/20 rounded-lg hover:bg-violet-500/20 transition-all duration-200"
+                        >
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+                            View Analytics
+                        </Link>
                     </div>
                     <div className="p-6">
                         {clicks_stats.length === 0 ? (

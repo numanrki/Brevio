@@ -122,6 +122,22 @@ export interface PaginatedData<T> {
     links: { url: string | null; label: string; active: boolean }[];
 }
 
+export interface AnalyticsSummary {
+    total_clicks: number;
+    unique_clicks: number;
+    avg_daily: number;
+}
+
+export interface TimeSeriesPoint {
+    date: string;
+    count: number;
+}
+
+export interface BreakdownItem {
+    name: string;
+    count: number;
+}
+
 export type PageProps<
     T extends Record<string, unknown> = Record<string, unknown>,
 > = T & {

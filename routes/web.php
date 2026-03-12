@@ -5,6 +5,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\User;
+use App\Http\Controllers\User\LinkAnalyticsController;
 use App\Http\Controllers\Admin;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;

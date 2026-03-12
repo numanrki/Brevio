@@ -6,6 +6,7 @@ use App\Models\Click;
 use App\Models\Url;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Stevebauman\Location\Facades\Location;
 
 class RedirectController extends Controller
 {
@@ -30,42 +31,73 @@ class RedirectController extends Controller
             return Inertia::render('PasswordProtect', ['alias' => $alias]);
         }
 
-        // Increment total clicks
-        $url->increment('total_clicks');
-
         // Parse User-Agent
         $userAgent = $request->userAgent() ?? '';
-        $browser = $this->parseBrowser($userAgent);
-        $os = $this->parseOs($userAgent);
-        $device = $this->parseDevice($userAgent);
 
-        // Check uniqueness (same ip + url_id in last 24h)
-        $isUnique = !Click::where('url_id', $url->id)
-            ->where('ip', $request->ip())
-            ->where('created_at', '>=', now()->subDay())
-            ->exists();
+        // Skip tracking for bots
+        if (!$this->isBot($userAgent)) {
+            // Increment total clicks
+            $url->increment('total_clicks');
 
-        // Create click record
-        Click::create([
-            'url_id' => $url->id,
-            'ip' => $request->ip(),
-            'browser' => $browser,
-            'os' => $os,
-            'device' => $device,
-            'referrer' => $request->header('referer'),
-            'language' => $request->getPreferredLanguage(),
-            'country' => null,
-            'is_unique' => $isUnique,
-        ]);
+            $browser = $this->parseBrowser($userAgent);
+            $os = $this->parseOs($userAgent);
+            $device = $this->parseDevice($userAgent);
+
+            // Resolve GeoIP
+            $country = null;
+            $city = null;
+            try {
+                $position = Location::get($request->ip());
+                if ($position) {
+                    $country = $position->countryCode;
+                    $city = $position->cityName;
+                }
+            } catch (\Throwable) {
+                // GeoIP resolution failed — continue with null values
+            }
+
+            // Check uniqueness (same ip + url_id in last 24h)
+            $isUnique = !Click::where('url_id', $url->id)
+                ->where('ip', $request->ip())
+                ->where('created_at', '>=', now()->subDay())
+                ->exists();
+
+            // Create click record
+            Click::create([
+                'url_id' => $url->id,
+                'ip' => $request->ip(),
+                'browser' => $browser,
+                'os' => $os,
+                'device' => $device,
+                'referrer' => $request->header('referer'),
+                'language' => $request->getPreferredLanguage(),
+                'country' => $country,
+                'city' => $city,
+                'is_unique' => $isUnique,
+            ]);
+        }
 
         // Handle geo targets
         if (!empty($url->geo_targets) && is_array($url->geo_targets)) {
-            // Geo targeting would require IP-to-country resolution
-            // For now, skip geo-based redirect
+            try {
+                $position = $position ?? Location::get($request->ip());
+                if ($position && $position->countryCode) {
+                    foreach ($url->geo_targets as $target) {
+                        if (isset($target['country'], $target['url'])) {
+                            if (strtoupper($target['country']) === strtoupper($position->countryCode)) {
+                                return redirect()->away($target['url']);
+                            }
+                        }
+                    }
+                }
+            } catch (\Throwable) {
+                // GeoIP resolution failed — skip geo targeting
+            }
         }
 
         // Handle device targets
         if (!empty($url->device_targets) && is_array($url->device_targets)) {
+            $device = $device ?? $this->parseDevice($userAgent);
             foreach ($url->device_targets as $target) {
                 if (isset($target['device'], $target['url'])) {
                     if (strtolower($target['device']) === strtolower($device)) {
@@ -88,6 +120,28 @@ class RedirectController extends Controller
         }
 
         return redirect()->away($url->url);
+    }
+
+    private function isBot(string $userAgent): bool
+    {
+        $bots = [
+            'Googlebot', 'Bingbot', 'Slurp', 'DuckDuckBot', 'Baiduspider',
+            'YandexBot', 'Sogou', 'facebookexternalhit', 'Twitterbot',
+            'LinkedInBot', 'WhatsApp', 'TelegramBot', 'Discordbot',
+            'Applebot', 'PinterestBot', 'Screaming Frog', 'AhrefsBot',
+            'SemrushBot', 'MJ12bot', 'DotBot', 'PetalBot', 'bytespider',
+            'curl/', 'wget/', 'python-requests', 'httpx', 'Go-http-client',
+            'Java/', 'libwww-perl', 'Apache-HttpClient', 'node-fetch',
+        ];
+
+        $ua = strtolower($userAgent);
+        foreach ($bots as $bot) {
+            if (str_contains($ua, strtolower($bot))) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function parseBrowser(string $userAgent): string

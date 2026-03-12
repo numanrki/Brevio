@@ -3,53 +3,32 @@
 namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
-use App\Models\Click;
-use Illuminate\Support\Facades\DB;
+use App\Services\AnalyticsService;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class StatsController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
-        $urlIds = $user->urls()->pluck('id');
+        $urlIds = $user->urls()->pluck('id')->toArray();
 
-        $clicksOverTime = Click::whereIn('url_id', $urlIds)
-            ->where('created_at', '>=', now()->subDays(30))
-            ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'))
-            ->groupBy('date')
-            ->orderBy('date')
-            ->get();
-
-        $topCountries = Click::whereIn('url_id', $urlIds)
-            ->whereNotNull('country')
-            ->select('country', DB::raw('COUNT(*) as count'))
-            ->groupBy('country')
-            ->orderByDesc('count')
-            ->take(10)
-            ->get();
-
-        $topReferrers = Click::whereIn('url_id', $urlIds)
-            ->whereNotNull('referrer')
-            ->select('referrer', DB::raw('COUNT(*) as count'))
-            ->groupBy('referrer')
-            ->orderByDesc('count')
-            ->take(10)
-            ->get();
-
-        $topBrowsers = Click::whereIn('url_id', $urlIds)
-            ->whereNotNull('browser')
-            ->select('browser', DB::raw('COUNT(*) as count'))
-            ->groupBy('browser')
-            ->orderByDesc('count')
-            ->take(10)
-            ->get();
+        $range = $request->input('range', '30d');
+        $analytics = new AnalyticsService();
+        [$from, $to] = $analytics->parseDateRange($range);
 
         return Inertia::render('Dashboard/Stats', [
-            'clicks_over_time' => $clicksOverTime,
-            'top_countries' => $topCountries,
-            'top_referrers' => $topReferrers,
-            'top_browsers' => $topBrowsers,
+            'range' => $range,
+            'ranges' => ['today', '7d', '15d', '30d', '3m', '12m'],
+            'summary' => $analytics->getGlobalSummary($urlIds, $from, $to),
+            'clicks_over_time' => $analytics->getGlobalClicksOverTime($urlIds, $from, $to),
+            'top_countries' => $analytics->getGlobalTopItems($urlIds, $from, $to, 'country'),
+            'top_referrers' => $analytics->getGlobalTopItems($urlIds, $from, $to, 'referrer'),
+            'top_browsers' => $analytics->getGlobalTopItems($urlIds, $from, $to, 'browser'),
+            'top_os' => $analytics->getGlobalTopItems($urlIds, $from, $to, 'os'),
+            'devices' => $analytics->getGlobalTopItems($urlIds, $from, $to, 'device'),
+            'top_languages' => $analytics->getGlobalTopItems($urlIds, $from, $to, 'language'),
         ]);
     }
 }
