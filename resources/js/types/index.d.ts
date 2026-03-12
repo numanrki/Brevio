@@ -128,4 +128,5 @@ export type PageProps<
     auth: {
         user: User;
     };
+    app_version?: string;
 };

@@ -17,6 +17,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Application Version
+    |--------------------------------------------------------------------------
+    |
+    | Format: MAJOR.MINOR.PATCH
+    | Patch (0-99): bug fixes. Minor (0-99): features. Major: breaking changes.
+    | When patch reaches 99, reset to 0 and bump minor.
+    | When minor reaches 99, reset to 0 and bump major.
+    |
+    */
+
+    'version' => '1.0.0',
+
+    /*
+    |--------------------------------------------------------------------------
     | Application Environment
     |--------------------------------------------------------------------------
     |

@@ -138,6 +138,7 @@ function SidebarContent({ currentPath, onClose, user }: { currentPath: string; o
                     </svg>
                     Sign Out
                 </Link>
+                <p className="text-[10px] text-gray-600 text-right mt-2">v{usePage<{ auth: { user: User }; app_version: string }>().props.app_version}</p>
             </div>
         </div>
     );
