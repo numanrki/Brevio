@@ -175,12 +175,17 @@ class UpdateController extends Controller
     {
         $request->validate([
             'version' => 'required|string|max:20',
+            'zipball_url' => 'nullable|url|max:500',
         ]);
 
         $version = $request->input('version');
-        $tag = 'v' . ltrim($version, 'vV');
 
-        $zipUrl = self::GITHUB_API . '/repos/' . self::GITHUB_REPO . '/zipball/' . $tag;
+        // Use the zipball_url from the API response if provided, otherwise construct it
+        $zipUrl = $request->input('zipball_url');
+        if (!$zipUrl) {
+            // Try without v prefix first (our tags don't use v), then with v
+            $zipUrl = self::GITHUB_API . '/repos/' . self::GITHUB_REPO . '/zipball/' . $version;
+        }
 
         return $this->performUpdate($zipUrl, 'stable', $version);
     }

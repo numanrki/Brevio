@@ -29,7 +29,7 @@ class BioAnalyticsController extends Controller
             'top_browsers' => $analytics->getVisitTopItems($type, $bio->id, 'page_view', $from, $to, 'browser'),
             'top_os' => $analytics->getVisitTopItems($type, $bio->id, 'page_view', $from, $to, 'os'),
             'devices' => $analytics->getVisitTopItems($type, $bio->id, 'page_view', $from, $to, 'device'),
-            'top_referrers' => $analytics->getVisitTopItems($type, $bio->id, 'page_view', $from, $to, 'referrer'),
+            'top_referrers' => $analytics->getVisitTopReferrersParsed($type, $bio->id, 'page_view', $from, $to),
             'link_clicks' => $analytics->getVisitSummary($type, $bio->id, 'link_click', $from, $to),
             'visitor_log' => $analytics->getVisitorLog($type, $bio->id, null, $from, $to),
         ]);

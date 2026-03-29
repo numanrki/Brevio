@@ -21,6 +21,9 @@ class Visit extends Model
         'device',
         'referrer',
         'language',
+        'utm_source',
+        'utm_medium',
+        'utm_campaign',
         'is_unique',
         'meta',
     ];

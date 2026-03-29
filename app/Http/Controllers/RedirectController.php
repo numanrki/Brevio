@@ -83,6 +83,9 @@ class RedirectController extends Controller
                 'language' => $request->getPreferredLanguage(),
                 'country' => $country,
                 'city' => $city,
+                'utm_source' => $request->query('utm_source'),
+                'utm_medium' => $request->query('utm_medium'),
+                'utm_campaign' => $request->query('utm_campaign'),
                 'is_unique' => $isUnique,
             ]);
         }

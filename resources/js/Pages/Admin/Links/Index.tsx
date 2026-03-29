@@ -159,8 +159,7 @@ export default function Index({ links, filters }: Props) {
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="border-b border-gray-800">
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Alias</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Original URL</th>
+                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Link</th>
                                 <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Clicks</th>
                                 <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
                                 <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Created</th>
@@ -170,7 +169,7 @@ export default function Index({ links, filters }: Props) {
                         <tbody className="divide-y divide-gray-800/50">
                             {links.data.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="px-6 py-16 text-center">
+                                    <td colSpan={5} className="px-6 py-16 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center">
                                                 <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -189,13 +188,11 @@ export default function Index({ links, filters }: Props) {
                                                 <svg className="w-4 h-4 text-violet-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                                                 </svg>
-                                                <span className="text-sm font-medium text-white">{link.alias}</span>
+                                                <div className="min-w-0">
+                                                    <span className="text-sm font-medium text-white block">{window.location.origin.replace(/\/admin.*$/, '')}/{link.alias}</span>
+                                                    <span className="text-xs text-gray-500 block truncate" title={link.url}>{truncateUrl(link.url, 40)}</span>
+                                                </div>
                                             </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className="text-sm text-gray-400" title={link.url}>
-                                                {truncateUrl(link.url)}
-                                            </span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm font-semibold text-gray-300">{link.total_clicks.toLocaleString()}</span>
@@ -206,6 +203,15 @@ export default function Index({ links, filters }: Props) {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-end gap-1">
+                                                <Link
+                                                    href={url(`/admin/links/${link.id}/analytics`)}
+                                                    className="p-2 text-gray-500 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-all"
+                                                    title="Analytics"
+                                                >
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                                                    </svg>
+                                                </Link>
                                                 <button
                                                     onClick={() => copy(link.id, link.alias)}
                                                     className={`p-2 rounded-lg transition-all ${copiedId === link.id ? 'text-emerald-400 bg-emerald-500/10' : 'text-gray-500 hover:text-fuchsia-400 hover:bg-fuchsia-500/10'}`}

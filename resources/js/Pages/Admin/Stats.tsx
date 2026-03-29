@@ -15,6 +15,10 @@ interface Props {
     top_os: BreakdownItem[];
     devices: BreakdownItem[];
     top_languages: BreakdownItem[];
+    bio_summary: AnalyticsSummary;
+    bio_visits_over_time: TimeSeriesPoint[];
+    qr_summary: AnalyticsSummary;
+    qr_scans_over_time: TimeSeriesPoint[];
 }
 
 const PIE_COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#6366f1', '#14b8a6'];
@@ -28,7 +32,7 @@ const rangeLabels: Record<string, string> = {
     '12m': '12 Months',
 };
 
-export default function Stats({ range, ranges, summary, clicks_over_time, top_countries, top_referrers, top_browsers, top_os, devices, top_languages }: Props) {
+export default function Stats({ range, ranges, summary, clicks_over_time, top_countries, top_referrers, top_browsers, top_os, devices, top_languages, bio_summary, bio_visits_over_time, qr_summary, qr_scans_over_time }: Props) {
     const changeRange = (newRange: string) => {
         router.get(url('/admin/stats'), { range: newRange }, { preserveState: true, preserveScroll: true });
     };
@@ -54,23 +58,27 @@ export default function Stats({ range, ranges, summary, clicks_over_time, top_co
                 </div>
 
                 {/* Summary Cards */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                    <SummaryCard label="Total Clicks" value={summary.total_clicks} color="from-violet-500 to-purple-600" />
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
+                    <SummaryCard label="Link Clicks" value={summary.total_clicks} color="from-violet-500 to-purple-600" />
                     <SummaryCard label="Unique Clicks" value={summary.unique_clicks} color="from-cyan-500 to-blue-600" />
-                    <SummaryCard label="Avg. Daily" value={summary.avg_daily} color="from-emerald-500 to-green-600" />
+                    <SummaryCard label="Bio Page Views" value={bio_summary.total_clicks} color="from-fuchsia-500 to-pink-600" />
+                    <SummaryCard label="QR Scans" value={qr_summary.total_clicks} color="from-amber-500 to-orange-600" />
+                    <SummaryCard label="Avg. Daily Clicks" value={summary.avg_daily} color="from-emerald-500 to-green-600" />
                 </div>
 
                 {/* Clicks Over Time */}
                 <div className="rounded-xl bg-gray-900 border border-gray-800 p-6 mb-6">
-                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Clicks Over Time</h3>
-                    {clicks_over_time.length > 0 ? (
+                    <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Activity Over Time</h3>
+                    {clicks_over_time.length > 0 || bio_visits_over_time.length > 0 || qr_scans_over_time.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
-                            <LineChart data={clicks_over_time}>
+                            <LineChart>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-                                <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 11 }} tickFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} />
+                                <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 11 }} tickFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} allowDuplicatedCategory={false} />
                                 <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} allowDecimals={false} />
                                 <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '0.75rem', color: '#e5e7eb' }} />
-                                <Line type="monotone" dataKey="count" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+                                {clicks_over_time.length > 0 && <Line type="monotone" data={clicks_over_time} dataKey="count" name="Link Clicks" stroke="#8b5cf6" strokeWidth={2} dot={false} />}
+                                {bio_visits_over_time.length > 0 && <Line type="monotone" data={bio_visits_over_time} dataKey="count" name="Bio Views" stroke="#d946ef" strokeWidth={2} dot={false} />}
+                                {qr_scans_over_time.length > 0 && <Line type="monotone" data={qr_scans_over_time} dataKey="count" name="QR Scans" stroke="#f59e0b" strokeWidth={2} dot={false} />}
                             </LineChart>
                         </ResponsiveContainer>
                     ) : (

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BioPageController;
 use App\Http\Controllers\InstallController;
+use App\Http\Controllers\QrScanController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\Admin;
 use Illuminate\Support\Facades\Route;
@@ -43,6 +44,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('bio', Admin\BioController::class);
 
     // QR Codes
+    Route::get('qr-codes/{qrCode}/analytics', [Admin\QrAnalyticsController::class, 'show'])->name('qr-codes.analytics');
     Route::resource('qr-codes', Admin\QrCodeController::class);
 
     // Statistics
@@ -78,6 +80,13 @@ require __DIR__.'/auth.php';
 */
 Route::get('/bio/{alias}', [BioPageController::class, 'show'])->name('bio.show');
 Route::post('/bio/{alias}/track', [BioPageController::class, 'track'])->name('bio.track');
+
+/*
+|--------------------------------------------------------------------------
+| QR Code Scan Tracking
+|--------------------------------------------------------------------------
+*/
+Route::get('/qr/{id}', [QrScanController::class, 'handle'])->name('qr.scan')->where('id', '[0-9]+');
 
 /*
 |--------------------------------------------------------------------------

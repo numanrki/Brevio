@@ -24,7 +24,7 @@ class LinkAnalyticsController extends Controller
             'clicks_over_time' => $analytics->getClicksOverTime($link->id, $from, $to),
             'top_countries' => $analytics->getTopCountries($link->id, $from, $to),
             'top_cities' => $analytics->getTopCities($link->id, $from, $to),
-            'top_referrers' => $analytics->getTopReferrers($link->id, $from, $to),
+            'top_referrers' => $analytics->getTopReferrersParsed($link->id, $from, $to),
             'top_browsers' => $analytics->getTopBrowsers($link->id, $from, $to),
             'top_os' => $analytics->getTopOS($link->id, $from, $to),
             'devices' => $analytics->getDeviceBreakdown($link->id, $from, $to),
