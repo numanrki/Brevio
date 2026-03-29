@@ -155,9 +155,10 @@ class UpdateController extends Controller
             ]);
 
             return response()->json([
-                'success'         => true,
-                'current_version' => config('app.version'),
-                'commits'         => $commits,
+                'success'              => true,
+                'current_version'      => config('app.version'),
+                'commits'              => $commits,
+                'last_installed_sha'   => $this->getLastBetaSha(),
             ]);
         } catch (\Throwable $e) {
             return response()->json([
@@ -196,7 +197,15 @@ class UpdateController extends Controller
         $sha = $request->input('sha');
         $zipUrl = self::GITHUB_API . '/repos/' . self::GITHUB_REPO . '/zipball/' . $sha;
 
-        return $this->performUpdate($zipUrl, 'beta', substr($sha, 0, 7));
+        $result = $this->performUpdate($zipUrl, 'beta', substr($sha, 0, 7));
+
+        // Save installed SHA on success
+        $data = json_decode($result->getContent(), true);
+        if (!empty($data['success'])) {
+            file_put_contents(storage_path('app/last_beta_sha'), $sha);
+        }
+
+        return $result;
     }
 
     /**
@@ -383,6 +392,15 @@ class UpdateController extends Controller
     private function getLastCheckTime(): ?string
     {
         $file = storage_path('app/last_update_check');
+        return file_exists($file) ? trim(file_get_contents($file)) : null;
+    }
+
+    /**
+     * Get the last installed beta commit SHA.
+     */
+    private function getLastBetaSha(): ?string
+    {
+        $file = storage_path('app/last_beta_sha');
         return file_exists($file) ? trim(file_get_contents($file)) : null;
     }
 }
