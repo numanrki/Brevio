@@ -19,7 +19,6 @@
 /storage/*.key
 /storage/pail
 /storage/installed.lock
-/vendor
 Homestead.json
 Homestead.yaml
 Thumbs.db
