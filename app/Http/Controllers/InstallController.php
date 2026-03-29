@@ -48,7 +48,7 @@ class InstallController extends Controller
         $port     = (int) $request->input('db_port', 3306);
         $database = $request->input('db_database');
         $username = $request->input('db_username');
-        $password = $request->input('db_password', '');
+        $password = $request->input('db_password') ?? '';
 
         try {
             $dsn = "mysql:host={$host};port={$port}";
@@ -82,8 +82,8 @@ class InstallController extends Controller
         $port     = (int) $request->input('db_port', 3306);
         $database = $request->input('db_database');
         $username = $request->input('db_username');
-        $password = $request->input('db_password', '');
-        $prefix   = $request->input('db_prefix', '');
+        $password = $request->input('db_password') ?? '';
+        $prefix   = $request->input('db_prefix') ?? '';
         $appUrl   = $request->input('app_url');
 
         try {
@@ -178,8 +178,8 @@ class InstallController extends Controller
             'database.connections.mysql.port'     => (int) $request->input('db_port', 3306),
             'database.connections.mysql.database'  => $request->input('db_database'),
             'database.connections.mysql.username'  => $request->input('db_username'),
-            'database.connections.mysql.password'  => $request->input('db_password', ''),
-            'database.connections.mysql.prefix'    => $request->input('db_prefix', ''),
+            'database.connections.mysql.password'  => $request->input('db_password') ?? '',
+            'database.connections.mysql.prefix'    => $request->input('db_prefix') ?? '',
         ]);
 
         DB::purge('mysql');
