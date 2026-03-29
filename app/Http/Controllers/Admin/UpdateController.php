@@ -33,40 +33,88 @@ class UpdateController extends Controller
     }
 
     /**
-     * Check for stable updates (GitHub Releases).
+     * Check for stable updates (GitHub Releases, falling back to Tags).
      */
     public function checkStable()
     {
         try {
+            // Try releases first
             $response = Http::withHeaders($this->githubHeaders())
                 ->timeout(15)
                 ->get(self::GITHUB_API . '/repos/' . self::GITHUB_REPO . '/releases/latest');
 
-            if ($response->failed()) {
+            if ($response->successful()) {
+                $release = $response->json();
+                $latestVersion = ltrim($release['tag_name'] ?? '', 'vV');
+                $currentVersion = config('app.version');
+                $this->saveLastCheckTime();
+
+                return response()->json([
+                    'success'         => true,
+                    'current_version' => $currentVersion,
+                    'latest_version'  => $latestVersion,
+                    'has_update'      => version_compare($latestVersion, $currentVersion, '>'),
+                    'release'         => [
+                        'version'      => $latestVersion,
+                        'name'         => $release['name'] ?? $latestVersion,
+                        'body'         => $release['body'] ?? '',
+                        'published_at' => $release['published_at'] ?? null,
+                        'html_url'     => $release['html_url'] ?? '',
+                        'zipball_url'  => $release['zipball_url'] ?? '',
+                    ],
+                ]);
+            }
+
+            // Fallback to tags API (repos without GitHub Releases)
+            $tagsResponse = Http::withHeaders($this->githubHeaders())
+                ->timeout(15)
+                ->get(self::GITHUB_API . '/repos/' . self::GITHUB_REPO . '/tags', [
+                    'per_page' => 10,
+                ]);
+
+            if ($tagsResponse->failed()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Failed to check for updates. GitHub API returned status ' . $response->status(),
+                    'message' => 'Failed to check for updates. GitHub API returned status ' . $tagsResponse->status(),
                 ], 422);
             }
 
-            $release = $response->json();
-            $latestVersion = ltrim($release['tag_name'] ?? '', 'vV');
-            $currentVersion = config('app.version');
+            $tags = collect($tagsResponse->json())
+                ->map(fn($t) => [
+                    'name'    => $t['name'],
+                    'version' => ltrim($t['name'], 'vV'),
+                    'sha'     => $t['commit']['sha'] ?? '',
+                    'zipball' => $t['zipball_url'] ?? '',
+                ])
+                ->filter(fn($t) => preg_match('/^\d+\.\d+\.\d+$/', $t['version']))
+                ->sortByDesc(fn($t) => $t['version'])
+                ->values();
 
+            $latest = $tags->first();
+            $currentVersion = config('app.version');
             $this->saveLastCheckTime();
+
+            if (!$latest) {
+                return response()->json([
+                    'success'         => true,
+                    'current_version' => $currentVersion,
+                    'has_update'      => false,
+                    'release'         => null,
+                ]);
+            }
 
             return response()->json([
                 'success'         => true,
                 'current_version' => $currentVersion,
-                'latest_version'  => $latestVersion,
-                'has_update'      => version_compare($latestVersion, $currentVersion, '>'),
+                'latest_version'  => $latest['version'],
+                'has_update'      => version_compare($latest['version'], $currentVersion, '>'),
                 'release'         => [
-                    'version'      => $latestVersion,
-                    'name'         => $release['name'] ?? $latestVersion,
-                    'body'         => $release['body'] ?? '',
-                    'published_at' => $release['published_at'] ?? null,
-                    'html_url'     => $release['html_url'] ?? '',
-                    'zipball_url'  => $release['zipball_url'] ?? '',
+                    'version'      => $latest['version'],
+                    'name'         => $latest['name'],
+                    'body'         => '',
+                    'published_at' => null,
+                    'html_url'     => 'https://github.com/' . self::GITHUB_REPO . '/releases/tag/' . $latest['name'],
+                    'zipball_url'  => $latest['zipball'],
                 ],
             ]);
         } catch (\Throwable $e) {

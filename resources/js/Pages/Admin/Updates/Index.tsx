@@ -451,17 +451,35 @@ export default function Index({ currentVersion, lastCheck }: Props) {
                     {/* Commits List */}
                     {commits.length > 0 && (
                         <div className="rounded-xl bg-gray-900 border border-gray-800 overflow-hidden">
-                            <div className="px-6 py-3 border-b border-gray-800 bg-gray-800/30">
+                            <div className="px-6 py-3 border-b border-gray-800 bg-gray-800/30 flex items-center justify-between">
                                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
                                     Recent Commits ({commits.length})
                                 </p>
+                                <button
+                                    onClick={() => {
+                                        if (confirm(`Install latest commit ${commits[0].short_sha}?\n\n"${commits[0].message.split('\n')[0]}"\n\nThis will update to the newest code from the main branch.`)) {
+                                            installUpdate('/admin/updates/install-beta', { sha: commits[0].sha });
+                                        }
+                                    }}
+                                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white text-xs font-medium rounded-lg transition-all shadow-lg shadow-amber-500/20"
+                                >
+                                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                    </svg>
+                                    Install Latest ({commits[0].short_sha})
+                                </button>
                             </div>
                             <div className="divide-y divide-gray-800/50 max-h-[600px] overflow-auto">
-                                {commits.map((commit) => (
-                                    <div key={commit.sha} className="px-6 py-4 hover:bg-gray-800/30 transition-colors">
+                                {commits.map((commit, idx) => (
+                                    <div key={commit.sha} className={`px-6 py-4 hover:bg-gray-800/30 transition-colors ${idx === 0 ? 'bg-amber-500/5' : ''}`}>
                                         <div className="flex items-start justify-between gap-4">
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm text-white font-medium truncate">{commit.message.split('\n')[0]}</p>
+                                                <div className="flex items-center gap-2">
+                                                    {idx === 0 && (
+                                                        <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase flex-shrink-0">Latest</span>
+                                                    )}
+                                                    <p className="text-sm text-white font-medium truncate">{commit.message.split('\n')[0]}</p>
+                                                </div>
                                                 <div className="flex items-center gap-3 mt-1.5">
                                                     <code className="text-[11px] font-mono text-violet-400 bg-violet-500/10 px-1.5 py-0.5 rounded">
                                                         {commit.short_sha}
@@ -470,19 +488,17 @@ export default function Index({ currentVersion, lastCheck }: Props) {
                                                     <span className="text-xs text-gray-600">{formatDate(commit.date)}</span>
                                                 </div>
                                             </div>
-                                            <button
-                                                onClick={() => {
-                                                    if (confirm(`Install beta commit ${commit.short_sha}?\n\n"${commit.message.split('\n')[0]}"\n\nThis may be unstable.`)) {
-                                                        installUpdate('/admin/updates/install-beta', { sha: commit.sha });
-                                                    }
-                                                }}
-                                                className="flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 text-amber-400 text-xs font-medium rounded-lg transition-all"
+                                            <a
+                                                href={commit.html_url}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex-shrink-0 p-1.5 text-gray-500 hover:text-white transition-colors"
+                                                title="View on GitHub"
                                             >
-                                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                                                 </svg>
-                                                Install
-                                            </button>
+                                            </a>
                                         </div>
                                     </div>
                                 ))}
