@@ -68,6 +68,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('2fa/setup', [Admin\TwoFactorController::class, 'setup'])->name('2fa.setup');
     Route::post('2fa/confirm', [Admin\TwoFactorController::class, 'confirm'])->name('2fa.confirm');
     Route::post('2fa/disable', [Admin\TwoFactorController::class, 'disable'])->name('2fa.disable');
+    Route::post('2fa/recovery-codes', [Admin\TwoFactorController::class, 'recoveryCodes'])->name('2fa.recovery-codes');
 
     // Updates
     Route::get('updates', [Admin\UpdateController::class, 'index'])->name('updates.index');

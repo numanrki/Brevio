@@ -15,7 +15,7 @@ class SettingController extends Controller
 
         return Inertia::render('Admin/Settings/Index', [
             'settings'    => $settings,
-            'has2fa'      => (bool) auth()->user()->secret_2fa,
+            'has2fa'      => (bool) (auth()->user()->two_factor_secret && auth()->user()->two_factor_confirmed_at),
         ]);
     }
 

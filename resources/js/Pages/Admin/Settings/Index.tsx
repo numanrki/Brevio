@@ -2,7 +2,6 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, useForm } from '@inertiajs/react';
 import { FormEvent, useState, useCallback } from 'react';
 import { url } from '@/utils';
-import { QRCodeSVG } from 'qrcode.react';
 
 interface Props {
     settings: Record<string, string>;
@@ -166,11 +165,13 @@ function TwoFactorSection({ initialEnabled }: { initialEnabled: boolean }) {
     const [enabled, setEnabled] = useState(initialEnabled);
     const [setupState, setSetupState] = useState<'idle' | 'loading' | 'setup' | 'confirming'>('idle');
     const [secret, setSecret] = useState('');
-    const [qrUrl, setQrUrl] = useState('');
+    const [qrSvg, setQrSvg] = useState('');
+    const [recoveryCodes, setRecoveryCodes] = useState<string[]>([]);
     const [code, setCode] = useState('');
     const [disablePassword, setDisablePassword] = useState('');
     const [error, setError] = useState('');
     const [showDisable, setShowDisable] = useState(false);
+    const [showRecovery, setShowRecovery] = useState(false);
 
     const csrfToken = () =>
         document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
@@ -192,7 +193,8 @@ function TwoFactorSection({ initialEnabled }: { initialEnabled: boolean }) {
         try {
             const data = await apiCall('/admin/2fa/setup');
             setSecret(data.secret);
-            setQrUrl(data.qr_url);
+            setQrSvg(data.qr_svg);
+            setRecoveryCodes(data.recovery_codes || []);
             setSetupState('setup');
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Setup failed');
@@ -209,7 +211,8 @@ function TwoFactorSection({ initialEnabled }: { initialEnabled: boolean }) {
             setSetupState('idle');
             setCode('');
             setSecret('');
-            setQrUrl('');
+            setQrSvg('');
+            setShowRecovery(true);
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Verification failed');
             setSetupState('setup');
@@ -223,8 +226,20 @@ function TwoFactorSection({ initialEnabled }: { initialEnabled: boolean }) {
             setEnabled(false);
             setShowDisable(false);
             setDisablePassword('');
+            setRecoveryCodes([]);
+            setShowRecovery(false);
         } catch (err: unknown) {
             setError(err instanceof Error ? err.message : 'Failed to disable');
+        }
+    };
+
+    const regenerateRecoveryCodes = async () => {
+        try {
+            const data = await apiCall('/admin/2fa/recovery-codes');
+            setRecoveryCodes(data.recovery_codes || []);
+            setShowRecovery(true);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Failed to regenerate');
         }
     };
 
@@ -295,10 +310,8 @@ function TwoFactorSection({ initialEnabled }: { initialEnabled: boolean }) {
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center gap-6">
-                            {/* QR Code */}
-                            <div className="p-3 bg-white rounded-xl flex-shrink-0">
-                                <QRCodeSVG value={qrUrl} size={160} />
-                            </div>
+                            {/* QR Code (SVG from Fortify) */}
+                            <div className="p-3 bg-white rounded-xl flex-shrink-0 [&_svg]:w-[160px] [&_svg]:h-[160px]" dangerouslySetInnerHTML={{ __html: qrSvg }} />
 
                             <div className="space-y-3 flex-1 min-w-0">
                                 <div>
@@ -357,12 +370,37 @@ function TwoFactorSection({ initialEnabled }: { initialEnabled: boolean }) {
                             </svg>
                             <p className="text-sm text-emerald-400">Your account is protected with two-factor authentication.</p>
                         </div>
-                        <button
-                            onClick={() => setShowDisable(true)}
-                            className="px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
-                        >
-                            Disable 2FA
-                        </button>
+
+                        {/* Recovery Codes */}
+                        {showRecovery && recoveryCodes.length > 0 && (
+                            <div className="mb-4 p-4 rounded-lg bg-gray-950 border border-gray-800">
+                                <div className="flex items-center justify-between mb-3">
+                                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Recovery Codes</p>
+                                    <button onClick={() => setShowRecovery(false)} className="text-xs text-gray-500 hover:text-white transition-colors">Hide</button>
+                                </div>
+                                <p className="text-xs text-gray-500 mb-3">Save these recovery codes in a secure location. They can be used to access your account if you lose your authenticator device.</p>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {recoveryCodes.map((c, i) => (
+                                        <code key={i} className="text-xs font-mono text-gray-300 bg-gray-900 px-2 py-1.5 rounded select-all">{c}</code>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={regenerateRecoveryCodes}
+                                className="px-4 py-2.5 text-sm text-gray-400 hover:text-white hover:bg-gray-800 rounded-xl transition-all"
+                            >
+                                {showRecovery ? 'Regenerate Recovery Codes' : 'Show Recovery Codes'}
+                            </button>
+                            <button
+                                onClick={() => setShowDisable(true)}
+                                className="px-4 py-2.5 text-sm text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-xl transition-all"
+                            >
+                                Disable 2FA
+                            </button>
+                        </div>
                     </div>
                 )}
 

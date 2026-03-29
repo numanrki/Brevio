@@ -38,8 +38,8 @@ class AuthenticatedSessionController extends Controller
             return back()->withErrors(['email' => 'Access denied.']);
         }
 
-        // Check if 2FA is enabled
-        if ($request->user()->secret_2fa) {
+        // Check if 2FA is enabled (Fortify: confirmed 2FA)
+        if ($request->user()->two_factor_secret && $request->user()->two_factor_confirmed_at) {
             $userId = $request->user()->id;
             $remember = $request->boolean('remember');
 

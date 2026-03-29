@@ -373,7 +373,7 @@ class UpdateController extends Controller
             } else {
                 // Check if the command is available
                 $which = PHP_OS_FAMILY === 'Windows' ? 'where' : 'which';
-                exec("{$which} {$path} 2>&1", $output, $code);
+                \exec("{$which} {$path} 2>&1", $output, $code);
                 if ($code === 0) {
                     $composerBin = escapeshellarg($path);
                     break;
@@ -386,7 +386,7 @@ class UpdateController extends Controller
         }
 
         $cmd = "cd " . escapeshellarg(base_path()) . " && {$composerBin} install --no-dev --optimize-autoloader --no-interaction 2>&1";
-        exec($cmd, $output, $exitCode);
+        \exec($cmd, $output, $exitCode);
 
         return implode("\n", $output);
     }

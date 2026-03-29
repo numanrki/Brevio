@@ -4,33 +4,32 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Crypt;
-use PragmaRX\Google2FA\Google2FA;
+use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
+use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
+use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
+use Laravel\Fortify\Actions\GenerateNewRecoveryCodes;
 
 class TwoFactorController extends Controller
 {
     /**
-     * Generate a new 2FA secret and return setup data.
+     * Enable 2FA: generate secret and return QR code + recovery codes.
      */
     public function setup(Request $request)
     {
         try {
-            $google2fa = new Google2FA();
-            $secret = $google2fa->generateSecretKey();
+            $user = $request->user();
 
-            // Store temporarily in session until confirmed
-            $request->session()->put('2fa_setup_secret', $secret);
+            // Enable 2FA via Fortify (generates secret + recovery codes)
+            app(EnableTwoFactorAuthentication::class)($user);
 
-            $qrUrl = $google2fa->getQRCodeUrl(
-                config('app.name', 'Brevio'),
-                $request->user()->email,
-                $secret
-            );
+            $user->refresh();
 
             return response()->json([
                 'success' => true,
-                'secret'  => $secret,
-                'qr_url'  => $qrUrl,
+                'secret' => decrypt($user->two_factor_secret),
+                'qr_url' => $user->twoFactorQrCodeUrl(),
+                'qr_svg' => $user->twoFactorQrCodeSvg(),
+                'recovery_codes' => json_decode(decrypt($user->two_factor_recovery_codes), true),
             ]);
         } catch (\Throwable $e) {
             return response()->json([
@@ -49,35 +48,19 @@ class TwoFactorController extends Controller
             'code' => 'required|string|digits:6',
         ]);
 
-        $secret = $request->session()->get('2fa_setup_secret');
+        try {
+            app(ConfirmTwoFactorAuthentication::class)($request->user(), $request->input('code'));
 
-        if (!$secret) {
             return response()->json([
-                'success' => false,
-                'message' => 'No 2FA setup in progress. Please start again.',
-            ], 422);
-        }
-
-        $google2fa = new Google2FA();
-
-        if (!$google2fa->verifyKey($secret, $request->input('code'))) {
+                'success' => true,
+                'message' => 'Two-factor authentication enabled successfully.',
+            ]);
+        } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid verification code. Please try again.',
             ], 422);
         }
-
-        // Save encrypted secret to user
-        $user = $request->user();
-        $user->secret_2fa = Crypt::encryptString($secret);
-        $user->save();
-
-        $request->session()->forget('2fa_setup_secret');
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Two-factor authentication enabled successfully.',
-        ]);
     }
 
     /**
@@ -96,13 +79,26 @@ class TwoFactorController extends Controller
             ], 422);
         }
 
-        $user = $request->user();
-        $user->secret_2fa = null;
-        $user->save();
+        app(DisableTwoFactorAuthentication::class)($request->user());
 
         return response()->json([
             'success' => true,
             'message' => 'Two-factor authentication disabled.',
+        ]);
+    }
+
+    /**
+     * Regenerate recovery codes.
+     */
+    public function recoveryCodes(Request $request)
+    {
+        app(GenerateNewRecoveryCodes::class)($request->user());
+
+        $user = $request->user()->refresh();
+
+        return response()->json([
+            'success' => true,
+            'recovery_codes' => json_decode(decrypt($user->two_factor_recovery_codes), true),
         ]);
     }
 
@@ -124,7 +120,8 @@ class TwoFactorController extends Controller
     public function verify(Request $request)
     {
         $request->validate([
-            'code' => 'required|string|digits:6',
+            'code' => 'nullable|string|digits:6',
+            'recovery_code' => 'nullable|string',
         ]);
 
         $userId = $request->session()->get('2fa_user_id');
@@ -134,15 +131,39 @@ class TwoFactorController extends Controller
 
         $user = \App\Models\User::findOrFail($userId);
 
-        if (!$user->secret_2fa) {
+        if (!$user->two_factor_secret) {
             return redirect()->route('login');
         }
 
-        $google2fa = new Google2FA();
-        $decryptedSecret = Crypt::decryptString($user->secret_2fa);
+        // Try TOTP code first
+        if ($request->filled('code')) {
+            $google2fa = app(\PragmaRX\Google2FA\Google2FA::class);
+            $valid = $google2fa->verifyKey(
+                decrypt($user->two_factor_secret),
+                $request->input('code')
+            );
 
-        if (!$google2fa->verifyKey($decryptedSecret, $request->input('code'))) {
-            return back()->withErrors(['code' => 'Invalid verification code.']);
+            if (!$valid) {
+                return back()->withErrors(['code' => 'Invalid verification code.']);
+            }
+        }
+        // Try recovery code
+        elseif ($request->filled('recovery_code')) {
+            $recoveryCodes = json_decode(decrypt($user->two_factor_recovery_codes), true);
+            $recoveryCode = $request->input('recovery_code');
+
+            if (!in_array($recoveryCode, $recoveryCodes)) {
+                return back()->withErrors(['recovery_code' => 'Invalid recovery code.']);
+            }
+
+            // Remove used recovery code
+            $user->forceFill([
+                'two_factor_recovery_codes' => encrypt(json_encode(
+                    array_values(array_diff($recoveryCodes, [$recoveryCode]))
+                )),
+            ])->save();
+        } else {
+            return back()->withErrors(['code' => 'Please enter a verification code.']);
         }
 
         // Login the user
