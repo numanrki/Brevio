@@ -20,9 +20,10 @@ class AppServiceProvider extends ServiceProvider
                 'queue.default'  => 'sync',
             ]);
 
-            // EncryptCookies needs an app key; generate a temporary one
+            // EncryptCookies needs an app key; use a deterministic temp key
+            // so cookies/CSRF tokens survive across requests during install
             if (empty(config('app.key'))) {
-                config(['app.key' => 'base64:' . base64_encode(random_bytes(32))]);
+                config(['app.key' => 'base64:' . base64_encode(hash('sha256', base_path() . '|brevio-install', true))]);
             }
         }
     }

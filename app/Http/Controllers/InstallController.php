@@ -7,16 +7,15 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
-use Inertia\Inertia;
 
 class InstallController extends Controller
 {
     /**
-     * Show the installation wizard page.
+     * Show the installation wizard page (standalone Blade — no Vite/Inertia dependency).
      */
     public function show()
     {
-        return Inertia::render('Install');
+        return view('install');
     }
 
     /**

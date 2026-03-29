@@ -1,0 +1,1 @@
+let e=null;function t(){if(e!==null)return e;try{if(typeof Ziggy<"u"&&Ziggy?.url)return e=new URL(Ziggy.url).pathname.replace(/\/+$/,""),e}catch{}return e="",e}function u(r){const n=t();return n?r==="/"?n||"/":n+r:r}export{u};
