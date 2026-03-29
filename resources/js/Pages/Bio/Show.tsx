@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { useCallback, useRef, useState, useEffect } from 'react';
+import { useCallback } from 'react';
 import { SocialIcon, SOCIAL_ICON_MAP } from '@/Components/SocialIcons';
 
 interface SocialPlatform {
@@ -410,86 +410,23 @@ function ProductsSlider({
     theme: Record<string, any>;
     trackClick: (url: string) => void;
 }) {
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const [canScrollLeft, setCanScrollLeft] = useState(false);
-    const [canScrollRight, setCanScrollRight] = useState(true);
-
-    const checkScroll = useCallback(() => {
-        const el = scrollRef.current;
-        if (!el) return;
-        setCanScrollLeft(el.scrollLeft > 2);
-        setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
-    }, []);
-
-    useEffect(() => {
-        const el = scrollRef.current;
-        if (!el) return;
-        checkScroll();
-        el.addEventListener('scroll', checkScroll, { passive: true });
-        return () => el.removeEventListener('scroll', checkScroll);
-    }, [checkScroll]);
-
-    const scroll = (direction: -1 | 1) => {
-        const el = scrollRef.current;
-        if (!el) return;
-        el.scrollBy({ left: direction * 220, behavior: 'smooth' });
-    };
-
     const btnColor = theme.buttonColor || '#7c3aed';
     const textColor = theme.textColor || '#ffffff';
     const btnRadius = theme.buttonRadius || '9999px';
 
     return (
-        <div style={{ position: 'relative', padding: '8px 0' }}>
-            {/* Scroll arrows */}
-            {canScrollLeft && (
-                <button
-                    onClick={() => scroll(-1)}
-                    style={{
-                        position: 'absolute', left: '-4px', top: '50%', transform: 'translateY(-50%)',
-                        zIndex: 10, width: '32px', height: '32px', borderRadius: '50%',
-                        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
-                        border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: '#fff', fontSize: '14px',
-                    }}
-                    aria-label="Scroll left"
-                >
-                    ‹
-                </button>
-            )}
-            {canScrollRight && (
-                <button
-                    onClick={() => scroll(1)}
-                    style={{
-                        position: 'absolute', right: '-4px', top: '50%', transform: 'translateY(-50%)',
-                        zIndex: 10, width: '32px', height: '32px', borderRadius: '50%',
-                        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
-                        border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        color: '#fff', fontSize: '14px',
-                    }}
-                    aria-label="Scroll right"
-                >
-                    ›
-                </button>
-            )}
-
-            {/* Products rail */}
+        <div style={{ padding: '8px 0' }}>
             <div
-                ref={scrollRef}
-                className="products-rail"
                 style={{
-                    display: 'flex', gap: '12px', overflowX: 'auto', scrollSnapType: 'x mandatory',
-                    paddingBottom: '4px', scrollbarWidth: 'none',
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(3, 1fr)',
+                    gap: '10px',
                 }}
             >
-                <style dangerouslySetInnerHTML={{ __html: `
-                    .products-rail::-webkit-scrollbar { display: none; }
-                ` }} />
                 {products.map((product, idx) => (
                     <div
                         key={idx}
                         style={{
-                            flex: '0 0 180px', scrollSnapAlign: 'start',
                             borderRadius: '16px', overflow: 'hidden',
                             background: textColor === '#ffffff' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
                             border: `1px solid ${textColor}15`,

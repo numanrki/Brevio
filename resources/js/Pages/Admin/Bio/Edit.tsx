@@ -420,9 +420,9 @@ function BioPreview({ name, alias, avatar, widgets, theme: rawTheme }: { name: s
                             const items = (w.content.items as Array<{ image: string; title: string; description: string; url: string; buttonText: string }>) || [];
                             if (items.length === 0) return <div key={i} style={{ padding: '8px', textAlign: 'center' }}><span style={{ fontSize: '9px', color: t.textColor, opacity: 0.4 }}>No products</span></div>;
                             return (
-                                <div key={i} style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px', scrollbarWidth: 'none' }}>
+                                <div key={i} style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px' }}>
                                     {items.map((p, pi) => (
-                                        <div key={pi} style={{ flex: '0 0 100px', borderRadius: '8px', overflow: 'hidden', background: t.textColor + '08', border: `1px solid ${t.textColor}10` }}>
+                                        <div key={pi} style={{ borderRadius: '8px', overflow: 'hidden', background: t.textColor + '08', border: `1px solid ${t.textColor}10` }}>
                                             {p.image ? (
                                                 <img src={p.image} alt="" style={{ width: '100%', height: '64px', objectFit: 'cover', display: 'block' }} />
                                             ) : (

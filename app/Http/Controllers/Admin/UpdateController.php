@@ -35,43 +35,16 @@ class UpdateController extends Controller
     }
 
     /**
-     * Check for stable updates (GitHub Releases, falling back to Tags).
+     * Check for stable updates (GitHub Tags — always gets the latest pushed tag).
      */
     public function checkStable()
     {
         try {
-            // Try releases first
-            $response = Http::withHeaders($this->githubHeaders())
-                ->timeout(15)
-                ->get(self::GITHUB_API . '/repos/' . self::GITHUB_REPO . '/releases/latest');
-
-            if ($response->successful()) {
-                $release = $response->json();
-                $latestVersion = ltrim($release['tag_name'] ?? '', 'vV');
-                $currentVersion = config('app.version');
-                $this->saveLastCheckTime();
-
-                return response()->json([
-                    'success'         => true,
-                    'current_version' => $currentVersion,
-                    'latest_version'  => $latestVersion,
-                    'has_update'      => version_compare($latestVersion, $currentVersion, '>'),
-                    'release'         => [
-                        'version'      => $latestVersion,
-                        'name'         => $release['name'] ?? $latestVersion,
-                        'body'         => $release['body'] ?? '',
-                        'published_at' => $release['published_at'] ?? null,
-                        'html_url'     => $release['html_url'] ?? '',
-                        'zipball_url'  => $release['zipball_url'] ?? '',
-                    ],
-                ]);
-            }
-
-            // Fallback to tags API (repos without GitHub Releases)
+            // Always use tags API — this catches both Releases and plain tags
             $tagsResponse = Http::withHeaders($this->githubHeaders())
                 ->timeout(15)
                 ->get(self::GITHUB_API . '/repos/' . self::GITHUB_REPO . '/tags', [
-                    'per_page' => 10,
+                    'per_page' => 20,
                 ]);
 
             if ($tagsResponse->failed()) {
@@ -89,7 +62,8 @@ class UpdateController extends Controller
                     'zipball' => $t['zipball_url'] ?? '',
                 ])
                 ->filter(fn($t) => preg_match('/^\d+\.\d+\.\d+$/', $t['version']))
-                ->sortByDesc(fn($t) => $t['version'])
+                ->sortBy(fn($t) => version_compare($t['version'], '0.0.0'))
+                ->reverse()
                 ->values();
 
             $latest = $tags->first();
@@ -105,6 +79,20 @@ class UpdateController extends Controller
                 ]);
             }
 
+            // Try to get release notes from the GitHub Release (if one exists)
+            $releaseBody = '';
+            $publishedAt = null;
+            try {
+                $releaseResponse = Http::withHeaders($this->githubHeaders())
+                    ->timeout(10)
+                    ->get(self::GITHUB_API . '/repos/' . self::GITHUB_REPO . '/releases/tags/' . $latest['name']);
+                if ($releaseResponse->successful()) {
+                    $releaseData = $releaseResponse->json();
+                    $releaseBody = $releaseData['body'] ?? '';
+                    $publishedAt = $releaseData['published_at'] ?? null;
+                }
+            } catch (\Throwable) {}
+
             return response()->json([
                 'success'         => true,
                 'current_version' => $currentVersion,
@@ -113,8 +101,8 @@ class UpdateController extends Controller
                 'release'         => [
                     'version'      => $latest['version'],
                     'name'         => $latest['name'],
-                    'body'         => '',
-                    'published_at' => null,
+                    'body'         => $releaseBody,
+                    'published_at' => $publishedAt,
                     'html_url'     => 'https://github.com/' . self::GITHUB_REPO . '/releases/tag/' . $latest['name'],
                     'zipball_url'  => $latest['zipball'],
                 ],
