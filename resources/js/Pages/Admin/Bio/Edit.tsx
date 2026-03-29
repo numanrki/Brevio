@@ -1,7 +1,7 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { url } from '@/utils';
-import { FormEvent, useState, useRef, useMemo } from 'react';
+import { FormEvent, useState, useRef, useMemo, ChangeEvent } from 'react';
 import { SocialIcon, SOCIAL_ICON_MAP } from '@/Components/SocialIcons';
 
 interface Widget {
@@ -60,6 +60,31 @@ export default function Edit({ bio }: Props) {
     const [seoTitle, setSeoTitle] = useState(bio.seo_title || '');
     const [seoDescription, setSeoDescription] = useState(bio.seo_description || '');
     const [isActive, setIsActive] = useState(bio.is_active);
+    const [avatarUploading, setAvatarUploading] = useState(false);
+    const avatarInputRef = useRef<HTMLInputElement>(null);
+
+    const handleAvatarUpload = async (e: ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setAvatarUploading(true);
+        const formData = new FormData();
+        formData.append('avatar', file);
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const res = await fetch(url('/admin/bio/upload-avatar'), {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken, Accept: 'application/json' },
+                body: formData,
+            });
+            const json = await res.json();
+            if (json.success) {
+                setAvatar(json.url);
+            }
+        } catch { /* ignore */ } finally {
+            setAvatarUploading(false);
+            if (avatarInputRef.current) avatarInputRef.current.value = '';
+        }
+    };
 
     const submit = (e: FormEvent) => {
         e.preventDefault();
@@ -165,8 +190,26 @@ export default function Edit({ bio }: Props) {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-300 mb-1.5">Avatar URL</label>
-                            <input type="text" value={avatar} onChange={(e) => setAvatar(e.target.value)} className="w-full px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500/40" />
+                            <label className="block text-sm font-medium text-gray-300 mb-1.5">Avatar</label>
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="flex-shrink-0 w-12 h-12 rounded-full border-2 border-gray-700 overflow-hidden bg-gray-950 flex items-center justify-center">
+                                    {avatar ? (
+                                        <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                    )}
+                                </div>
+                                <div className="flex-1 flex gap-2">
+                                    <input type="text" value={avatar} onChange={(e) => setAvatar(e.target.value)} placeholder="https://example.com/avatar.jpg" className="flex-1 px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-sm text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500/40" />
+                                    <input ref={avatarInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/webp" onChange={handleAvatarUpload} className="hidden" />
+                                    <button type="button" onClick={() => avatarInputRef.current?.click()} disabled={avatarUploading} className="px-3 py-2.5 bg-gray-800 border border-gray-700 rounded-xl text-sm text-gray-300 hover:text-white hover:border-violet-500/30 transition-all disabled:opacity-50 whitespace-nowrap">
+                                        {avatarUploading ? 'Uploading…' : 'Upload'}
+                                    </button>
+                                </div>
+                            </div>
+                            {avatar && (
+                                <button type="button" onClick={() => setAvatar('')} className="text-xs text-red-400 hover:text-red-300 transition-colors">Remove avatar</button>
+                            )}
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -375,7 +418,8 @@ function BioPreview({ name, alias, avatar, widgets, theme: rawTheme }: { name: s
                     })}
                 </div>
 
-                <p style={{ textAlign: 'center', fontSize: '8px', color: t.textColor, opacity: 0.2, marginTop: '24px' }}>Powered by Brevio</p>
+                <p style={{ textAlign: 'center', fontSize: '8px', color: t.textColor, opacity: 0.2, marginTop: '24px', marginBottom: '2px' }}>Powered by Brevio</p>
+                <p style={{ textAlign: 'center', fontSize: '7px', color: t.textColor, opacity: 0.15 }}>Designed & Developed by Numan Rasheed</p>
             </div>
         </div>
     );

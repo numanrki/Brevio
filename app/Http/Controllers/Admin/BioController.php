@@ -118,6 +118,23 @@ class BioController extends Controller
     }
 
     /**
+     * Upload an avatar image for a bio page.
+     */
+    public function uploadAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpg,jpeg,png,gif,webp|max:2048',
+        ]);
+
+        $path = $request->file('avatar')->store('bio-avatars', 'public');
+
+        return response()->json([
+            'success' => true,
+            'url' => Storage::disk('public')->url($path),
+        ]);
+    }
+
+    /**
      * Upload an image for a bio widget and return its public URL.
      */
     public function uploadImage(Request $request)

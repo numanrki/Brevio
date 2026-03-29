@@ -337,10 +337,36 @@ export default function Show({ bio, trackUrl }: Props) {
                                 fontSize: '11px',
                                 color: theme.textColor || '#ffffff',
                                 opacity: 0.25,
+                                margin: '0 0 4px 0',
+                            }}
+                        >
+                            Powered by{' '}
+                            <a
+                                href="https://github.com/numanrki/Brevio"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ color: 'inherit', textDecoration: 'underline' }}
+                            >
+                                Brevio
+                            </a>
+                        </p>
+                        <p
+                            style={{
+                                fontSize: '10px',
+                                color: theme.textColor || '#ffffff',
+                                opacity: 0.2,
                                 margin: 0,
                             }}
                         >
-                            Powered by Brevio
+                            Designed & Developed by{' '}
+                            <a
+                                href="https://x.com/numanrki"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                style={{ color: 'inherit', textDecoration: 'underline' }}
+                            >
+                                Numan Rasheed
+                            </a>
                         </p>
                     </div>
                 </div>

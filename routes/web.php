@@ -42,6 +42,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Bio Pages
     Route::get('bio/{bio}/analytics', [Admin\BioAnalyticsController::class, 'show'])->name('bio.analytics');
     Route::post('bio/upload-image', [Admin\BioController::class, 'uploadImage'])->name('bio.upload-image');
+    Route::post('bio/upload-avatar', [Admin\BioController::class, 'uploadAvatar'])->name('bio.upload-avatar');
     Route::resource('bio', Admin\BioController::class);
 
     // QR Codes
