@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Bio;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class BioController extends Controller
@@ -114,5 +115,22 @@ class BioController extends Controller
         $bio->delete();
 
         return redirect()->route('admin.bio.index')->with('success', 'Bio page deleted successfully.');
+    }
+
+    /**
+     * Upload an image for a bio widget and return its public URL.
+     */
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|mimes:jpg,jpeg,png,gif,webp,svg|max:5120',
+        ]);
+
+        $path = $request->file('image')->store('bio-images', 'public');
+
+        return response()->json([
+            'success' => true,
+            'url' => Storage::disk('public')->url($path),
+        ]);
     }
 }

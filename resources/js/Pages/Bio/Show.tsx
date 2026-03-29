@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { useCallback } from 'react';
+import { SocialIcon, SOCIAL_ICON_MAP } from '@/Components/SocialIcons';
 
 interface SocialPlatform {
     name: string;
@@ -281,15 +282,14 @@ export default function Show({ bio, trackUrl }: Props) {
                                                 style={{
                                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                                     width: '44px', height: '44px', borderRadius: '50%',
-                                                    background: (theme.textColor || '#ffffff') + '15',
-                                                    color: theme.textColor || '#ffffff',
+                                                    background: SOCIAL_ICON_MAP[platform.name.toLowerCase()]?.color || ((theme.textColor || '#ffffff') + '15'),
+                                                    color: '#ffffff',
                                                     transition: 'all 0.2s ease', textDecoration: 'none',
-                                                    fontSize: '13px', fontWeight: 600, textTransform: 'uppercase',
                                                 }}
                                                 onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.opacity = '0.8'; }}
                                                 onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.opacity = '1'; }}
                                             >
-                                                {platform.name.substring(0, 2)}
+                                                <SocialIcon platform={platform.name} size={20} color="#ffffff" />
                                             </a>
                                         ))}
                                     </div>

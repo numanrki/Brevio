@@ -2,6 +2,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { url } from '@/utils';
 import { FormEvent, useState, useRef, useMemo } from 'react';
+import { SocialIcon, SOCIAL_ICON_MAP } from '@/Components/SocialIcons';
 
 interface Widget {
     id?: number;
@@ -356,11 +357,14 @@ function BioPreview({ name, alias, avatar, widgets, theme: rawTheme }: { name: s
                             const entries = Object.entries(plats).filter(([, v]) => v);
                             return (
                                 <div key={i} style={{ display: 'flex', justifyContent: 'center', gap: '8px', padding: '8px 0', flexWrap: 'wrap' }}>
-                                    {entries.map(([k]) => (
-                                        <div key={k} style={{ width: '32px', height: '32px', borderRadius: '50%', background: t.textColor + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 600, color: t.textColor, textTransform: 'uppercase' }}>
-                                            {k.substring(0, 2)}
-                                        </div>
-                                    ))}
+                                    {entries.map(([k]) => {
+                                        const cfg = SOCIAL_ICON_MAP[k];
+                                        return (
+                                            <div key={k} style={{ width: '32px', height: '32px', borderRadius: '50%', background: cfg ? cfg.color : t.textColor + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                <SocialIcon platform={k} size={16} color="#ffffff" />
+                                            </div>
+                                        );
+                                    })}
                                 </div>
                             );
                         }
@@ -422,13 +426,7 @@ function WidgetEditor({
             );
 
         case 'image':
-            return (
-                <div className="space-y-2">
-                    <input type="url" value={(c.url as string) || ''} onChange={(e) => updateContent(index, 'url', e.target.value)} placeholder="Image URL (https://...)" className={inputClass} />
-                    <input type="text" value={(c.alt as string) || ''} onChange={(e) => updateContent(index, 'alt', e.target.value)} placeholder="Alt text (optional)" className={inputClass} />
-                    <input type="url" value={(c.link as string) || ''} onChange={(e) => updateContent(index, 'link', e.target.value)} placeholder="Click-through URL (optional)" className={inputClass} />
-                </div>
-            );
+            return <ImageEditor content={c} index={index} updateContent={updateContent} />;
 
         case 'social':
             return <SocialEditor platforms={(c.platforms as Record<string, string>) || {}} onChange={(p) => updateContent(index, 'platforms', p)} />;
@@ -471,6 +469,65 @@ function WidgetEditor({
         default:
             return <p className="text-xs text-gray-500">No editor for this widget type.</p>;
     }
+}
+
+/* ─── Image Upload Editor ─── */
+
+function ImageEditor({
+    content: c,
+    index,
+    updateContent,
+}: {
+    content: Record<string, unknown>;
+    index: number;
+    updateContent: (index: number, key: string, value: unknown) => void;
+}) {
+    const [uploading, setUploading] = useState(false);
+    const fileRef = useRef<HTMLInputElement>(null);
+
+    const handleUpload = async (file: File) => {
+        setUploading(true);
+        try {
+            const formData = new FormData();
+            formData.append('image', file);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const res = await fetch(url('/admin/bio/upload-image'), {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken, Accept: 'application/json' },
+                body: formData,
+            });
+            const data = await res.json();
+            if (data.success && data.url) {
+                updateContent(index, 'url', data.url);
+            }
+        } catch {
+            // silently fail
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    return (
+        <div className="space-y-2">
+            <div className="flex items-center gap-2">
+                <input type="url" value={(c.url as string) || ''} onChange={(e) => updateContent(index, 'url', e.target.value)} placeholder="Image URL (https://...)" className={inputClass + ' flex-1'} />
+                <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={uploading}
+                    className="flex-shrink-0 px-3 py-2 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-lg text-sm font-medium hover:bg-violet-500/20 transition-colors disabled:opacity-50"
+                >
+                    {uploading ? 'Uploading...' : 'Upload'}
+                </button>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) handleUpload(f); e.target.value = ''; }} />
+            </div>
+            {(c.url as string) && (
+                <img src={c.url as string} alt="Preview" className="w-full max-h-40 object-cover rounded-lg border border-gray-800" />
+            )}
+            <input type="text" value={(c.alt as string) || ''} onChange={(e) => updateContent(index, 'alt', e.target.value)} placeholder="Alt text (optional)" className={inputClass} />
+            <input type="url" value={(c.link as string) || ''} onChange={(e) => updateContent(index, 'link', e.target.value)} placeholder="Click-through URL (optional)" className={inputClass} />
+        </div>
+    );
 }
 
 /* ─── Social Links Editor ─── */
@@ -527,7 +584,10 @@ function SocialEditor({
         <div className="space-y-2">
             {activePlatforms.map((platform) => (
                 <div key={platform} className="flex items-center gap-2">
-                    <span className="w-24 text-xs font-medium text-gray-400 capitalize flex-shrink-0">{platform}</span>
+                    <span className="w-24 text-xs font-medium text-gray-400 flex-shrink-0 flex items-center gap-1.5 capitalize">
+                        <SocialIcon platform={platform} size={14} color={SOCIAL_ICON_MAP[platform]?.color} />
+                        {SOCIAL_ICON_MAP[platform]?.label || platform}
+                    </span>
                     <input
                         type="url"
                         value={platforms[platform] || ''}
@@ -548,8 +608,9 @@ function SocialEditor({
             {showAdd ? (
                 <div className="flex flex-wrap gap-1.5 p-3 bg-gray-900 rounded-lg border border-gray-800">
                     {availablePlatforms.map((p) => (
-                        <button key={p} type="button" onClick={() => addPlatform(p)} className="px-2.5 py-1 text-xs font-medium text-gray-400 bg-gray-950 border border-gray-800 rounded-md hover:text-white hover:border-violet-500/30 transition-all capitalize">
-                            {p}
+                        <button key={p} type="button" onClick={() => addPlatform(p)} className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-gray-400 bg-gray-950 border border-gray-800 rounded-md hover:text-white hover:border-violet-500/30 transition-all capitalize">
+                            <SocialIcon platform={p} size={12} color={SOCIAL_ICON_MAP[p]?.color} />
+                            {SOCIAL_ICON_MAP[p]?.label || p}
                         </button>
                     ))}
                     {availablePlatforms.length === 0 && <p className="text-xs text-gray-500">All platforms added.</p>}
