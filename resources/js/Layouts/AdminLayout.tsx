@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { PropsWithChildren, useState, useEffect } from 'react';
+import { PropsWithChildren, useState, useEffect, useCallback } from 'react';
 import { User } from '@/types';
 import { url } from '@/utils';
 
@@ -21,10 +21,28 @@ const navigation = [
 ];
 
 export default function AdminLayout({ children, header }: AdminLayoutProps) {
-    const { auth } = usePage<{ auth: { user: User } }>().props;
+    const { auth, flash } = usePage<{ auth: { user: User }; flash?: { success?: string; error?: string } }>().props;
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [hasUpdate, setHasUpdate] = useState(false);
+    const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
     const currentPath = window.location.pathname;
+
+    // Show flash messages as toast notifications
+    useEffect(() => {
+        if (flash?.success) {
+            setToast({ message: flash.success, type: 'success' });
+        } else if (flash?.error) {
+            setToast({ message: flash.error, type: 'error' });
+        }
+    }, [flash?.success, flash?.error]);
+
+    // Auto-dismiss toast after 4 seconds
+    useEffect(() => {
+        if (toast) {
+            const timer = setTimeout(() => setToast(null), 4000);
+            return () => clearTimeout(timer);
+        }
+    }, [toast]);
 
     // Background check for stable updates every 30 minutes
     useEffect(() => {
@@ -101,6 +119,33 @@ export default function AdminLayout({ children, header }: AdminLayoutProps) {
                         </div>
                     </div>
                 </div>
+
+                {/* Toast notification */}
+                {toast && (
+                    <div className="fixed top-4 right-4 z-50 animate-slide-in">
+                        <div className={`flex items-center gap-3 px-5 py-3 rounded-xl shadow-2xl border backdrop-blur-sm ${
+                            toast.type === 'success'
+                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                                : 'bg-red-500/10 border-red-500/20 text-red-400'
+                        }`}>
+                            {toast.type === 'success' ? (
+                                <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            ) : (
+                                <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            )}
+                            <p className="text-sm font-medium">{toast.message}</p>
+                            <button onClick={() => setToast(null)} className="ml-2 opacity-60 hover:opacity-100 transition-opacity">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                )}
 
                 {/* Page content */}
                 <main className="p-4 sm:p-6 lg:p-8">

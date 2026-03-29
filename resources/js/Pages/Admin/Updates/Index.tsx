@@ -371,17 +371,19 @@ export default function Index({ currentVersion, lastCheck }: Props) {
                                 )}
 
                                 <div className="flex items-center gap-3">
-                                    {hasStableUpdate && (
-                                        <button
-                                            onClick={() => installUpdate('/admin/updates/install-stable', { version: release.version })}
-                                            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-sm font-medium rounded-xl transition-all shadow-lg shadow-emerald-500/20"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                                                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                            </svg>
-                                            Install v{release.version}
-                                        </button>
-                                    )}
+                                    <button
+                                        onClick={() => installUpdate('/admin/updates/install-stable', { version: release.version })}
+                                        className={`inline-flex items-center gap-2 px-5 py-2.5 text-white text-sm font-medium rounded-xl transition-all shadow-lg ${
+                                            hasStableUpdate
+                                                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-emerald-500/20'
+                                                : 'bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 shadow-gray-500/10'
+                                        }`}
+                                    >
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                                        </svg>
+                                        {hasStableUpdate ? `Install v${release.version}` : `Reinstall v${release.version}`}
+                                    </button>
                                     {release.html_url && (
                                         <a
                                             href={release.html_url}
