@@ -350,6 +350,12 @@ class UpdateController extends Controller
      */
     private function runComposerInstall(): string
     {
+        // Since vendor/ is bundled in the repo and copied during updates,
+        // composer install is only needed if exec() is available.
+        if (!function_exists('exec') || !is_callable('exec')) {
+            return 'Skipped — vendor dependencies were included in the update package.';
+        }
+
         $composerPaths = [
             base_path('composer.phar'),
             '/usr/local/bin/composer',
@@ -405,7 +411,6 @@ class UpdateController extends Controller
             'storage/app/update.zip',
             'storage/app/update-temp',
             'node_modules',
-            'vendor',
             '.git',
         ];
 
