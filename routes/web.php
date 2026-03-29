@@ -103,4 +103,5 @@ Route::get('/qr/{id}', [QrScanController::class, 'handle'])->name('qr.scan')->wh
 | Short URL Redirect (must be LAST)
 |--------------------------------------------------------------------------
 */
+Route::post('/{alias}/verify-password', [RedirectController::class, 'verifyPassword'])->where('alias', '[a-zA-Z0-9_-]+');
 Route::get('/{alias}', [RedirectController::class, 'handle'])->name('redirect')->where('alias', '[a-zA-Z0-9_-]+');

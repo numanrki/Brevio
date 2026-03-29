@@ -24,6 +24,11 @@ export interface Url {
     expiry_date?: string;
     created_at: string;
     user?: User;
+    meta?: {
+        apply_timer?: boolean;
+        show_button?: boolean;
+        timer_duration?: number;
+    };
 }
 
 export interface Click {

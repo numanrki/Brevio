@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Click;
+use App\Models\Setting;
 use App\Models\Url;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -23,12 +24,18 @@ class RedirectController extends Controller
 
         // Check if expired
         if ($url->isExpired()) {
-            return Inertia::render('LinkExpired', ['alias' => $alias]);
+            return Inertia::render('LinkExpired', [
+                'alias' => $alias,
+                'expired_at' => $url->expiry_date?->toIso8601String(),
+            ]);
         }
 
         // Check password protection
-        if ($url->password && $request->session()->get("url_password_{$url->id}") !== $url->password) {
-            return Inertia::render('PasswordProtect', ['alias' => $alias]);
+        if ($url->password && $request->session()->get("url_password_{$url->id}") !== true) {
+            return Inertia::render('PasswordProtect', [
+                'alias' => $alias,
+                'expiry_date' => $url->expiry_date?->toIso8601String(),
+            ]);
         }
 
         // Parse User-Agent
@@ -36,85 +43,147 @@ class RedirectController extends Controller
 
         // Skip tracking for bots
         if (!$this->isBot($userAgent)) {
-            // Increment total clicks
-            $url->increment('total_clicks');
+            $this->trackClick($request, $url, $userAgent);
+        }
 
-            $browser = $this->parseBrowser($userAgent);
-            $os = $this->parseOs($userAgent);
-            $device = $this->parseDevice($userAgent);
+        // Resolve final destination URL (geo/device/language targeting)
+        $destinationUrl = $this->resolveDestination($request, $url, $userAgent);
 
-            // Resolve GeoIP
-            $country = null;
-            $city = null;
-            $ip = $request->ip();
+        // Check if interstitial page should be shown (timer or button)
+        $meta = $url->meta ?? [];
+        $applyTimer = !empty($meta['apply_timer']);
+        $showButton = !empty($meta['show_button']);
 
-            try {
-                // Localhost IPs can't be geolocated — try external IP lookup
-                if (in_array($ip, ['127.0.0.1', '::1', 'localhost'])) {
-                    $externalIp = @file_get_contents('https://api.ipify.org?format=text');
-                    if ($externalIp && filter_var(trim($externalIp), FILTER_VALIDATE_IP)) {
-                        $ip = trim($externalIp);
-                    }
-                }
+        if ($applyTimer || $showButton) {
+            $timerDuration = (int) ($meta['timer_duration'] ?? 10);
+            if ($timerDuration < 1) $timerDuration = 10;
 
-                $position = Location::get($ip);
-                if ($position) {
-                    $country = $position->countryCode;
-                    $city = $position->cityName;
-                }
-            } catch (\Throwable) {
-                // GeoIP resolution failed — continue with null values
-            }
+            // Load ad codes from settings
+            $settings = $this->getAdSettings();
 
-            // Check uniqueness (same ip + url_id in last 24h)
-            $isUnique = !Click::where('url_id', $url->id)
-                ->where('ip', $request->ip())
-                ->where('created_at', '>=', now()->subDay())
-                ->exists();
-
-            // Create click record
-            Click::create([
-                'url_id' => $url->id,
-                'ip' => $request->ip(),
-                'browser' => $browser,
-                'os' => $os,
-                'device' => $device,
-                'referrer' => $request->header('referer'),
-                'language' => $request->getPreferredLanguage(),
-                'country' => $country,
-                'city' => $city,
-                'utm_source' => $request->query('utm_source'),
-                'utm_medium' => $request->query('utm_medium'),
-                'utm_campaign' => $request->query('utm_campaign'),
-                'is_unique' => $isUnique,
+            return Inertia::render('Interstitial', [
+                'destination' => $destinationUrl,
+                'title' => $url->title,
+                'timer_duration' => $applyTimer ? $timerDuration : 0,
+                'show_button' => $showButton,
+                'ad_above' => $settings['interstitial_ad_above'] ?? null,
+                'ad_below' => $settings['interstitial_ad_below'] ?? null,
+                'ad_sidebar' => $settings['interstitial_ad_sidebar'] ?? null,
+                'expiry_date' => $url->expiry_date?->toIso8601String(),
             ]);
         }
 
+        return redirect()->away($destinationUrl);
+    }
+
+    /**
+     * Verify password for a protected link.
+     */
+    public function verifyPassword(Request $request, string $alias)
+    {
+        $url = Url::where('alias', $alias)
+            ->where('is_active', true)
+            ->where('is_archived', false)
+            ->first();
+
+        if (!$url || !$url->password) {
+            abort(404);
+        }
+
+        if ($request->input('password') === $url->password) {
+            $request->session()->put("url_password_{$url->id}", true);
+            return redirect("/{$alias}");
+        }
+
+        return Inertia::render('PasswordProtect', [
+            'alias' => $alias,
+            'error' => 'Incorrect password. Please try again.',
+            'expiry_date' => $url->expiry_date?->toIso8601String(),
+        ]);
+    }
+
+    /**
+     * Track a click for the URL.
+     */
+    private function trackClick(Request $request, Url $url, string $userAgent): void
+    {
+        $url->increment('total_clicks');
+
+        $browser = $this->parseBrowser($userAgent);
+        $os = $this->parseOs($userAgent);
+        $device = $this->parseDevice($userAgent);
+
+        $country = null;
+        $city = null;
+        $ip = $request->ip();
+
+        try {
+            if (in_array($ip, ['127.0.0.1', '::1', 'localhost'])) {
+                $externalIp = @file_get_contents('https://api.ipify.org?format=text');
+                if ($externalIp && filter_var(trim($externalIp), FILTER_VALIDATE_IP)) {
+                    $ip = trim($externalIp);
+                }
+            }
+
+            $position = Location::get($ip);
+            if ($position) {
+                $country = $position->countryCode;
+                $city = $position->cityName;
+            }
+        } catch (\Throwable) {
+            // GeoIP resolution failed
+        }
+
+        $isUnique = !Click::where('url_id', $url->id)
+            ->where('ip', $request->ip())
+            ->where('created_at', '>=', now()->subDay())
+            ->exists();
+
+        Click::create([
+            'url_id' => $url->id,
+            'ip' => $request->ip(),
+            'browser' => $browser,
+            'os' => $os,
+            'device' => $device,
+            'referrer' => $request->header('referer'),
+            'language' => $request->getPreferredLanguage(),
+            'country' => $country,
+            'city' => $city,
+            'utm_source' => $request->query('utm_source'),
+            'utm_medium' => $request->query('utm_medium'),
+            'utm_campaign' => $request->query('utm_campaign'),
+            'is_unique' => $isUnique,
+        ]);
+    }
+
+    /**
+     * Resolve final destination considering geo/device/language targeting.
+     */
+    private function resolveDestination(Request $request, Url $url, string $userAgent): string
+    {
         // Handle geo targets
         if (!empty($url->geo_targets) && is_array($url->geo_targets)) {
             try {
-                $position = $position ?? Location::get($request->ip());
+                $position = Location::get($request->ip());
                 if ($position && $position->countryCode) {
                     foreach ($url->geo_targets as $target) {
                         if (isset($target['country'], $target['url'])) {
                             if (strtoupper($target['country']) === strtoupper($position->countryCode)) {
-                                return redirect()->away($target['url']);
+                                return $target['url'];
                             }
                         }
                     }
                 }
-            } catch (\Throwable) {
-                // GeoIP resolution failed — skip geo targeting
-            }
+            } catch (\Throwable) {}
         }
 
         // Handle device targets
         if (!empty($url->device_targets) && is_array($url->device_targets)) {
-            $device = $device ?? $this->parseDevice($userAgent);
+            $device = $this->parseDevice($userAgent);
             foreach ($url->device_targets as $target) {
                 if (isset($target['device'], $target['url'])) {
                     if (strtolower($target['device']) === strtolower($device)) {
-                        return redirect()->away($target['url']);
+                        return $target['url'];
                     }
                 }
             }
@@ -126,13 +195,26 @@ class RedirectController extends Controller
             foreach ($url->language_targets as $target) {
                 if (isset($target['language'], $target['url'])) {
                     if (str_starts_with($preferredLanguage, $target['language'])) {
-                        return redirect()->away($target['url']);
+                        return $target['url'];
                     }
                 }
             }
         }
 
-        return redirect()->away($url->url);
+        return $url->url;
+    }
+
+    /**
+     * Get ad settings from the database.
+     */
+    private function getAdSettings(): array
+    {
+        try {
+            $keys = ['interstitial_ad_above', 'interstitial_ad_below', 'interstitial_ad_sidebar'];
+            return Setting::whereIn('key', $keys)->pluck('value', 'key')->toArray();
+        } catch (\Throwable) {
+            return [];
+        }
     }
 
     private function isBot(string $userAgent): bool

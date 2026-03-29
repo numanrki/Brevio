@@ -17,6 +17,9 @@ export default function Edit({ url: link }: Props) {
         expiry_date: link.expiry_date ? link.expiry_date.slice(0, 16) : '',
         is_active: link.is_active,
         is_archived: link.is_archived,
+        apply_timer: link.meta?.apply_timer || false,
+        show_button: link.meta?.show_button || false,
+        timer_duration: String(link.meta?.timer_duration || 10),
     });
 
     const submit = (e: FormEvent) => {
@@ -128,6 +131,52 @@ export default function Edit({ url: link }: Props) {
                                 <span className="text-sm text-gray-300">Archived</span>
                             </label>
                         </div>
+                    </div>
+
+                    {/* Interstitial Options */}
+                    <div className="rounded-xl bg-gray-900 border border-gray-800 p-6 space-y-5">
+                        <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider">Redirect Behavior</h3>
+                        <p className="text-xs text-gray-500 -mt-2">Control what happens when someone opens this short link.</p>
+
+                        <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg bg-gray-950 border border-gray-800 hover:border-violet-500/20 transition-colors">
+                            <input
+                                type="checkbox"
+                                checked={data.apply_timer}
+                                onChange={(e) => setData('apply_timer', e.target.checked)}
+                                className="w-4 h-4 mt-0.5 rounded bg-gray-950 border-gray-700 text-violet-500 focus:ring-violet-500/40"
+                            />
+                            <div>
+                                <span className="text-sm font-medium text-gray-200 block">Apply Timer</span>
+                                <span className="text-xs text-gray-500">Show a countdown timer before redirecting to the destination URL.</span>
+                            </div>
+                        </label>
+
+                        {data.apply_timer && (
+                            <div className="pl-7">
+                                <label className="block text-sm font-medium text-gray-300 mb-1.5">Timer Duration (seconds)</label>
+                                <input
+                                    type="number"
+                                    min="1"
+                                    max="60"
+                                    value={data.timer_duration}
+                                    onChange={(e) => setData('timer_duration', e.target.value)}
+                                    className="w-32 px-4 py-2.5 bg-gray-950 border border-gray-800 rounded-xl text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/40 focus:border-violet-500/40"
+                                />
+                            </div>
+                        )}
+
+                        <label className="flex items-start gap-3 cursor-pointer p-3 rounded-lg bg-gray-950 border border-gray-800 hover:border-violet-500/20 transition-colors">
+                            <input
+                                type="checkbox"
+                                checked={data.show_button}
+                                onChange={(e) => setData('show_button', e.target.checked)}
+                                className="w-4 h-4 mt-0.5 rounded bg-gray-950 border-gray-700 text-violet-500 focus:ring-violet-500/40"
+                            />
+                            <div>
+                                <span className="text-sm font-medium text-gray-200 block">Show "Click Here" Button</span>
+                                <span className="text-xs text-gray-500">Instead of auto-redirecting after timer, show a button for the user to click.</span>
+                            </div>
+                        </label>
                     </div>
 
                     <div className="flex items-center justify-between">

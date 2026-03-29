@@ -56,6 +56,9 @@ class LinkController extends Controller
             'description' => 'nullable|string',
             'password' => 'nullable|string',
             'expiry_date' => 'nullable|date|after:now',
+            'apply_timer' => 'nullable|boolean',
+            'show_button' => 'nullable|boolean',
+            'timer_duration' => 'nullable|integer|min:1|max:60',
         ]);
 
         if (empty($validated['alias'])) {
@@ -67,6 +70,14 @@ class LinkController extends Controller
 
         $validated['user_id'] = auth()->id();
         $validated['custom_alias'] = !empty($request->alias);
+
+        // Store interstitial options in meta JSON
+        $validated['meta'] = [
+            'apply_timer' => !empty($validated['apply_timer']),
+            'show_button' => !empty($validated['show_button']),
+            'timer_duration' => (int) ($validated['timer_duration'] ?? 10),
+        ];
+        unset($validated['apply_timer'], $validated['show_button'], $validated['timer_duration']);
 
         Url::create($validated);
 
@@ -105,7 +116,18 @@ class LinkController extends Controller
             'expiry_date' => 'nullable|date',
             'is_active' => 'boolean',
             'is_archived' => 'boolean',
+            'apply_timer' => 'nullable|boolean',
+            'show_button' => 'nullable|boolean',
+            'timer_duration' => 'nullable|integer|min:1|max:60',
         ]);
+
+        // Store interstitial options in meta JSON
+        $validated['meta'] = [
+            'apply_timer' => !empty($validated['apply_timer']),
+            'show_button' => !empty($validated['show_button']),
+            'timer_duration' => (int) ($validated['timer_duration'] ?? 10),
+        ];
+        unset($validated['apply_timer'], $validated['show_button'], $validated['timer_duration']);
 
         $link->update($validated);
 
