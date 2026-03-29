@@ -14,9 +14,17 @@ class SettingController extends Controller
     {
         $settings = Setting::all()->pluck('value', 'key');
 
+        $has2fa = false;
+        try {
+            $user = auth()->user();
+            $has2fa = (bool) ($user->two_factor_secret && $user->two_factor_confirmed_at);
+        } catch (\Throwable $e) {
+            // 2FA columns may not exist yet
+        }
+
         return Inertia::render('Admin/Settings/Index', [
             'settings'    => $settings,
-            'has2fa'      => (bool) (auth()->user()->two_factor_secret && auth()->user()->two_factor_confirmed_at),
+            'has2fa'      => $has2fa,
         ]);
     }
 

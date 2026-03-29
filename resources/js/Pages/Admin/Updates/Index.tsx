@@ -150,6 +150,11 @@ export default function Index({ currentVersion, lastCheck, pendingMigrations: in
                 setNewVersion(data.new_version || '');
                 setMigrateOutput(data.migrate || '');
                 setState('success');
+
+                // Auto-redirect to dashboard after 3 seconds
+                setTimeout(() => {
+                    window.location.href = url('/admin');
+                }, 3000);
             } catch (err: unknown) {
                 clearInterval(progressInterval);
                 setInstallSteps((prev) =>
@@ -334,6 +339,7 @@ export default function Index({ currentVersion, lastCheck, pendingMigrations: in
                         Updated from <span className="text-gray-300 font-medium">v{currentVersion}</span> to{' '}
                         <span className="text-emerald-400 font-medium">v{newVersion}</span>
                     </p>
+                    <p className="text-xs text-gray-500">Redirecting to dashboard in a moment…</p>
                     {migrateOutput && (
                         <pre className="text-xs text-gray-500 bg-gray-950 rounded-lg p-3 mt-4 text-left max-h-40 overflow-auto">{migrateOutput}</pre>
                     )}

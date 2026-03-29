@@ -39,7 +39,14 @@ class AuthenticatedSessionController extends Controller
         }
 
         // Check if 2FA is enabled (Fortify: confirmed 2FA)
-        if ($request->user()->two_factor_secret && $request->user()->two_factor_confirmed_at) {
+        $has2fa = false;
+        try {
+            $has2fa = $request->user()->two_factor_secret && $request->user()->two_factor_confirmed_at;
+        } catch (\Throwable $e) {
+            // 2FA columns may not exist yet
+        }
+
+        if ($has2fa) {
             $userId = $request->user()->id;
             $remember = $request->boolean('remember');
 

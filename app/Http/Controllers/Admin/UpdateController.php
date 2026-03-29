@@ -288,6 +288,11 @@ class UpdateController extends Controller
 
             $this->applyFiles($sourceDir, base_path());
 
+            // Reset OPcache so PHP serves the new files
+            if (function_exists('opcache_reset')) {
+                opcache_reset();
+            }
+
             $steps[2]['status'] = 'done';
 
             // Step 4: Install dependencies
