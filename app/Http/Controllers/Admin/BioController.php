@@ -153,6 +153,4 @@ class BioController extends Controller
             'url' => url('content/images/' . $filename),
         ]);
     }
-        ]);
-    }
 }
