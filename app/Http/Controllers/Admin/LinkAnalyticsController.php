@@ -29,6 +29,7 @@ class LinkAnalyticsController extends Controller
             'top_os' => $analytics->getTopOS($link->id, $from, $to),
             'devices' => $analytics->getDeviceBreakdown($link->id, $from, $to),
             'top_languages' => $analytics->getTopLanguages($link->id, $from, $to),
+            'visitor_log' => $analytics->getClickVisitorLog($link->id, $from, $to),
         ]);
     }
 }

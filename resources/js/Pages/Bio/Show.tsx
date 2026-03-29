@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import { useCallback } from 'react';
 
 interface SocialPlatform {
     name: string;
@@ -29,9 +30,10 @@ interface Bio {
 
 interface Props {
     bio: Bio;
+    trackUrl?: string;
 }
 
-export default function Show({ bio }: Props) {
+export default function Show({ bio, trackUrl }: Props) {
     const theme = bio.theme || {
         background: '#0f0f1a',
         textColor: '#ffffff',
@@ -79,6 +81,31 @@ export default function Show({ bio }: Props) {
     };
 
     const pageTitle = bio.seo_title || bio.name;
+
+    const trackClick = useCallback((widgetId: number, linkUrl: string) => {
+        if (trackUrl) {
+            const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+            const token = csrfMeta?.getAttribute('content') || '';
+            navigator.sendBeacon(trackUrl, new Blob([JSON.stringify({ widget_id: widgetId, url: linkUrl, _token: token })], { type: 'application/json' }));
+        }
+    }, [trackUrl]);
+
+    const getEmbedUrl = (rawUrl: string, provider: string) => {
+        if (provider === 'youtube') {
+            const m = rawUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+            return m ? `https://www.youtube-nocookie.com/embed/${m[1]}` : null;
+        }
+        if (provider === 'vimeo') {
+            const m = rawUrl.match(/vimeo\.com\/(\d+)/);
+            return m ? `https://player.vimeo.com/video/${m[1]}` : null;
+        }
+        return null;
+    };
+
+    const getSpotifyEmbed = (rawUrl: string) => {
+        const m = rawUrl.match(/open\.spotify\.com\/(track|album|playlist|artist)\/([\w]+)/);
+        return m ? `https://open.spotify.com/embed/${m[1]}/${m[2]}` : null;
+    };
 
     return (
         <>
@@ -170,6 +197,7 @@ export default function Show({ bio }: Props) {
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         style={getButtonStyle()}
+                                        onClick={() => trackClick(widget.id, widget.content.url || '')}
                                         onMouseEnter={(e) => {
                                             e.currentTarget.style.transform = 'scale(1.02)';
                                             e.currentTarget.style.opacity = '0.9';
@@ -187,16 +215,8 @@ export default function Show({ bio }: Props) {
                             if (widget.type === 'heading') {
                                 return (
                                     <div key={widget.id} style={{ padding: '12px 0 4px', textAlign: 'center' }}>
-                                        <h2
-                                            style={{
-                                                fontSize: '16px',
-                                                fontWeight: 600,
-                                                color: theme.textColor || '#ffffff',
-                                                margin: 0,
-                                                letterSpacing: '0.02em',
-                                            }}
-                                        >
-                                            {widget.content.text}
+                                        <h2 style={{ fontSize: '16px', fontWeight: 600, color: theme.textColor || '#ffffff', margin: 0, letterSpacing: '0.02em' }}>
+                                            {widget.content.text || widget.content.title}
                                         </h2>
                                     </div>
                                 );
@@ -205,72 +225,103 @@ export default function Show({ bio }: Props) {
                             if (widget.type === 'text') {
                                 return (
                                     <div key={widget.id} style={{ padding: '4px 0', textAlign: 'center' }}>
-                                        <p
-                                            style={{
-                                                fontSize: '14px',
-                                                color: theme.textColor || '#ffffff',
-                                                opacity: 0.7,
-                                                margin: 0,
-                                                lineHeight: '1.6',
-                                                maxWidth: '480px',
-                                                marginLeft: 'auto',
-                                                marginRight: 'auto',
-                                            }}
-                                        >
-                                            {widget.content.text}
+                                        <p style={{ fontSize: '14px', color: theme.textColor || '#ffffff', opacity: 0.7, margin: 0, lineHeight: '1.6', maxWidth: '480px', marginLeft: 'auto', marginRight: 'auto' }}>
+                                            {widget.content.text || widget.content.title}
                                         </p>
                                     </div>
                                 );
                             }
 
+                            if (widget.type === 'divider') {
+                                const divStyle = widget.content.style || 'solid';
+                                if (divStyle === 'space') {
+                                    return <div key={widget.id} style={{ height: '24px' }} />;
+                                }
+                                return (
+                                    <div key={widget.id} style={{ padding: '8px 0' }}>
+                                        <hr style={{ border: 'none', borderTop: `1px ${divStyle} ${(theme.textColor || '#ffffff') + '25'}`, margin: 0 }} />
+                                    </div>
+                                );
+                            }
+
+                            if (widget.type === 'image') {
+                                const imgEl = (
+                                    <img
+                                        src={widget.content.url}
+                                        alt={widget.content.alt || ''}
+                                        style={{ width: '100%', borderRadius: '12px', display: 'block' }}
+                                    />
+                                );
+                                if (widget.content.link) {
+                                    return (
+                                        <a key={widget.id} href={widget.content.link} target="_blank" rel="noopener noreferrer" onClick={() => trackClick(widget.id, widget.content.link)}>
+                                            {imgEl}
+                                        </a>
+                                    );
+                                }
+                                return <div key={widget.id}>{imgEl}</div>;
+                            }
+
                             if (widget.type === 'social') {
                                 const platforms: SocialPlatform[] = widget.content.platforms || [];
+                                // Support both array format and object format
+                                const platformList: { name: string; url: string }[] = Array.isArray(platforms)
+                                    ? platforms
+                                    : Object.entries(platforms).filter(([, v]) => v).map(([k, v]) => ({ name: k, url: v as string }));
                                 return (
-                                    <div
-                                        key={widget.id}
-                                        style={{
-                                            display: 'flex',
-                                            justifyContent: 'center',
-                                            gap: '16px',
-                                            padding: '12px 0',
-                                            flexWrap: 'wrap',
-                                        }}
-                                    >
-                                        {platforms.map((platform, i) => (
+                                    <div key={widget.id} style={{ display: 'flex', justifyContent: 'center', gap: '16px', padding: '12px 0', flexWrap: 'wrap' }}>
+                                        {platformList.map((platform, i) => (
                                             <a
                                                 key={i}
                                                 href={platform.url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 title={platform.name}
+                                                onClick={() => trackClick(widget.id, platform.url)}
                                                 style={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    width: '44px',
-                                                    height: '44px',
-                                                    borderRadius: '50%',
+                                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                                    width: '44px', height: '44px', borderRadius: '50%',
                                                     background: (theme.textColor || '#ffffff') + '15',
                                                     color: theme.textColor || '#ffffff',
-                                                    transition: 'all 0.2s ease',
-                                                    textDecoration: 'none',
+                                                    transition: 'all 0.2s ease', textDecoration: 'none',
+                                                    fontSize: '13px', fontWeight: 600, textTransform: 'uppercase',
                                                 }}
-                                                onMouseEnter={(e) => {
-                                                    e.currentTarget.style.background = platform.color;
-                                                    e.currentTarget.style.color = '#ffffff';
-                                                    e.currentTarget.style.transform = 'scale(1.1)';
-                                                }}
-                                                onMouseLeave={(e) => {
-                                                    e.currentTarget.style.background = (theme.textColor || '#ffffff') + '15';
-                                                    e.currentTarget.style.color = theme.textColor || '#ffffff';
-                                                    e.currentTarget.style.transform = 'scale(1)';
-                                                }}
+                                                onMouseEnter={(e) => { e.currentTarget.style.transform = 'scale(1.1)'; e.currentTarget.style.opacity = '0.8'; }}
+                                                onMouseLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; e.currentTarget.style.opacity = '1'; }}
                                             >
-                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                                    <path d={platform.icon} />
-                                                </svg>
+                                                {platform.name.substring(0, 2)}
                                             </a>
                                         ))}
+                                    </div>
+                                );
+                            }
+
+                            if (widget.type === 'video') {
+                                const embedUrl = getEmbedUrl(widget.content.url || '', widget.content.provider || 'youtube');
+                                if (!embedUrl) return null;
+                                return (
+                                    <div key={widget.id} style={{ borderRadius: '12px', overflow: 'hidden', aspectRatio: '16/9' }}>
+                                        <iframe src={embedUrl} style={{ width: '100%', height: '100%', border: 'none' }} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                                    </div>
+                                );
+                            }
+
+                            if (widget.type === 'spotify') {
+                                const spotifyEmbed = getSpotifyEmbed(widget.content.url || '');
+                                if (!spotifyEmbed) return null;
+                                return (
+                                    <div key={widget.id} style={{ borderRadius: '12px', overflow: 'hidden' }}>
+                                        <iframe src={spotifyEmbed} style={{ width: '100%', height: widget.content.type === 'track' ? '80px' : '380px', border: 'none' }} allow="encrypted-media" />
+                                    </div>
+                                );
+                            }
+
+                            if (widget.type === 'map') {
+                                const addr = encodeURIComponent(widget.content.address || '');
+                                if (!addr) return null;
+                                return (
+                                    <div key={widget.id} style={{ borderRadius: '12px', overflow: 'hidden', aspectRatio: '16/9' }}>
+                                        <iframe src={`https://maps.google.com/maps?q=${addr}&output=embed`} style={{ width: '100%', height: '100%', border: 'none' }} loading="lazy" />
                                     </div>
                                 );
                             }

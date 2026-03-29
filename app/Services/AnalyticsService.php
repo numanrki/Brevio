@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Click;
+use App\Models\Visit;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -226,5 +227,106 @@ class AnalyticsService
                 ->take($limit)
                 ->get();
         });
+    }
+
+    // ── Visit-based analytics (Bio pages, QR scans) ──
+
+    public function getVisitSummary(string $visitableType, int $visitableId, ?string $eventType, Carbon $from, Carbon $to): array
+    {
+        $q = Visit::where('visitable_type', $visitableType)
+            ->where('visitable_id', $visitableId)
+            ->whereBetween('created_at', [$from, $to]);
+
+        if ($eventType) {
+            $q->where('event_type', $eventType);
+        }
+
+        $total = (clone $q)->count();
+        $unique = (clone $q)->where('is_unique', true)->count();
+        $days = max($from->diffInDays($to), 1);
+
+        return [
+            'total_clicks' => $total,
+            'unique_clicks' => $unique,
+            'avg_daily' => round($total / $days, 1),
+        ];
+    }
+
+    public function getVisitsOverTime(string $visitableType, int $visitableId, ?string $eventType, Carbon $from, Carbon $to): Collection
+    {
+        $q = Visit::where('visitable_type', $visitableType)
+            ->where('visitable_id', $visitableId)
+            ->whereBetween('created_at', [$from, $to]);
+
+        if ($eventType) {
+            $q->where('event_type', $eventType);
+        }
+
+        return $q->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'))
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+    }
+
+    public function getVisitTopItems(string $visitableType, int $visitableId, ?string $eventType, Carbon $from, Carbon $to, string $column, int $limit = 10): Collection
+    {
+        $q = Visit::where('visitable_type', $visitableType)
+            ->where('visitable_id', $visitableId)
+            ->whereBetween('created_at', [$from, $to])
+            ->whereNotNull($column)
+            ->where($column, '!=', '');
+
+        if ($eventType) {
+            $q->where('event_type', $eventType);
+        }
+
+        return $q->select("{$column} as name", DB::raw('COUNT(*) as count'))
+            ->groupBy($column)
+            ->orderByDesc('count')
+            ->take($limit)
+            ->get();
+    }
+
+    public function getVisitorLog(string $visitableType, int $visitableId, ?string $eventType, Carbon $from, Carbon $to, int $limit = 100): Collection
+    {
+        $q = Visit::where('visitable_type', $visitableType)
+            ->where('visitable_id', $visitableId)
+            ->whereBetween('created_at', [$from, $to]);
+
+        if ($eventType) {
+            $q->where('event_type', $eventType);
+        }
+
+        return $q->select('ip', 'country', 'city', 'browser', 'os', 'device', 'referrer', 'event_type', 'meta', 'created_at')
+            ->orderByDesc('created_at')
+            ->take($limit)
+            ->get();
+    }
+
+    public function getClickVisitorLog(int $urlId, Carbon $from, Carbon $to, int $limit = 100): Collection
+    {
+        return Click::where('url_id', $urlId)
+            ->whereBetween('created_at', [$from, $to])
+            ->select('ip', 'country', 'city', 'browser', 'os', 'device', 'referrer', 'language', 'created_at')
+            ->orderByDesc('created_at')
+            ->take($limit)
+            ->get();
+    }
+
+    public function getBioLinkClicks(int $bioId, Carbon $from, Carbon $to): Collection
+    {
+        return Visit::where('visitable_type', \App\Models\Bio::class)
+            ->where('visitable_id', $bioId)
+            ->where('event_type', 'link_click')
+            ->whereBetween('created_at', [$from, $to])
+            ->get()
+            ->map(function ($v) {
+                $meta = $v->meta ?? [];
+                return [
+                    'url' => $meta['url'] ?? '',
+                    'widget_id' => $meta['widget_id'] ?? null,
+                    'created_at' => $v->created_at,
+                ];
+            });
     }
 }

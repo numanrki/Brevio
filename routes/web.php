@@ -39,6 +39,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::resource('links', Admin\LinkController::class);
 
     // Bio Pages
+    Route::get('bio/{bio}/analytics', [Admin\BioAnalyticsController::class, 'show'])->name('bio.analytics');
     Route::resource('bio', Admin\BioController::class);
 
     // QR Codes
@@ -76,6 +77,7 @@ require __DIR__.'/auth.php';
 |--------------------------------------------------------------------------
 */
 Route::get('/bio/{alias}', [BioPageController::class, 'show'])->name('bio.show');
+Route::post('/bio/{alias}/track', [BioPageController::class, 'track'])->name('bio.track');
 
 /*
 |--------------------------------------------------------------------------

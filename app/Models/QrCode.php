@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class QrCode extends Model
 {
@@ -36,5 +37,10 @@ class QrCode extends Model
     public function url(): BelongsTo
     {
         return $this->belongsTo(Url::class);
+    }
+
+    public function visits(): MorphMany
+    {
+        return $this->morphMany(Visit::class, 'visitable');
     }
 }

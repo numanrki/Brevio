@@ -2,7 +2,20 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { Url, Domain, AnalyticsSummary, TimeSeriesPoint, BreakdownItem } from '@/types';
 import { url } from '@/utils';
+import { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell } from 'recharts';
+
+interface VisitorLogEntry {
+    ip: string;
+    country?: string;
+    city?: string;
+    browser?: string;
+    os?: string;
+    device?: string;
+    referrer?: string;
+    language?: string;
+    created_at: string;
+}
 
 interface Props {
     url: Url & { domain?: Domain };
@@ -17,6 +30,7 @@ interface Props {
     top_os: BreakdownItem[];
     devices: BreakdownItem[];
     top_languages: BreakdownItem[];
+    visitor_log: VisitorLogEntry[];
 }
 
 const PIE_COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#6366f1', '#14b8a6'];
@@ -30,7 +44,8 @@ const rangeLabels: Record<string, string> = {
     '12m': '12 Months',
 };
 
-export default function Analytics({ url: link, range, ranges, summary, clicks_over_time, top_countries, top_cities, top_referrers, top_browsers, top_os, devices, top_languages }: Props) {
+export default function Analytics({ url: link, range, ranges, summary, clicks_over_time, top_countries, top_cities, top_referrers, top_browsers, top_os, devices, top_languages, visitor_log }: Props) {
+    const [tab, setTab] = useState<'overview' | 'visitors'>('overview');
     const changeRange = (newRange: string) => {
         router.get(url(`/admin/links/${link.id}/analytics`), { range: newRange }, { preserveState: true, preserveScroll: true });
     };
@@ -72,6 +87,52 @@ export default function Analytics({ url: link, range, ranges, summary, clicks_ov
                     <SummaryCard label="Avg. Daily" value={summary.avg_daily} />
                 </div>
 
+                {/* Tabs */}
+                <div className="flex gap-1 p-1 rounded-xl bg-gray-900 border border-gray-800 mb-6 w-fit">
+                    <button onClick={() => setTab('overview')} className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'overview' ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30' : 'text-gray-400 hover:text-white hover:bg-gray-800/50'}`}>
+                        Overview
+                    </button>
+                    <button onClick={() => setTab('visitors')} className={`px-5 py-2 rounded-lg text-sm font-medium transition-all ${tab === 'visitors' ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30' : 'text-gray-400 hover:text-white hover:bg-gray-800/50'}`}>
+                        Visitor Log ({visitor_log.length})
+                    </button>
+                </div>
+
+                {tab === 'visitors' && (
+                    <div className="rounded-xl bg-gray-900 border border-gray-800 overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm">
+                                <thead>
+                                    <tr className="border-b border-gray-800">
+                                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">IP</th>
+                                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Location</th>
+                                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Browser / OS</th>
+                                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Device</th>
+                                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Referrer</th>
+                                        <th className="text-left px-4 py-3 text-xs font-semibold text-gray-400 uppercase">Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-800/50">
+                                    {visitor_log.length === 0 ? (
+                                        <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-500">No visitors recorded yet</td></tr>
+                                    ) : (
+                                        visitor_log.map((v, i) => (
+                                            <tr key={i} className="hover:bg-gray-800/30 transition-colors">
+                                                <td className="px-4 py-3 font-mono text-xs text-gray-300">{v.ip}</td>
+                                                <td className="px-4 py-3 text-xs text-gray-400">{[v.city, v.country].filter(Boolean).join(', ') || '—'}</td>
+                                                <td className="px-4 py-3 text-xs text-gray-400">{v.browser} / {v.os}</td>
+                                                <td className="px-4 py-3"><span className="text-[10px] px-1.5 py-0.5 rounded bg-gray-800 text-gray-400 capitalize">{v.device || '—'}</span></td>
+                                                <td className="px-4 py-3 text-xs text-gray-500 truncate max-w-[150px]">{v.referrer || '—'}</td>
+                                                <td className="px-4 py-3 text-xs text-gray-500 whitespace-nowrap">{new Date(v.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                )}
+
+                {tab === 'overview' && (<>
                 {/* Clicks over time */}
                 <div className="rounded-xl bg-gray-900 border border-gray-800 p-6 mb-6">
                     <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Clicks Over Time</h3>
@@ -125,6 +186,7 @@ export default function Analytics({ url: link, range, ranges, summary, clicks_ov
                         <EmptyChart />
                     )}
                 </div>
+                </>)}
             </div>
         </AdminLayout>
     );
