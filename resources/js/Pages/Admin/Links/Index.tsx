@@ -5,6 +5,17 @@ import { PaginatedData, Url } from '@/types';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { url } from '@/utils';
 
+function useCopyLink() {
+    const [copiedId, setCopiedId] = useState<number | null>(null);
+    const copy = (id: number, alias: string) => {
+        const base = window.location.origin + window.location.pathname.replace(/\/admin.*$/, '');
+        navigator.clipboard.writeText(`${base}/${alias}`);
+        setCopiedId(id);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
+    return { copiedId, copy };
+}
+
 interface Props {
     links: PaginatedData<Url>;
     filters: {
@@ -17,6 +28,7 @@ export default function Index({ links, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
     const [status, setStatus] = useState(filters.status || '');
     const searchTimeout = useRef<ReturnType<typeof setTimeout>>();
+    const { copiedId, copy } = useCopyLink();
 
     const applyFilters = useCallback(
         (params: Record<string, string>) => {
@@ -194,6 +206,17 @@ export default function Index({ links, filters }: Props) {
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex items-center justify-end gap-1">
+                                                <button
+                                                    onClick={() => copy(link.id, link.alias)}
+                                                    className={`p-2 rounded-lg transition-all ${copiedId === link.id ? 'text-emerald-400 bg-emerald-500/10' : 'text-gray-500 hover:text-fuchsia-400 hover:bg-fuchsia-500/10'}`}
+                                                    title={copiedId === link.id ? 'Copied!' : 'Copy short link'}
+                                                >
+                                                    {copiedId === link.id ? (
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                                    ) : (
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" /></svg>
+                                                    )}
+                                                </button>
                                                 <Link
                                                     href={url(`/admin/links/${link.id}`)}
                                                     className="p-2 text-gray-500 hover:text-white hover:bg-gray-800 rounded-lg transition-all"
