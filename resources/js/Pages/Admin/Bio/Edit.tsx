@@ -39,6 +39,7 @@ const WIDGET_TYPES: { type: string; label: string; icon: string }[] = [
     { type: 'video', label: 'Video', icon: 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z' },
     { type: 'spotify', label: 'Spotify', icon: 'M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3' },
     { type: 'map', label: 'Map', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z M15 11a3 3 0 11-6 0 3 3 0 016 0z' },
+    { type: 'products', label: 'Products', icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z' },
 ];
 
 const SOCIAL_PLATFORMS = [
@@ -118,6 +119,7 @@ export default function Edit({ bio }: Props) {
             video: { url: '', provider: 'youtube' },
             spotify: { url: '', type: 'track' },
             map: { address: '', lat: '', lng: '' },
+            products: { items: [{ image: '', title: '', description: '', url: '', buttonText: 'Buy Now' }] },
         };
         const newWidget: Widget = {
             type,
@@ -414,6 +416,31 @@ function BioPreview({ name, alias, avatar, widgets, theme: rawTheme }: { name: s
                         if (w.type === 'video') return <div key={i} style={{ borderRadius: '8px', background: t.textColor + '10', aspectRatio: '16/9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '10px', color: t.textColor, opacity: 0.5 }}>▶ Video</span></div>;
                         if (w.type === 'spotify') return <div key={i} style={{ borderRadius: '8px', background: '#1DB954' + '20', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '10px', color: '#1DB954' }}>♫ Spotify</span></div>;
                         if (w.type === 'map') return <div key={i} style={{ borderRadius: '8px', background: t.textColor + '10', aspectRatio: '16/9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '10px', color: t.textColor, opacity: 0.5 }}>📍 Map</span></div>;
+                        if (w.type === 'products') {
+                            const items = (w.content.items as Array<{ image: string; title: string; description: string; url: string; buttonText: string }>) || [];
+                            if (items.length === 0) return <div key={i} style={{ padding: '8px', textAlign: 'center' }}><span style={{ fontSize: '9px', color: t.textColor, opacity: 0.4 }}>No products</span></div>;
+                            return (
+                                <div key={i} style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '2px', scrollbarWidth: 'none' }}>
+                                    {items.map((p, pi) => (
+                                        <div key={pi} style={{ flex: '0 0 100px', borderRadius: '8px', overflow: 'hidden', background: t.textColor + '08', border: `1px solid ${t.textColor}10` }}>
+                                            {p.image ? (
+                                                <img src={p.image} alt="" style={{ width: '100%', height: '64px', objectFit: 'cover', display: 'block' }} />
+                                            ) : (
+                                                <div style={{ width: '100%', height: '64px', background: t.buttonColor + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                                    <span style={{ fontSize: '16px' }}>🛍️</span>
+                                                </div>
+                                            )}
+                                            <div style={{ padding: '6px' }}>
+                                                <p style={{ fontSize: '8px', fontWeight: 600, color: t.textColor, margin: 0, lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.title || 'Product'}</p>
+                                                <div style={{ marginTop: '4px', padding: '3px 6px', borderRadius: t.buttonRadius, background: t.buttonColor, textAlign: 'center' }}>
+                                                    <span style={{ fontSize: '7px', fontWeight: 600, color: t.buttonTextColor }}>{p.buttonText || 'Buy'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        }
                         return null;
                     })}
                 </div>
@@ -509,6 +536,9 @@ function WidgetEditor({
                     </div>
                 </div>
             );
+
+        case 'products':
+            return <ProductsEditor content={c} index={index} updateContent={updateContent} />;
 
         default:
             return <p className="text-xs text-gray-500">No editor for this widget type.</p>;
@@ -666,6 +696,132 @@ function SocialEditor({
                     Add social platform
                 </button>
             )}
+        </div>
+    );
+}
+
+/* ─── Products Editor ─── */
+
+interface ProductItem {
+    image: string;
+    title: string;
+    description: string;
+    url: string;
+    buttonText: string;
+}
+
+function ProductsEditor({
+    content: c,
+    index,
+    updateContent,
+}: {
+    content: Record<string, unknown>;
+    index: number;
+    updateContent: (index: number, key: string, value: unknown) => void;
+}) {
+    const items = ((c.items as ProductItem[]) || []);
+    const [uploadingIdx, setUploadingIdx] = useState<number | null>(null);
+    const fileRefs = useRef<Record<number, HTMLInputElement | null>>({});
+
+    const updateItem = (itemIdx: number, field: keyof ProductItem, value: string) => {
+        const updated = items.map((item, i) => i === itemIdx ? { ...item, [field]: value } : item);
+        updateContent(index, 'items', updated);
+    };
+
+    const addItem = () => {
+        updateContent(index, 'items', [...items, { image: '', title: '', description: '', url: '', buttonText: 'Buy Now' }]);
+    };
+
+    const removeItem = (itemIdx: number) => {
+        updateContent(index, 'items', items.filter((_, i) => i !== itemIdx));
+    };
+
+    const moveItem = (itemIdx: number, direction: -1 | 1) => {
+        const newIdx = itemIdx + direction;
+        if (newIdx < 0 || newIdx >= items.length) return;
+        const updated = [...items];
+        [updated[itemIdx], updated[newIdx]] = [updated[newIdx], updated[itemIdx]];
+        updateContent(index, 'items', updated);
+    };
+
+    const handleImageUpload = async (itemIdx: number, file: File) => {
+        setUploadingIdx(itemIdx);
+        try {
+            const formData = new FormData();
+            formData.append('image', file);
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const res = await fetch(url('/admin/bio/upload-image'), {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken, Accept: 'application/json' },
+                body: formData,
+            });
+            const data = await res.json();
+            if (data.success && data.url) {
+                updateItem(itemIdx, 'image', data.url);
+            }
+        } catch { /* ignore */ } finally {
+            setUploadingIdx(null);
+        }
+    };
+
+    return (
+        <div className="space-y-3">
+            {items.map((item, idx) => (
+                <div key={idx} className="p-3 bg-gray-900 rounded-lg border border-gray-800 space-y-2">
+                    <div className="flex items-center justify-between">
+                        <span className="text-xs font-medium text-gray-400">Product #{idx + 1}</span>
+                        <div className="flex items-center gap-1">
+                            <button type="button" onClick={() => moveItem(idx, -1)} disabled={idx === 0} className="p-0.5 text-gray-600 hover:text-white disabled:opacity-30 transition-colors">
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                            </button>
+                            <button type="button" onClick={() => moveItem(idx, 1)} disabled={idx === items.length - 1} className="p-0.5 text-gray-600 hover:text-white disabled:opacity-30 transition-colors">
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                            </button>
+                            <button type="button" onClick={() => removeItem(idx)} className="p-0.5 text-gray-500 hover:text-red-400 transition-colors">
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Image */}
+                    <div className="flex items-center gap-2">
+                        <input type="url" value={item.image} onChange={(e) => updateItem(idx, 'image', e.target.value)} placeholder="Product image URL" className={inputClass + ' flex-1'} />
+                        <button
+                            type="button"
+                            onClick={() => fileRefs.current[idx]?.click()}
+                            disabled={uploadingIdx === idx}
+                            className="flex-shrink-0 px-2.5 py-2 bg-violet-500/10 text-violet-400 border border-violet-500/20 rounded-lg text-xs font-medium hover:bg-violet-500/20 transition-colors disabled:opacity-50"
+                        >
+                            {uploadingIdx === idx ? '...' : 'Upload'}
+                        </button>
+                        <input
+                            ref={(el) => { fileRefs.current[idx] = el; }}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => { const f = e.target.files?.[0]; if (f) handleImageUpload(idx, f); e.target.value = ''; }}
+                        />
+                    </div>
+                    {item.image && (
+                        <img src={item.image} alt="" className="w-full h-20 object-cover rounded-lg border border-gray-800" />
+                    )}
+
+                    {/* Title & Description */}
+                    <input type="text" value={item.title} onChange={(e) => updateItem(idx, 'title', e.target.value)} placeholder="Product title" className={inputClass} />
+                    <input type="text" value={item.description} onChange={(e) => updateItem(idx, 'description', e.target.value)} placeholder="Short description" className={inputClass} />
+
+                    {/* URL & Button Text */}
+                    <div className="grid grid-cols-2 gap-2">
+                        <input type="url" value={item.url} onChange={(e) => updateItem(idx, 'url', e.target.value)} placeholder="https://buy-link.com" className={inputClass} />
+                        <input type="text" value={item.buttonText} onChange={(e) => updateItem(idx, 'buttonText', e.target.value)} placeholder="Buy Now" className={inputClass} />
+                    </div>
+                </div>
+            ))}
+
+            <button type="button" onClick={addItem} className="inline-flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" /></svg>
+                Add product
+            </button>
         </div>
     );
 }

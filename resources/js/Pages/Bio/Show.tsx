@@ -1,5 +1,5 @@
 import { Head } from '@inertiajs/react';
-import { useCallback } from 'react';
+import { useCallback, useRef, useState, useEffect } from 'react';
 import { SocialIcon, SOCIAL_ICON_MAP } from '@/Components/SocialIcons';
 
 interface SocialPlatform {
@@ -326,6 +326,19 @@ export default function Show({ bio, trackUrl }: Props) {
                                 );
                             }
 
+                            if (widget.type === 'products') {
+                                const products = (widget.content.items as Array<{ image: string; title: string; description: string; url: string; buttonText: string }>) || [];
+                                if (products.length === 0) return null;
+                                return (
+                                    <ProductsSlider
+                                        key={widget.id}
+                                        products={products}
+                                        theme={theme}
+                                        trackClick={(linkUrl: string) => trackClick(widget.id, linkUrl)}
+                                    />
+                                );
+                            }
+
                             return null;
                         })}
                     </div>
@@ -375,5 +388,199 @@ export default function Show({ bio, trackUrl }: Props) {
                 {bio.custom_css && <style dangerouslySetInnerHTML={{ __html: bio.custom_css }} />}
             </div>
         </>
+    );
+}
+
+/* ─── Products Rail Slider ─── */
+
+interface ProductItem {
+    image: string;
+    title: string;
+    description: string;
+    url: string;
+    buttonText: string;
+}
+
+function ProductsSlider({
+    products,
+    theme,
+    trackClick,
+}: {
+    products: ProductItem[];
+    theme: Record<string, any>;
+    trackClick: (url: string) => void;
+}) {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [canScrollLeft, setCanScrollLeft] = useState(false);
+    const [canScrollRight, setCanScrollRight] = useState(true);
+
+    const checkScroll = useCallback(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        setCanScrollLeft(el.scrollLeft > 2);
+        setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
+    }, []);
+
+    useEffect(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        checkScroll();
+        el.addEventListener('scroll', checkScroll, { passive: true });
+        return () => el.removeEventListener('scroll', checkScroll);
+    }, [checkScroll]);
+
+    const scroll = (direction: -1 | 1) => {
+        const el = scrollRef.current;
+        if (!el) return;
+        el.scrollBy({ left: direction * 220, behavior: 'smooth' });
+    };
+
+    const btnColor = theme.buttonColor || '#7c3aed';
+    const textColor = theme.textColor || '#ffffff';
+    const btnRadius = theme.buttonRadius || '9999px';
+
+    return (
+        <div style={{ position: 'relative', padding: '8px 0' }}>
+            {/* Scroll arrows */}
+            {canScrollLeft && (
+                <button
+                    onClick={() => scroll(-1)}
+                    style={{
+                        position: 'absolute', left: '-4px', top: '50%', transform: 'translateY(-50%)',
+                        zIndex: 10, width: '32px', height: '32px', borderRadius: '50%',
+                        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
+                        border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#fff', fontSize: '14px',
+                    }}
+                    aria-label="Scroll left"
+                >
+                    ‹
+                </button>
+            )}
+            {canScrollRight && (
+                <button
+                    onClick={() => scroll(1)}
+                    style={{
+                        position: 'absolute', right: '-4px', top: '50%', transform: 'translateY(-50%)',
+                        zIndex: 10, width: '32px', height: '32px', borderRadius: '50%',
+                        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)',
+                        border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        color: '#fff', fontSize: '14px',
+                    }}
+                    aria-label="Scroll right"
+                >
+                    ›
+                </button>
+            )}
+
+            {/* Products rail */}
+            <div
+                ref={scrollRef}
+                className="products-rail"
+                style={{
+                    display: 'flex', gap: '12px', overflowX: 'auto', scrollSnapType: 'x mandatory',
+                    paddingBottom: '4px', scrollbarWidth: 'none',
+                }}
+            >
+                <style dangerouslySetInnerHTML={{ __html: `
+                    .products-rail::-webkit-scrollbar { display: none; }
+                ` }} />
+                {products.map((product, idx) => (
+                    <div
+                        key={idx}
+                        style={{
+                            flex: '0 0 180px', scrollSnapAlign: 'start',
+                            borderRadius: '16px', overflow: 'hidden',
+                            background: textColor === '#ffffff' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)',
+                            border: `1px solid ${textColor}15`,
+                            display: 'flex', flexDirection: 'column',
+                            transition: 'transform 0.2s ease',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; }}
+                    >
+                        {/* Product Image */}
+                        {product.image ? (
+                            <div style={{ width: '100%', height: '140px', overflow: 'hidden' }}>
+                                <img
+                                    src={product.image}
+                                    alt={product.title}
+                                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                />
+                            </div>
+                        ) : (
+                            <div
+                                style={{
+                                    width: '100%', height: '140px',
+                                    background: `linear-gradient(135deg, ${btnColor}30, ${btnColor}10)`,
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                }}
+                            >
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke={btnColor} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.4 }}>
+                                    <path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                                </svg>
+                            </div>
+                        )}
+
+                        {/* Content */}
+                        <div style={{ padding: '12px', flex: 1, display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                            {product.title && (
+                                <p style={{
+                                    fontSize: '13px', fontWeight: 600, color: textColor,
+                                    margin: 0, lineHeight: '1.3',
+                                    display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                                }}>
+                                    {product.title}
+                                </p>
+                            )}
+                            {product.description && (
+                                <p style={{
+                                    fontSize: '11px', color: textColor, opacity: 0.6,
+                                    margin: 0, lineHeight: '1.4',
+                                    display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+                                }}>
+                                    {product.description}
+                                </p>
+                            )}
+                            <div style={{ marginTop: 'auto', paddingTop: '8px' }}>
+                                {product.url ? (
+                                    <a
+                                        href={product.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={() => trackClick(product.url)}
+                                        style={{
+                                            display: 'block', textAlign: 'center',
+                                            padding: '8px 12px', fontSize: '12px', fontWeight: 600,
+                                            borderRadius: btnRadius,
+                                            background: btnColor,
+                                            color: theme.buttonTextColor || '#ffffff',
+                                            textDecoration: 'none',
+                                            transition: 'opacity 0.2s',
+                                        }}
+                                        onMouseEnter={(e) => { e.currentTarget.style.opacity = '0.85'; }}
+                                        onMouseLeave={(e) => { e.currentTarget.style.opacity = '1'; }}
+                                    >
+                                        {product.buttonText || 'Buy Now'}
+                                    </a>
+                                ) : (
+                                    <span
+                                        style={{
+                                            display: 'block', textAlign: 'center',
+                                            padding: '8px 12px', fontSize: '12px', fontWeight: 600,
+                                            borderRadius: btnRadius,
+                                            background: `${btnColor}30`,
+                                            color: btnColor,
+                                        }}
+                                    >
+                                        {product.buttonText || 'Buy Now'}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
     );
 }
