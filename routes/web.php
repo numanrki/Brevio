@@ -12,10 +12,10 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 Route::get('/install', [InstallController::class, 'show'])->name('install');
-Route::post('/install/validate', [InstallController::class, 'validateInputs'])->name('install.validate');
-Route::post('/install/database', [InstallController::class, 'testDatabase'])->name('install.database');
-Route::post('/install/migrate', [InstallController::class, 'migrate'])->name('install.migrate');
-Route::post('/install/finalize', [InstallController::class, 'finalize'])->name('install.finalize');
+Route::post('/install/validate', [InstallController::class, 'validateInputs'])->name('install.validate')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+Route::post('/install/database', [InstallController::class, 'testDatabase'])->name('install.database')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+Route::post('/install/migrate', [InstallController::class, 'migrate'])->name('install.migrate')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+Route::post('/install/finalize', [InstallController::class, 'finalize'])->name('install.finalize')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
 
 /*
 |--------------------------------------------------------------------------
