@@ -1,7 +1,7 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { url } from '@/utils';
-import { FormEvent, useState, useRef } from 'react';
+import { FormEvent, useState, useRef, useMemo } from 'react';
 
 interface Widget {
     id?: number;
@@ -137,12 +137,14 @@ export default function Edit({ bio }: Props) {
         <AdminLayout header="Edit Bio Page">
             <Head title={`Edit Bio: ${bio.name}`} />
 
-            <div className="max-w-3xl">
+            <div className="max-w-6xl">
                 <Link href={url('/admin/bio')} className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-white mb-6 transition-colors">
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                     Back to Bio Pages
                 </Link>
 
+                <div className="grid grid-cols-1 xl:grid-cols-[1fr,380px] gap-6 items-start">
+                {/* Left — Form */}
                 <form onSubmit={submit} className="space-y-6">
                     {/* Basic Info */}
                     <div className="rounded-xl bg-gray-900 border border-gray-800 p-6 space-y-5">
@@ -257,8 +259,121 @@ export default function Edit({ bio }: Props) {
                         </button>
                     </div>
                 </form>
+
+                {/* Right — Live Preview */}
+                <div className="sticky top-6">
+                    <div className="rounded-xl bg-gray-900 border border-gray-800 overflow-hidden">
+                        <div className="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
+                            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Live Preview</h3>
+                            <a href={url(`/bio/${alias}`)} target="_blank" rel="noopener noreferrer" className="text-xs text-violet-400 hover:text-violet-300 transition-colors">
+                                Open →
+                            </a>
+                        </div>
+                        {/* Phone frame */}
+                        <div className="p-4 bg-gray-950">
+                            <div className="mx-auto w-full max-w-[320px] rounded-2xl overflow-hidden border border-gray-700 shadow-2xl" style={{ height: '580px' }}>
+                                <BioPreview name={name} alias={alias} avatar={avatar} widgets={widgets} theme={bio.theme || {}} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
             </div>
         </AdminLayout>
+    );
+}
+
+/* ─── Bio Live Preview ─── */
+
+function BioPreview({ name, alias, avatar, widgets, theme: rawTheme }: { name: string; alias: string; avatar: string; widgets: Widget[]; theme: Record<string, unknown> }) {
+    const t = {
+        background: (rawTheme.background as string) || '#0f0f1a',
+        textColor: (rawTheme.textColor as string) || '#ffffff',
+        buttonStyle: (rawTheme.buttonStyle as string) || 'filled',
+        buttonColor: (rawTheme.buttonColor as string) || '#7c3aed',
+        buttonTextColor: (rawTheme.buttonTextColor as string) || '#ffffff',
+        buttonRadius: (rawTheme.buttonRadius as string) || '9999px',
+        fontFamily: (rawTheme.fontFamily as string) || 'system-ui, sans-serif',
+        backgroundType: (rawTheme.backgroundType as string) || 'solid',
+        gradientFrom: (rawTheme.gradientFrom as string) || '#7c3aed',
+        gradientTo: (rawTheme.gradientTo as string) || '#ec4899',
+    };
+
+    const bg = t.backgroundType === 'gradient'
+        ? `linear-gradient(135deg, ${t.gradientFrom}, ${t.gradientTo})`
+        : t.background;
+
+    const btnBase: React.CSSProperties = {
+        borderRadius: t.buttonRadius, fontFamily: t.fontFamily,
+        padding: '10px 16px', fontSize: '12px', fontWeight: 500,
+        width: '100%', textAlign: 'center', display: 'block',
+        textDecoration: 'none', cursor: 'default',
+    };
+    const btnStyle: React.CSSProperties = t.buttonStyle === 'outline'
+        ? { ...btnBase, background: 'transparent', border: `2px solid ${t.buttonColor}`, color: t.buttonColor }
+        : t.buttonStyle === 'soft'
+        ? { ...btnBase, background: t.buttonColor + '20', border: 'none', color: t.buttonColor }
+        : t.buttonStyle === 'shadow'
+        ? { ...btnBase, background: t.buttonColor, border: 'none', color: t.buttonTextColor, boxShadow: `0 4px 12px ${t.buttonColor}40` }
+        : { ...btnBase, background: t.buttonColor, border: 'none', color: t.buttonTextColor };
+
+    const activeWidgets = widgets.filter((w) => w.is_active);
+
+    return (
+        <div style={{ background: bg, height: '100%', fontFamily: t.fontFamily, overflowY: 'auto' }}>
+            <div style={{ maxWidth: '320px', margin: '0 auto', padding: '28px 16px 40px' }}>
+                {/* Avatar */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '20px' }}>
+                    <div style={{ width: '56px', height: '56px', borderRadius: '50%', border: `2px solid ${t.buttonColor}`, overflow: 'hidden', marginBottom: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {avatar ? (
+                            <img src={avatar} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                            <div style={{ width: '100%', height: '100%', background: `linear-gradient(135deg, ${t.buttonColor}, ${t.gradientTo})`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <span style={{ fontSize: '22px', fontWeight: 700, color: '#fff' }}>{name ? name.charAt(0).toUpperCase() : '?'}</span>
+                            </div>
+                        )}
+                    </div>
+                    <p style={{ fontSize: '14px', fontWeight: 700, color: t.textColor, margin: 0 }}>{name || 'Untitled'}</p>
+                    <p style={{ fontSize: '10px', color: t.textColor, opacity: 0.5, margin: '2px 0 0' }}>@{alias || '...'}</p>
+                </div>
+
+                {/* Widgets */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {activeWidgets.length === 0 && (
+                        <p style={{ textAlign: 'center', fontSize: '11px', color: t.textColor, opacity: 0.4 }}>Add widgets to see them here</p>
+                    )}
+                    {activeWidgets.map((w, i) => {
+                        if (w.type === 'link') return <div key={i} style={btnStyle}>{(w.content.title as string) || 'Untitled Link'}</div>;
+                        if (w.type === 'heading') return <div key={i} style={{ padding: '8px 0 2px', textAlign: 'center' }}><p style={{ fontSize: '12px', fontWeight: 600, color: t.textColor, margin: 0 }}>{(w.content.text as string) || (w.content.title as string) || ''}</p></div>;
+                        if (w.type === 'text') return <div key={i} style={{ textAlign: 'center' }}><p style={{ fontSize: '10px', color: t.textColor, opacity: 0.7, margin: 0, lineHeight: 1.5 }}>{(w.content.text as string) || (w.content.title as string) || ''}</p></div>;
+                        if (w.type === 'divider') {
+                            const ds = (w.content.style as string) || 'solid';
+                            return ds === 'space' ? <div key={i} style={{ height: '16px' }} /> : <hr key={i} style={{ border: 'none', borderTop: `1px ${ds} ${t.textColor}25`, margin: '4px 0' }} />;
+                        }
+                        if (w.type === 'image' && w.content.url) return <img key={i} src={w.content.url as string} alt="" style={{ width: '100%', borderRadius: '8px', display: 'block' }} />;
+                        if (w.type === 'social') {
+                            const plats = (w.content.platforms as Record<string, string>) || {};
+                            const entries = Object.entries(plats).filter(([, v]) => v);
+                            return (
+                                <div key={i} style={{ display: 'flex', justifyContent: 'center', gap: '8px', padding: '8px 0', flexWrap: 'wrap' }}>
+                                    {entries.map(([k]) => (
+                                        <div key={k} style={{ width: '32px', height: '32px', borderRadius: '50%', background: t.textColor + '15', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '9px', fontWeight: 600, color: t.textColor, textTransform: 'uppercase' }}>
+                                            {k.substring(0, 2)}
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        }
+                        if (w.type === 'video') return <div key={i} style={{ borderRadius: '8px', background: t.textColor + '10', aspectRatio: '16/9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '10px', color: t.textColor, opacity: 0.5 }}>▶ Video</span></div>;
+                        if (w.type === 'spotify') return <div key={i} style={{ borderRadius: '8px', background: '#1DB954' + '20', padding: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '10px', color: '#1DB954' }}>♫ Spotify</span></div>;
+                        if (w.type === 'map') return <div key={i} style={{ borderRadius: '8px', background: t.textColor + '10', aspectRatio: '16/9', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><span style={{ fontSize: '10px', color: t.textColor, opacity: 0.5 }}>📍 Map</span></div>;
+                        return null;
+                    })}
+                </div>
+
+                <p style={{ textAlign: 'center', fontSize: '8px', color: t.textColor, opacity: 0.2, marginTop: '24px' }}>Powered by Brevio</p>
+            </div>
+        </div>
     );
 }
 

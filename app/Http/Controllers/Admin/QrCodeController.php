@@ -53,6 +53,7 @@ class QrCodeController extends Controller
     {
         return Inertia::render('Admin/QrCodes/Show', [
             'qrCode' => $qrCode->load('url'),
+            'scanUrl' => url('/qr/' . $qrCode->id),
         ]);
     }
 

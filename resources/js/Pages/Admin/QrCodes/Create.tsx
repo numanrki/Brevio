@@ -77,18 +77,18 @@ export default function Create({ urls }: Props) {
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
-                                <div>
+                                <div className="min-w-0">
                                     <label className="block text-sm font-medium text-gray-300 mb-1.5">Foreground</label>
                                     <div className="flex items-center gap-2">
-                                        <input type="color" value={parsedStyle.foreground || '#000000'} onChange={(e) => updateStyle('foreground', e.target.value)} className="w-10 h-10 rounded-lg border border-gray-800 cursor-pointer bg-transparent" />
-                                        <input type="text" value={parsedStyle.foreground || '#000000'} onChange={(e) => updateStyle('foreground', e.target.value)} className="flex-1 px-3 py-2 bg-gray-950 border border-gray-800 rounded-lg text-sm text-white font-mono focus:outline-none focus:ring-1 focus:ring-violet-500/40" />
+                                        <input type="color" value={parsedStyle.foreground || '#000000'} onChange={(e) => updateStyle('foreground', e.target.value)} className="w-10 h-10 rounded-lg border border-gray-800 cursor-pointer bg-transparent flex-shrink-0" />
+                                        <input type="text" value={parsedStyle.foreground || '#000000'} onChange={(e) => updateStyle('foreground', e.target.value)} className="min-w-0 flex-1 px-3 py-2 bg-gray-950 border border-gray-800 rounded-lg text-sm text-white font-mono focus:outline-none focus:ring-1 focus:ring-violet-500/40" />
                                     </div>
                                 </div>
-                                <div>
+                                <div className="min-w-0">
                                     <label className="block text-sm font-medium text-gray-300 mb-1.5">Background</label>
                                     <div className="flex items-center gap-2">
-                                        <input type="color" value={parsedStyle.background || '#ffffff'} onChange={(e) => updateStyle('background', e.target.value)} className="w-10 h-10 rounded-lg border border-gray-800 cursor-pointer bg-transparent" />
-                                        <input type="text" value={parsedStyle.background || '#ffffff'} onChange={(e) => updateStyle('background', e.target.value)} className="flex-1 px-3 py-2 bg-gray-950 border border-gray-800 rounded-lg text-sm text-white font-mono focus:outline-none focus:ring-1 focus:ring-violet-500/40" />
+                                        <input type="color" value={parsedStyle.background || '#ffffff'} onChange={(e) => updateStyle('background', e.target.value)} className="w-10 h-10 rounded-lg border border-gray-800 cursor-pointer bg-transparent flex-shrink-0" />
+                                        <input type="text" value={parsedStyle.background || '#ffffff'} onChange={(e) => updateStyle('background', e.target.value)} className="min-w-0 flex-1 px-3 py-2 bg-gray-950 border border-gray-800 rounded-lg text-sm text-white font-mono focus:outline-none focus:ring-1 focus:ring-violet-500/40" />
                                     </div>
                                 </div>
                             </div>

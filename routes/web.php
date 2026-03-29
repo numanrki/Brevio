@@ -63,6 +63,11 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('settings', [Admin\SettingController::class, 'index'])->name('settings.index');
     Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');
 
+    // Two-Factor Authentication
+    Route::post('2fa/setup', [Admin\TwoFactorController::class, 'setup'])->name('2fa.setup');
+    Route::post('2fa/confirm', [Admin\TwoFactorController::class, 'confirm'])->name('2fa.confirm');
+    Route::post('2fa/disable', [Admin\TwoFactorController::class, 'disable'])->name('2fa.disable');
+
     // Updates
     Route::get('updates', [Admin\UpdateController::class, 'index'])->name('updates.index');
     Route::post('updates/check-stable', [Admin\UpdateController::class, 'checkStable'])->name('updates.check-stable');

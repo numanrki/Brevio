@@ -38,6 +38,19 @@ class AuthenticatedSessionController extends Controller
             return back()->withErrors(['email' => 'Access denied.']);
         }
 
+        // Check if 2FA is enabled
+        if ($request->user()->secret_2fa) {
+            $userId = $request->user()->id;
+            $remember = $request->boolean('remember');
+
+            Auth::guard('web')->logout();
+
+            $request->session()->put('2fa_user_id', $userId);
+            $request->session()->put('2fa_remember', $remember);
+
+            return redirect()->route('2fa.challenge');
+        }
+
         $request->session()->regenerate();
 
         return redirect()->intended(route('admin.dashboard', absolute: false));

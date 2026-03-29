@@ -17,9 +17,10 @@ interface QrCodeFull {
 
 interface Props {
     qrCode: QrCodeFull;
+    scanUrl: string;
 }
 
-export default function Show({ qrCode }: Props) {
+export default function Show({ qrCode, scanUrl }: Props) {
     const formatDate = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const content = (qrCode.data?.content as string) || '';
     const foreground = (qrCode.style?.foreground as string) || '#000000';
@@ -85,13 +86,14 @@ export default function Show({ qrCode }: Props) {
                         <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-6">QR Code</h3>
                         <div className="p-4 rounded-xl" style={{ backgroundColor: background }}>
                             <QRCodeSVG
-                                value={content || 'https://example.com'}
+                                value={scanUrl}
                                 size={220}
                                 fgColor={foreground}
                                 bgColor={background}
                             />
                         </div>
-                        <div className="flex items-center gap-3 mt-4">
+                        <p className="text-xs text-gray-500 mt-3 break-all text-center max-w-[240px]">Scan URL: {scanUrl}</p>
+                        <div className="flex items-center gap-3 mt-3">
                             <div className="flex items-center gap-1.5">
                                 <div className="w-4 h-4 rounded border border-gray-700" style={{ backgroundColor: foreground }} />
                                 <span className="text-xs text-gray-500">{foreground}</span>
