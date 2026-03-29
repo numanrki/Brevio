@@ -29,10 +29,18 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        // During installation, DB may not exist — avoid querying user
+        $user = null;
+        try {
+            $user = $request->user();
+        } catch (\Throwable) {
+            // DB not available yet (pre-install)
+        }
+
         return [
             ...parent::share($request),
             'auth' => [
-                'user' => $request->user(),
+                'user' => $user,
             ],
             'app_version' => config('app.version'),
         ];

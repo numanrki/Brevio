@@ -1,9 +1,21 @@
 <?php
 
 use App\Http\Controllers\BioPageController;
+use App\Http\Controllers\InstallController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\Admin;
 use Illuminate\Support\Facades\Route;
+
+/*
+|--------------------------------------------------------------------------
+| Installation Wizard (only accessible before install)
+|--------------------------------------------------------------------------
+*/
+Route::get('/install', [InstallController::class, 'show'])->name('install');
+Route::post('/install/validate', [InstallController::class, 'validateInputs'])->name('install.validate');
+Route::post('/install/database', [InstallController::class, 'testDatabase'])->name('install.database');
+Route::post('/install/migrate', [InstallController::class, 'migrate'])->name('install.migrate');
+Route::post('/install/finalize', [InstallController::class, 'finalize'])->name('install.finalize');
 
 /*
 |--------------------------------------------------------------------------
