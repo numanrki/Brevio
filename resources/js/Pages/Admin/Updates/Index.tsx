@@ -33,6 +33,7 @@ const INSTALL_STEPS: { key: string; label: string }[] = [
     { key: 'download', label: 'Downloading update package' },
     { key: 'extract', label: 'Extracting files' },
     { key: 'apply', label: 'Applying file changes' },
+    { key: 'composer', label: 'Installing dependencies' },
     { key: 'migrate', label: 'Running database migrations' },
     { key: 'cache', label: 'Clearing caches' },
 ];
@@ -58,7 +59,10 @@ export default function Index({ currentVersion, lastCheck, pendingMigrations: in
     // Beta channel state
     const [commits, setCommits] = useState<Commit[]>([]);
     const [lastInstalledSha, setLastInstalledSha] = useState<string | null>(null);
-    const isBetaUpToDate = commits.length > 0 && lastInstalledSha === commits[0]?.sha;
+    const [currentVersionSha, setCurrentVersionSha] = useState<string | null>(null);
+    const isBetaUpToDate = commits.length > 0 && (
+        lastInstalledSha === commits[0]?.sha || currentVersionSha === commits[0]?.sha
+    );
 
     // Install progress
     const [installSteps, setInstallSteps] = useState<StepStatus[]>([]);
@@ -106,6 +110,7 @@ export default function Index({ currentVersion, lastCheck, pendingMigrations: in
             const data = await apiCall('/admin/updates/check-beta');
             setCommits(data.commits || []);
             setLastInstalledSha(data.last_installed_sha || null);
+            setCurrentVersionSha(data.current_version_sha || null);
             setState('idle');
         } catch (err: unknown) {
             setErrorMessage(err instanceof Error ? err.message : 'Check failed');

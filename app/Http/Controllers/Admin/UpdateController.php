@@ -156,11 +156,15 @@ class UpdateController extends Controller
                 'html_url'   => $c['html_url'] ?? '',
             ]);
 
+            // Resolve the commit SHA for the current installed version tag
+            $currentVersionSha = $this->getTagCommitSha(config('app.version'));
+
             return response()->json([
                 'success'              => true,
                 'current_version'      => config('app.version'),
                 'commits'              => $commits,
                 'last_installed_sha'   => $this->getLastBetaSha(),
+                'current_version_sha'  => $currentVersionSha,
             ]);
         } catch (\Throwable $e) {
             return response()->json([
@@ -189,7 +193,18 @@ class UpdateController extends Controller
             $zipUrl = self::GITHUB_API . '/repos/' . self::GITHUB_REPO . '/zipball/' . $version;
         }
 
-        return $this->performUpdate($zipUrl, 'stable', $version);
+        $result = $this->performUpdate($zipUrl, 'stable', $version);
+
+        // Sync beta SHA so beta channel also shows up to date
+        $data = json_decode($result->getContent(), true);
+        if (!empty($data['success'])) {
+            $tagSha = $this->getTagCommitSha($version);
+            if ($tagSha) {
+                file_put_contents(storage_path('app/last_beta_sha'), $tagSha);
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -275,15 +290,22 @@ class UpdateController extends Controller
 
             $steps[2]['status'] = 'done';
 
-            // Step 4: Run migrations
+            // Step 4: Install dependencies
+            $steps[] = ['step' => 'composer', 'status' => 'running'];
+
+            $composerOutput = $this->runComposerInstall();
+
+            $steps[3]['status'] = 'done';
+
+            // Step 5: Run migrations
             $steps[] = ['step' => 'migrate', 'status' => 'running'];
 
             Artisan::call('migrate', ['--force' => true]);
             $migrateOutput = trim(Artisan::output());
 
-            $steps[3]['status'] = 'done';
+            $steps[4]['status'] = 'done';
 
-            // Step 5: Clear caches
+            // Step 6: Clear caches
             $steps[] = ['step' => 'cache', 'status' => 'running'];
 
             Artisan::call('config:clear');
@@ -291,7 +313,7 @@ class UpdateController extends Controller
             Artisan::call('view:clear');
             Artisan::call('route:clear');
 
-            $steps[4]['status'] = 'done';
+            $steps[5]['status'] = 'done';
 
             // Cleanup
             File::delete(storage_path('app/update.zip'));
@@ -321,6 +343,52 @@ class UpdateController extends Controller
                 'steps'   => $steps,
             ], 422);
         }
+    }
+
+    /**
+     * Run composer install to ensure all dependencies are available.
+     */
+    private function runComposerInstall(): string
+    {
+        $composerPaths = [
+            base_path('composer.phar'),
+            '/usr/local/bin/composer',
+            '/usr/bin/composer',
+            'composer',
+        ];
+
+        // On Windows, also check common locations
+        if (PHP_OS_FAMILY === 'Windows') {
+            $phpDir = dirname(PHP_BINARY);
+            array_unshift($composerPaths, $phpDir . DIRECTORY_SEPARATOR . 'composer.phar');
+        }
+
+        $composerBin = null;
+        foreach ($composerPaths as $path) {
+            if (str_ends_with($path, '.phar')) {
+                if (file_exists($path)) {
+                    $composerBin = PHP_BINARY . ' ' . escapeshellarg($path);
+                    break;
+                }
+            } else {
+                // Check if the command is available
+                $which = PHP_OS_FAMILY === 'Windows' ? 'where' : 'which';
+                exec("{$which} {$path} 2>&1", $output, $code);
+                if ($code === 0) {
+                    $composerBin = escapeshellarg($path);
+                    break;
+                }
+            }
+        }
+
+        if (!$composerBin) {
+            return 'Composer not found — run "composer install" manually on the server.';
+        }
+
+        $cmd = "cd " . escapeshellarg(base_path()) . " && {$composerBin} install --no-dev --optimize-autoloader --no-interaction 2>&1";
+        exec($cmd, $output, $exitCode);
+
+        return implode("\n", $output);
     }
 
     /**
@@ -409,6 +477,42 @@ class UpdateController extends Controller
     {
         $file = storage_path('app/last_beta_sha');
         return file_exists($file) ? trim(file_get_contents($file)) : null;
+    }
+
+    /**
+     * Get the commit SHA for a given version tag from GitHub.
+     */
+    private function getTagCommitSha(string $version): ?string
+    {
+        try {
+            // Try tag without v prefix first, then with v
+            foreach ([$version, 'v' . $version] as $tag) {
+                $response = Http::withHeaders($this->githubHeaders())
+                    ->timeout(10)
+                    ->get(self::GITHUB_API . '/repos/' . self::GITHUB_REPO . '/git/ref/tags/' . $tag);
+
+                if ($response->successful()) {
+                    $data = $response->json();
+                    $sha = $data['object']['sha'] ?? null;
+
+                    // If it's an annotated tag, resolve to the commit
+                    if (($data['object']['type'] ?? '') === 'tag' && $sha) {
+                        $tagResponse = Http::withHeaders($this->githubHeaders())
+                            ->timeout(10)
+                            ->get(self::GITHUB_API . '/repos/' . self::GITHUB_REPO . '/git/tags/' . $sha);
+                        if ($tagResponse->successful()) {
+                            $sha = $tagResponse->json()['object']['sha'] ?? $sha;
+                        }
+                    }
+
+                    return $sha;
+                }
+            }
+        } catch (\Throwable) {
+            // Silently fail — tag lookup is best-effort
+        }
+
+        return null;
     }
 
     /**
