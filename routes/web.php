@@ -59,6 +59,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Settings
     Route::get('settings', [Admin\SettingController::class, 'index'])->name('settings.index');
     Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');
+
+    // Updates
+    Route::get('updates', [Admin\UpdateController::class, 'index'])->name('updates.index');
+    Route::post('updates/check-stable', [Admin\UpdateController::class, 'checkStable'])->name('updates.check-stable');
+    Route::post('updates/check-beta', [Admin\UpdateController::class, 'checkBeta'])->name('updates.check-beta');
+    Route::post('updates/install-stable', [Admin\UpdateController::class, 'installStable'])->name('updates.install-stable');
+    Route::post('updates/install-beta', [Admin\UpdateController::class, 'installBeta'])->name('updates.install-beta');
 });
 
 require __DIR__.'/auth.php';
