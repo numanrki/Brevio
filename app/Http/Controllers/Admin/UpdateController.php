@@ -62,8 +62,7 @@ class UpdateController extends Controller
                     'zipball' => $t['zipball_url'] ?? '',
                 ])
                 ->filter(fn($t) => preg_match('/^\d+\.\d+\.\d+$/', $t['version']))
-                ->sortBy(fn($t) => version_compare($t['version'], '0.0.0'))
-                ->reverse()
+                ->sort(fn($a, $b) => version_compare($b['version'], $a['version']))
                 ->values();
 
             $latest = $tags->first();
