@@ -4,24 +4,29 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use Laravel\Fortify\Actions\EnableTwoFactorAuthentication;
-use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
-use Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication;
-use Laravel\Fortify\Actions\GenerateNewRecoveryCodes;
 
 class TwoFactorController extends Controller
 {
+    /**
+     * Check if Fortify 2FA actions are available.
+     */
+    private function fortifyAvailable(): bool
+    {
+        return class_exists(\Laravel\Fortify\Actions\EnableTwoFactorAuthentication::class);
+    }
+
     /**
      * Enable 2FA: generate secret and return QR code + recovery codes.
      */
     public function setup(Request $request)
     {
+        if (!$this->fortifyAvailable()) {
+            return response()->json(['success' => false, 'message' => '2FA is not available. Fortify package is missing.'], 422);
+        }
+
         try {
             $user = $request->user();
-
-            // Enable 2FA via Fortify (generates secret + recovery codes)
-            app(EnableTwoFactorAuthentication::class)($user);
-
+            app(\Laravel\Fortify\Actions\EnableTwoFactorAuthentication::class)($user);
             $user->refresh();
 
             return response()->json([
@@ -49,7 +54,7 @@ class TwoFactorController extends Controller
         ]);
 
         try {
-            app(ConfirmTwoFactorAuthentication::class)($request->user(), $request->input('code'));
+            app(\Laravel\Fortify\Actions\ConfirmTwoFactorAuthentication::class)($request->user(), $request->input('code'));
 
             return response()->json([
                 'success' => true,
@@ -79,7 +84,7 @@ class TwoFactorController extends Controller
             ], 422);
         }
 
-        app(DisableTwoFactorAuthentication::class)($request->user());
+        app(\Laravel\Fortify\Actions\DisableTwoFactorAuthentication::class)($request->user());
 
         return response()->json([
             'success' => true,
@@ -92,7 +97,7 @@ class TwoFactorController extends Controller
      */
     public function recoveryCodes(Request $request)
     {
-        app(GenerateNewRecoveryCodes::class)($request->user());
+        app(\Laravel\Fortify\Actions\GenerateNewRecoveryCodes::class)($request->user());
 
         $user = $request->user()->refresh();
 

@@ -1,7 +1,5 @@
 <?php
 
-use Laravel\Fortify\Features;
-
 return [
 
     /*
@@ -143,11 +141,11 @@ return [
     |
     */
 
-    'features' => [
-        Features::twoFactorAuthentication([
+    'features' => class_exists(\Laravel\Fortify\Features::class) ? [
+        \Laravel\Fortify\Features::twoFactorAuthentication([
             'confirm' => true,
             'confirmPassword' => false,
         ]),
-    ],
+    ] : [],
 
 ];
