@@ -14,23 +14,30 @@ class TwoFactorController extends Controller
      */
     public function setup(Request $request)
     {
-        $google2fa = new Google2FA();
-        $secret = $google2fa->generateSecretKey();
+        try {
+            $google2fa = new Google2FA();
+            $secret = $google2fa->generateSecretKey();
 
-        // Store temporarily in session until confirmed
-        $request->session()->put('2fa_setup_secret', $secret);
+            // Store temporarily in session until confirmed
+            $request->session()->put('2fa_setup_secret', $secret);
 
-        $qrUrl = $google2fa->getQRCodeUrl(
-            config('app.name', 'Brevio'),
-            $request->user()->email,
-            $secret
-        );
+            $qrUrl = $google2fa->getQRCodeUrl(
+                config('app.name', 'Brevio'),
+                $request->user()->email,
+                $secret
+            );
 
-        return response()->json([
-            'success' => true,
-            'secret'  => $secret,
-            'qr_url'  => $qrUrl,
-        ]);
+            return response()->json([
+                'success' => true,
+                'secret'  => $secret,
+                'qr_url'  => $qrUrl,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to initialize 2FA: ' . $e->getMessage(),
+            ], 422);
+        }
     }
 
     /**
