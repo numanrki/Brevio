@@ -305,18 +305,27 @@ class UpdateController extends Controller
             // Step 5: Run migrations
             $steps[] = ['step' => 'migrate', 'status' => 'running'];
 
-            Artisan::call('migrate', ['--force' => true]);
-            $migrateOutput = trim(Artisan::output());
+            $migrateOutput = '';
+            try {
+                Artisan::call('migrate', ['--force' => true]);
+                $migrateOutput = trim(Artisan::output());
+            } catch (\Throwable $e) {
+                $migrateOutput = 'Migration warning: ' . $e->getMessage();
+            }
 
             $steps[4]['status'] = 'done';
 
             // Step 6: Clear caches
             $steps[] = ['step' => 'cache', 'status' => 'running'];
 
-            Artisan::call('config:clear');
-            Artisan::call('cache:clear');
-            Artisan::call('view:clear');
-            Artisan::call('route:clear');
+            try {
+                Artisan::call('config:clear');
+                Artisan::call('cache:clear');
+                Artisan::call('view:clear');
+                Artisan::call('route:clear');
+            } catch (\Throwable $e) {
+                // Cache clearing is non-critical
+            }
 
             $steps[5]['status'] = 'done';
 

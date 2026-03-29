@@ -64,13 +64,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Settings
     Route::get('settings', [Admin\SettingController::class, 'index'])->name('settings.index');
     Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');
-    Route::post('cache-clear', [Admin\SettingController::class, 'clearCache'])->name('cache.clear');
+    Route::post('cache-clear', [Admin\SettingController::class, 'clearCache'])->name('cache.clear')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
 
     // Two-Factor Authentication
-    Route::post('2fa/setup', [Admin\TwoFactorController::class, 'setup'])->name('2fa.setup');
-    Route::post('2fa/confirm', [Admin\TwoFactorController::class, 'confirm'])->name('2fa.confirm');
-    Route::post('2fa/disable', [Admin\TwoFactorController::class, 'disable'])->name('2fa.disable');
-    Route::post('2fa/recovery-codes', [Admin\TwoFactorController::class, 'recoveryCodes'])->name('2fa.recovery-codes');
+    Route::post('2fa/setup', [Admin\TwoFactorController::class, 'setup'])->name('2fa.setup')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+    Route::post('2fa/confirm', [Admin\TwoFactorController::class, 'confirm'])->name('2fa.confirm')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+    Route::post('2fa/disable', [Admin\TwoFactorController::class, 'disable'])->name('2fa.disable')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+    Route::post('2fa/recovery-codes', [Admin\TwoFactorController::class, 'recoveryCodes'])->name('2fa.recovery-codes')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
 
     // Updates
     Route::get('updates', [Admin\UpdateController::class, 'index'])->name('updates.index');
