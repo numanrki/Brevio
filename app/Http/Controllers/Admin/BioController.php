@@ -67,6 +67,11 @@ class BioController extends Controller
             $request->merge(['theme' => json_decode($request->theme, true)]);
         }
 
+        // Widgets arrive as JSON string from the frontend
+        if (is_string($request->widgets)) {
+            $request->merge(['widgets' => json_decode($request->widgets, true)]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'alias' => "required|string|max:255|unique:bios,alias,{$bio->id}",
