@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\File;
 use Inertia\Inertia;
@@ -27,8 +28,9 @@ class UpdateController extends Controller
     public function index()
     {
         return Inertia::render('Admin/Updates/Index', [
-            'currentVersion' => config('app.version'),
-            'lastCheck'      => $this->getLastCheckTime(),
+            'currentVersion'    => config('app.version'),
+            'lastCheck'         => $this->getLastCheckTime(),
+            'pendingMigrations' => $this->getPendingMigrationCount(),
         ]);
     }
 
@@ -407,5 +409,48 @@ class UpdateController extends Controller
     {
         $file = storage_path('app/last_beta_sha');
         return file_exists($file) ? trim(file_get_contents($file)) : null;
+    }
+
+    /**
+     * Get the count of pending (not yet run) migrations.
+     */
+    private function getPendingMigrationCount(): int
+    {
+        try {
+            $ran = DB::table('migrations')->pluck('migration')->all();
+            $files = collect(File::files(database_path('migrations')))
+                ->map(fn($f) => pathinfo($f->getFilename(), PATHINFO_FILENAME))
+                ->all();
+
+            return count(array_diff($files, $ran));
+        } catch (\Throwable) {
+            return 0;
+        }
+    }
+
+    /**
+     * Run pending database migrations only (no file update).
+     */
+    public function runMigrations()
+    {
+        try {
+            Artisan::call('migrate', ['--force' => true]);
+            $output = trim(Artisan::output());
+
+            Artisan::call('config:clear');
+            Artisan::call('cache:clear');
+
+            return response()->json([
+                'success'            => true,
+                'message'            => 'Migrations completed successfully.',
+                'output'             => $output,
+                'pending_migrations' => $this->getPendingMigrationCount(),
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Migration failed: ' . $e->getMessage(),
+            ], 422);
+        }
     }
 }

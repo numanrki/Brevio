@@ -69,6 +69,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('updates/check-beta', [Admin\UpdateController::class, 'checkBeta'])->name('updates.check-beta');
     Route::post('updates/install-stable', [Admin\UpdateController::class, 'installStable'])->name('updates.install-stable');
     Route::post('updates/install-beta', [Admin\UpdateController::class, 'installBeta'])->name('updates.install-beta');
+    Route::post('updates/run-migrations', [Admin\UpdateController::class, 'runMigrations'])->name('updates.run-migrations');
 });
 
 require __DIR__.'/auth.php';
