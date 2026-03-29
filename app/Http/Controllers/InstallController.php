@@ -107,13 +107,34 @@ class InstallController extends Controller
                 'database.connections.mysql.prefix'    => $prefix,
             ]);
 
+            // Also set a dedicated 'install' connection to guarantee migrations use the right DB
+            config([
+                'database.connections.install' => array_merge(config('database.connections.mysql'), [
+                    'host'     => $host,
+                    'port'     => $port,
+                    'database' => $database,
+                    'username' => $username,
+                    'password' => $password,
+                    'prefix'   => $prefix,
+                ]),
+            ]);
+
             DB::purge('mysql');
             DB::reconnect('mysql');
 
-            // Run migrations
-            Artisan::call('migrate', ['--force' => true]);
+            // Run migrations on the explicit install connection
+            Artisan::call('migrate', [
+                '--force'    => true,
+                '--database' => 'install',
+            ]);
 
-            return response()->json(['success' => true, 'message' => 'Database tables created successfully.']);
+            $migrateOutput = Artisan::output();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Database tables created successfully.',
+                'output'  => trim($migrateOutput),
+            ]);
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
