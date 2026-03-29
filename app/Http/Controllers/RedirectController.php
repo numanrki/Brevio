@@ -46,8 +46,18 @@ class RedirectController extends Controller
             // Resolve GeoIP
             $country = null;
             $city = null;
+            $ip = $request->ip();
+
             try {
-                $position = Location::get($request->ip());
+                // Localhost IPs can't be geolocated — try external IP lookup
+                if (in_array($ip, ['127.0.0.1', '::1', 'localhost'])) {
+                    $externalIp = @file_get_contents('https://api.ipify.org?format=text');
+                    if ($externalIp && filter_var(trim($externalIp), FILTER_VALIDATE_IP)) {
+                        $ip = trim($externalIp);
+                    }
+                }
+
+                $position = Location::get($ip);
                 if ($position) {
                     $country = $position->countryCode;
                     $city = $position->cityName;
