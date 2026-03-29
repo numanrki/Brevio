@@ -66,6 +66,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');
     Route::post('cache-clear', [Admin\SettingController::class, 'clearCache'])->name('cache.clear')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
 
+    // Ads & Interstitial
+    Route::get('ads', [Admin\AdsController::class, 'index'])->name('ads.index');
+    Route::post('ads', [Admin\AdsController::class, 'update'])->name('ads.update');
+
     // Two-Factor Authentication
     Route::post('2fa/setup', [Admin\TwoFactorController::class, 'setup'])->name('2fa.setup')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
     Route::post('2fa/confirm', [Admin\TwoFactorController::class, 'confirm'])->name('2fa.confirm')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);

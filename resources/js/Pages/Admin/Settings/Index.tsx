@@ -65,16 +65,6 @@ const sections: SettingSection[] = [
             { key: 'custom_footer_code', label: 'Custom Footer Code', type: 'textarea', placeholder: '<!-- Custom footer code -->' },
         ],
     },
-    {
-        title: 'Interstitial Ads',
-        description: 'Ad placements shown on short link interstitial/timer pages.',
-        icon: 'M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2',
-        fields: [
-            { key: 'interstitial_ad_above', label: 'Ad Above Content', type: 'textarea', placeholder: '<div>Ad code or HTML for above the timer...</div>' },
-            { key: 'interstitial_ad_below', label: 'Ad Below Content', type: 'textarea', placeholder: '<div>Ad code or HTML for below the timer...</div>' },
-            { key: 'interstitial_ad_sidebar', label: 'Sidebar Ad', type: 'textarea', placeholder: '<div>Ad code or HTML for the sidebar...</div>' },
-        ],
-    },
 ];
 
 export default function Index({ settings, has2fa }: Props) {
