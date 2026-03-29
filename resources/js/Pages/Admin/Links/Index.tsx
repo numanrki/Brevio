@@ -129,6 +129,16 @@ export default function Index({ links, filters }: Props) {
                         <option value="disabled">Disabled</option>
                     </select>
                 </div>
+
+                <Link
+                    href={url('/admin/links/create')}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 text-white text-sm font-medium rounded-xl transition-all shadow-lg shadow-violet-500/20"
+                >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Create Link
+                </Link>
             </div>
 
             {/* Table */}
@@ -139,7 +149,6 @@ export default function Index({ links, filters }: Props) {
                             <tr className="border-b border-gray-800">
                                 <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Alias</th>
                                 <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Original URL</th>
-                                <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">User</th>
                                 <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Clicks</th>
                                 <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Status</th>
                                 <th className="text-left px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider">Created</th>
@@ -149,7 +158,7 @@ export default function Index({ links, filters }: Props) {
                         <tbody className="divide-y divide-gray-800/50">
                             {links.data.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-16 text-center">
+                                    <td colSpan={6} className="px-6 py-16 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="w-12 h-12 rounded-full bg-gray-800 flex items-center justify-center">
                                                 <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -175,18 +184,6 @@ export default function Index({ links, filters }: Props) {
                                             <span className="text-sm text-gray-400" title={link.url}>
                                                 {truncateUrl(link.url)}
                                             </span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {link.user ? (
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-6 h-6 rounded-full bg-gray-700 flex items-center justify-center text-[10px] font-bold text-gray-300 flex-shrink-0">
-                                                        {link.user.name.charAt(0).toUpperCase()}
-                                                    </div>
-                                                    <span className="text-sm text-gray-400 truncate max-w-[120px]">{link.user.name}</span>
-                                                </div>
-                                            ) : (
-                                                <span className="text-sm text-gray-600">—</span>
-                                            )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className="text-sm font-semibold text-gray-300">{link.total_clicks.toLocaleString()}</span>

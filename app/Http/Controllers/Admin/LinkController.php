@@ -3,22 +3,22 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Domain;
 use App\Models\Url;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class LinkController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
-        $urls = Url::with('user')
+        $urls = Url::query()
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('alias', 'like', "%{$search}%")
-                      ->orWhere('url', 'like', "%{$search}%");
+                      ->orWhere('url', 'like', "%{$search}%")
+                      ->orWhere('title', 'like', "%{$search}%");
                 });
             })
             ->when($request->status, function ($query, $status) {
@@ -39,20 +39,55 @@ class LinkController extends Controller
         ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Url $link)
+    public function create()
     {
-        return Inertia::render('Admin/Links/Show', [
-            'url' => $link->load('user', 'domain', 'campaign'),
-            'recent_clicks' => $link->clicks()->latest()->take(50)->get(),
+        return Inertia::render('Admin/Links/Create', [
+            'domains' => Domain::all(),
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'url' => 'required|url',
+            'alias' => 'nullable|string|max:255|unique:urls,alias',
+            'domain_id' => 'nullable|exists:domains,id',
+            'title' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+            'password' => 'nullable|string',
+            'expiry_date' => 'nullable|date|after:now',
+        ]);
+
+        if (empty($validated['alias'])) {
+            do {
+                $alias = Str::random(6);
+            } while (Url::where('alias', $alias)->exists());
+            $validated['alias'] = $alias;
+        }
+
+        $validated['user_id'] = auth()->id();
+        $validated['custom_alias'] = !empty($request->alias);
+
+        Url::create($validated);
+
+        return redirect()->route('admin.links.index')->with('success', 'Link created successfully.');
+    }
+
+    public function show(Url $link)
+    {
+        $clicksStats = $link->clicks()
+            ->where('created_at', '>=', now()->subDays(30))
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
+        return Inertia::render('Admin/Links/Show', [
+            'url' => $link->load('domain'),
+            'clicks_stats' => $clicksStats,
+        ]);
+    }
+
     public function edit(Url $link)
     {
         return Inertia::render('Admin/Links/Edit', [
@@ -60,19 +95,16 @@ class LinkController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Url $link)
     {
         $validated = $request->validate([
             'url' => 'required|url',
             'title' => 'nullable|string|max:255',
             'description' => 'nullable|string',
+            'password' => 'nullable|string',
+            'expiry_date' => 'nullable|date',
             'is_active' => 'boolean',
             'is_archived' => 'boolean',
-            'expiry_date' => 'nullable|date',
-            'password' => 'nullable|string',
         ]);
 
         $link->update($validated);
@@ -80,9 +112,6 @@ class LinkController extends Controller
         return redirect()->route('admin.links.index')->with('success', 'Link updated successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Url $link)
     {
         $link->delete();

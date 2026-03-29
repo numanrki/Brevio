@@ -7,7 +7,6 @@ use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -19,7 +18,6 @@ class AuthenticatedSessionController extends Controller
     public function create(): Response
     {
         return Inertia::render('Auth/Login', [
-            'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
         ]);
     }
@@ -31,16 +29,18 @@ class AuthenticatedSessionController extends Controller
     {
         $request->authenticate();
 
-        $request->session()->regenerate();
+        // Only allow admin users
+        if ($request->user()->role !== 'admin') {
+            Auth::guard('web')->logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
 
-        $user = $request->user();
-
-        // Redirect admins to admin dashboard
-        if ($user->role === 'admin') {
-            return redirect()->intended(route('admin.dashboard', absolute: false));
+            return back()->withErrors(['email' => 'Access denied.']);
         }
 
-        return redirect()->intended(route('dashboard.index', absolute: false));
+        $request->session()->regenerate();
+
+        return redirect()->intended(route('admin.dashboard', absolute: false));
     }
 
     /**
@@ -54,6 +54,6 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerateToken();
 
-        return redirect('/');
+        return redirect()->route('login');
     }
 }

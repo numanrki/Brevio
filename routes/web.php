@@ -1,66 +1,18 @@
 <?php
 
 use App\Http\Controllers\BioPageController;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\RedirectController;
-use App\Http\Controllers\User;
-use App\Http\Controllers\User\LinkAnalyticsController;
 use App\Http\Controllers\Admin;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
 /*
 |--------------------------------------------------------------------------
-| Public Routes
+| Home — redirect to admin
 |--------------------------------------------------------------------------
 */
-Route::get('/', [HomeController::class, 'index'])->name('home');
-
-/*
-|--------------------------------------------------------------------------
-| User Dashboard Routes
-|--------------------------------------------------------------------------
-*/
-Route::middleware(['auth', 'verified'])->prefix('dashboard')->name('dashboard.')->group(function () {
-    Route::get('/', [User\DashboardController::class, 'index'])->name('index');
-
-    // Links
-    Route::resource('links', User\LinkController::class);
-
-    // Bio Pages
-    Route::resource('bio', User\BioController::class);
-
-    // QR Codes
-    Route::resource('qr-codes', User\QrCodeController::class);
-
-    // Campaigns
-    Route::resource('campaigns', User\CampaignController::class);
-
-    // Channels
-    Route::resource('channels', User\ChannelController::class);
-
-    // Overlays
-    Route::resource('overlays', User\OverlayController::class);
-
-    // Pixels
-    Route::resource('pixels', User\PixelController::class);
-
-    // Teams
-    Route::resource('teams', User\TeamController::class);
-
-    // Domains
-    Route::resource('domains', User\DomainController::class);
-
-    // Statistics
-    Route::get('stats', [User\StatsController::class, 'index'])->name('stats');
-});
-
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-});
+Route::get('/', function () {
+    return redirect()->route('admin.dashboard');
+})->name('home');
 
 /*
 |--------------------------------------------------------------------------
@@ -69,12 +21,30 @@ Route::middleware('auth')->group(function () {
 */
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [Admin\DashboardController::class, 'index'])->name('dashboard');
-    Route::resource('users', Admin\UserController::class);
+
+    // Links
+    Route::get('links/{link}/analytics', [Admin\LinkAnalyticsController::class, 'show'])->name('links.analytics');
     Route::resource('links', Admin\LinkController::class);
-    Route::resource('plans', Admin\PlanController::class);
+
+    // Bio Pages
+    Route::resource('bio', Admin\BioController::class);
+
+    // QR Codes
+    Route::resource('qr-codes', Admin\QrCodeController::class);
+
+    // Statistics
+    Route::get('stats', [Admin\StatsController::class, 'index'])->name('stats');
+
+    // Domains
     Route::resource('domains', Admin\DomainController::class);
+
+    // Pages
     Route::resource('pages', Admin\PageController::class);
+
+    // Reports
     Route::resource('reports', Admin\ReportController::class);
+
+    // Settings
     Route::get('settings', [Admin\SettingController::class, 'index'])->name('settings.index');
     Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');
 });

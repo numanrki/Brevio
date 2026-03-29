@@ -4,18 +4,11 @@ export interface User {
     email: string;
     email_verified_at?: string;
     role: 'admin' | 'user';
-    username?: string;
-    avatar?: string;
-    plan_id?: number;
-    api_key?: string;
     is_banned: boolean;
     is_verified: boolean;
-    bio?: string;
-    country?: string;
     last_login_at?: string;
     created_at: string;
     updated_at: string;
-    plan?: Plan;
 }
 
 export interface Url {
@@ -31,19 +24,6 @@ export interface Url {
     expiry_date?: string;
     created_at: string;
     user?: User;
-}
-
-export interface Plan {
-    id: number;
-    name: string;
-    slug: string;
-    description?: string;
-    free: boolean;
-    price_monthly: number;
-    price_yearly: number;
-    limits: Record<string, number>;
-    features: Record<string, boolean>;
-    is_active: boolean;
 }
 
 export interface Click {
