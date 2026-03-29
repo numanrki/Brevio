@@ -64,6 +64,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Settings
     Route::get('settings', [Admin\SettingController::class, 'index'])->name('settings.index');
     Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');
+    Route::post('cache-clear', [Admin\SettingController::class, 'clearCache'])->name('cache.clear');
 
     // Two-Factor Authentication
     Route::post('2fa/setup', [Admin\TwoFactorController::class, 'setup'])->name('2fa.setup');

@@ -1,5 +1,5 @@
 import { Link, usePage } from '@inertiajs/react';
-import { PropsWithChildren, useState, useEffect, useCallback } from 'react';
+import { PropsWithChildren, useState, useEffect, useCallback, useRef } from 'react';
 import { User } from '@/types';
 import { url } from '@/utils';
 
@@ -98,6 +98,7 @@ export default function AdminLayout({ children, header }: AdminLayoutProps) {
                     <div className="flex-1 flex items-center justify-between ml-4 lg:ml-0">
                         {header && <h1 className="text-xl font-semibold text-white">{header}</h1>}
                         <div className="flex items-center gap-4 ml-auto">
+                            <CacheClearButton />
                             {hasUpdate && (
                                 <Link
                                     href={url('/admin/updates')}
@@ -153,6 +154,52 @@ export default function AdminLayout({ children, header }: AdminLayoutProps) {
                 </main>
             </div>
         </div>
+    );
+}
+
+function CacheClearButton() {
+    const [clearing, setClearing] = useState(false);
+    const [done, setDone] = useState(false);
+
+    const handleClear = async () => {
+        if (clearing) return;
+        setClearing(true);
+        setDone(false);
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const res = await fetch(url('/admin/cache-clear'), {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken, Accept: 'application/json' },
+            });
+            if (res.ok) setDone(true);
+        } catch { /* ignore */ } finally {
+            setClearing(false);
+            setTimeout(() => setDone(false), 2000);
+        }
+    };
+
+    return (
+        <button
+            onClick={handleClear}
+            disabled={clearing}
+            className={`relative p-2 rounded-lg transition-all ${done ? 'text-emerald-400 bg-emerald-500/10' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
+            title={done ? 'Cache cleared!' : 'Clear all caches'}
+        >
+            {clearing ? (
+                <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+            ) : done ? (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+            ) : (
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            )}
+        </button>
     );
 }
 
