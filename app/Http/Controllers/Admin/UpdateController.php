@@ -421,6 +421,7 @@ class UpdateController extends Controller
             'storage/framework/cache',
             'storage/app/update.zip',
             'storage/app/update-temp',
+            'bootstrap/cache',
             'node_modules',
             '.git',
         ];
@@ -430,10 +431,13 @@ class UpdateController extends Controller
         foreach ($files as $file) {
             $relativePath = $file->getRelativePathname();
 
+            // Normalize to forward slashes for matching
+            $normalizedPath = str_replace('\\', '/', $relativePath);
+
             // Skip protected paths
             $skip = false;
             foreach ($protectedPaths as $protected) {
-                if (str_starts_with($relativePath, $protected)) {
+                if (str_starts_with($normalizedPath, $protected)) {
                     $skip = true;
                     break;
                 }
@@ -448,6 +452,11 @@ class UpdateController extends Controller
             }
 
             File::copy($file->getRealPath(), $destPath);
+
+            // Invalidate OPcache for each replaced file
+            if (function_exists('opcache_invalidate')) {
+                @opcache_invalidate($destPath, true);
+            }
         }
     }
 
@@ -661,10 +670,18 @@ class UpdateController extends Controller
      */
     private function clearAllCaches(): void
     {
+        // Delete compiled bootstrap cache files first
+        foreach (['config.php', 'routes-v7.php', 'events.php'] as $cacheFile) {
+            @unlink(base_path('bootstrap/cache/' . $cacheFile));
+        }
+
         try { Artisan::call('config:clear'); } catch (\Throwable) {}
         try { Artisan::call('cache:clear'); } catch (\Throwable) {}
         try { Artisan::call('view:clear'); } catch (\Throwable) {}
         try { Artisan::call('route:clear'); } catch (\Throwable) {}
+
+        // Regenerate package/service discovery
+        try { Artisan::call('package:discover'); } catch (\Throwable) {}
 
         if (function_exists('opcache_reset')) {
             @opcache_reset();
