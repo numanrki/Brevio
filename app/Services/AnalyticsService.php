@@ -372,6 +372,52 @@ class AnalyticsService
             ->get();
     }
 
+    /**
+     * Get top breakdown items from visits table across all visitables of a type.
+     */
+    public function getGlobalVisitTopItems(string $visitableType, ?string $eventType, Carbon $from, Carbon $to, string $column, int $limit = 10): Collection
+    {
+        $q = Visit::where('visitable_type', $visitableType)
+            ->whereBetween('created_at', [$from, $to])
+            ->whereNotNull($column)
+            ->where($column, '!=', '');
+
+        if ($eventType) {
+            $q->where('event_type', $eventType);
+        }
+
+        return $q->select("{$column} as name", DB::raw('COUNT(*) as count'))
+            ->groupBy($column)
+            ->orderByDesc('count')
+            ->take($limit)
+            ->get();
+    }
+
+    /**
+     * Get top referrers with friendly names from visits table across all visitables.
+     */
+    public function getGlobalVisitTopReferrersParsed(string $visitableType, ?string $eventType, Carbon $from, Carbon $to, int $limit = 10): Collection
+    {
+        $q = Visit::where('visitable_type', $visitableType)
+            ->whereBetween('created_at', [$from, $to])
+            ->whereNotNull('referrer')
+            ->where('referrer', '!=', '');
+
+        if ($eventType) {
+            $q->where('event_type', $eventType);
+        }
+
+        $raw = $q->select('referrer', DB::raw('COUNT(*) as count'))
+            ->groupBy('referrer')
+            ->get();
+
+        return $raw->groupBy(fn($item) => self::normalizeReferrer($item->referrer))
+            ->map(fn($group, $name) => ['name' => $name, 'count' => $group->sum('count')])
+            ->sortByDesc('count')
+            ->take($limit)
+            ->values();
+    }
+
     // ── Referrer-to-platform mapping ──
 
     public static function normalizeReferrer(string $referrer): string

@@ -2,7 +2,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, Link, router } from '@inertiajs/react';
 import { AnalyticsSummary, TimeSeriesPoint, BreakdownItem } from '@/types';
 import { url } from '@/utils';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
 
 interface VisitorLogEntry {
@@ -48,13 +48,18 @@ export default function Analytics({ bio, range, ranges, custom_from, custom_to, 
     const [tab, setTab] = useState<Tab>('overview');
     const [dateFrom, setDateFrom] = useState(custom_from);
     const [dateTo, setDateTo] = useState(custom_to);
+    const [showCustom, setShowCustom] = useState(range === 'custom');
 
+    useEffect(() => { setDateFrom(custom_from); setDateTo(custom_to); }, [custom_from, custom_to]);
+
+    const activeRange = showCustom ? 'custom' : range;
     const changeRange = (newRange: string) => {
-        if (newRange === 'custom') {
-            router.get(url(`/admin/bio/${bio.id}/analytics`), { range: 'custom', from: dateFrom, to: dateTo }, { preserveState: true, preserveScroll: true });
-        } else {
-            router.get(url(`/admin/bio/${bio.id}/analytics`), { range: newRange }, { preserveState: true, preserveScroll: true });
-        }
+        if (newRange === 'custom') { setShowCustom(true); return; }
+        setShowCustom(false);
+        router.get(url(`/admin/bio/${bio.id}/analytics`), { range: newRange }, { preserveScroll: true });
+    };
+    const applyCustomRange = () => {
+        router.get(url(`/admin/bio/${bio.id}/analytics`), { range: 'custom', from: dateFrom, to: dateTo }, { preserveScroll: true });
     };
 
     return (
@@ -74,20 +79,20 @@ export default function Analytics({ bio, range, ranges, custom_from, custom_to, 
                     </div>
                     <div className="flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1 flex-wrap">
                         {ranges.map((r) => (
-                            <button key={r} onClick={() => changeRange(r)} className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${r === range ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>
+                            <button key={r} onClick={() => changeRange(r)} className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${r === activeRange ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>
                                 {rangeLabels[r] || r}
                             </button>
                         ))}
                     </div>
                 </div>
 
-                {range === 'custom' && (
-                    <div className="flex items-center gap-3 mb-6 p-3 rounded-xl bg-gray-900 border border-gray-800">
+                {(showCustom || range === 'custom') && (
+                    <div className="flex items-center gap-3 mb-6 p-3 rounded-xl bg-gray-900 border border-gray-800 flex-wrap">
                         <label className="text-xs text-gray-400">From</label>
-                        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="px-3 py-1.5 bg-gray-950 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/40" />
+                        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={{ colorScheme: 'dark' }} className="px-3 py-1.5 bg-gray-950 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/40" />
                         <label className="text-xs text-gray-400">To</label>
-                        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="px-3 py-1.5 bg-gray-950 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/40" />
-                        <button onClick={() => changeRange('custom')} className="px-4 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-all">Apply</button>
+                        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} style={{ colorScheme: 'dark' }} className="px-3 py-1.5 bg-gray-950 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/40" />
+                        <button onClick={applyCustomRange} className="px-4 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-all">Apply</button>
                     </div>
                 )}
 

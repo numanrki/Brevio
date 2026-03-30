@@ -21,9 +21,18 @@ function QrPopup({ qrData, name, onClose, anchorRef }: { qrData: QrCodeFull; nam
         const rect = anchorRef.current?.getBoundingClientRect();
         if (rect) {
             const popupW = 320;
+            const popupH = 400;
             let left = rect.right - popupW;
             if (left < 8) left = 8;
-            setPos({ top: rect.bottom + 8, left });
+            if (left + popupW > window.innerWidth - 8) left = window.innerWidth - popupW - 8;
+            let top: number;
+            if (rect.bottom + 8 + popupH > window.innerHeight) {
+                top = rect.top - popupH - 8;
+                if (top < 8) top = 8;
+            } else {
+                top = rect.bottom + 8;
+            }
+            setPos({ top, left });
         }
     }, [anchorRef]);
 

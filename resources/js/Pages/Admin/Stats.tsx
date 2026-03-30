@@ -2,7 +2,7 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, router } from '@inertiajs/react';
 import { AnalyticsSummary, TimeSeriesPoint, BreakdownItem } from '@/types';
 import { url } from '@/utils';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
 
 interface Props {
@@ -10,6 +10,7 @@ interface Props {
     ranges: string[];
     custom_from: string;
     custom_to: string;
+    filter: string;
     summary: AnalyticsSummary;
     clicks_over_time: TimeSeriesPoint[];
     top_countries: BreakdownItem[];
@@ -37,15 +38,42 @@ const rangeLabels: Record<string, string> = {
     'custom': 'Custom',
 };
 
-export default function Stats({ range, ranges, custom_from, custom_to, summary, clicks_over_time, top_countries, top_referrers, top_browsers, top_os, devices, top_languages, bio_summary, bio_visits_over_time, qr_summary, qr_scans_over_time }: Props) {
+const filterLabels: Record<string, string> = {
+    all: 'All',
+    links: 'Links',
+    qr: 'QR Codes',
+    bio: 'Bio Pages',
+};
+
+export default function Stats({ range, ranges, custom_from, custom_to, filter, summary, clicks_over_time, top_countries, top_referrers, top_browsers, top_os, devices, top_languages, bio_summary, bio_visits_over_time, qr_summary, qr_scans_over_time }: Props) {
     const [dateFrom, setDateFrom] = useState(custom_from);
     const [dateTo, setDateTo] = useState(custom_to);
+    const [showCustom, setShowCustom] = useState(range === 'custom');
+
+    useEffect(() => {
+        setDateFrom(custom_from);
+        setDateTo(custom_to);
+    }, [custom_from, custom_to]);
+
+    const activeRange = showCustom ? 'custom' : range;
+
     const changeRange = (newRange: string) => {
         if (newRange === 'custom') {
-            router.get(url('/admin/stats'), { range: 'custom', from: dateFrom, to: dateTo }, { preserveState: true, preserveScroll: true });
-        } else {
-            router.get(url('/admin/stats'), { range: newRange }, { preserveState: true, preserveScroll: true });
+            setShowCustom(true);
+            return;
         }
+        setShowCustom(false);
+        router.get(url('/admin/stats'), { range: newRange, filter }, { preserveScroll: true });
+    };
+
+    const applyCustomRange = () => {
+        router.get(url('/admin/stats'), { range: 'custom', filter, from: dateFrom, to: dateTo }, { preserveScroll: true });
+    };
+
+    const changeFilter = (newFilter: string) => {
+        const params: Record<string, string> = { range, filter: newFilter };
+        if (range === 'custom') { params.from = dateFrom; params.to = dateTo; }
+        router.get(url('/admin/stats'), params, { preserveScroll: true });
     };
 
     return (
@@ -53,41 +81,50 @@ export default function Stats({ range, ranges, custom_from, custom_to, summary, 
             <Head title="Statistics" />
 
             <div className="max-w-6xl">
-                {/* Range Selector */}
-                <div className="flex items-center justify-end mb-6">
+                {/* Filter + Range Selector */}
+                <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                     <div className="flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1">
+                        {(['all', 'links', 'qr', 'bio'] as const).map((f) => (
+                            <button key={f} onClick={() => changeFilter(f)} className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${f === filter ? 'bg-fuchsia-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>
+                                {filterLabels[f]}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1 flex-wrap">
                         {ranges.map((r) => (
-                            <button
-                                key={r}
-                                onClick={() => changeRange(r)}
-                                className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${r === range ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}
-                            >
+                            <button key={r} onClick={() => changeRange(r)} className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${r === activeRange ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>
                                 {rangeLabels[r] || r}
                             </button>
                         ))}
                     </div>
                 </div>
 
-                {range === 'custom' && (
-                    <div className="flex items-center gap-3 mb-6 p-3 rounded-xl bg-gray-900 border border-gray-800">
+                {(showCustom || range === 'custom') && (
+                    <div className="flex items-center gap-3 mb-6 p-3 rounded-xl bg-gray-900 border border-gray-800 flex-wrap">
                         <label className="text-xs text-gray-400">From</label>
-                        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="px-3 py-1.5 bg-gray-950 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/40" />
+                        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} style={{ colorScheme: 'dark' }} className="px-3 py-1.5 bg-gray-950 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/40" />
                         <label className="text-xs text-gray-400">To</label>
-                        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="px-3 py-1.5 bg-gray-950 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/40" />
-                        <button onClick={() => changeRange('custom')} className="px-4 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-all">Apply</button>
+                        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} style={{ colorScheme: 'dark' }} className="px-3 py-1.5 bg-gray-950 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/40" />
+                        <button onClick={applyCustomRange} className="px-4 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-all">Apply</button>
                     </div>
                 )}
 
                 {/* Summary Cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">
-                    <SummaryCard label="Link Clicks" value={summary.total_clicks} color="from-violet-500 to-purple-600" />
-                    <SummaryCard label="Unique Clicks" value={summary.unique_clicks} color="from-cyan-500 to-blue-600" />
-                    <SummaryCard label="Bio Page Views" value={bio_summary.total_clicks} color="from-fuchsia-500 to-pink-600" />
-                    <SummaryCard label="QR Scans" value={qr_summary.total_clicks} color="from-amber-500 to-orange-600" />
-                    <SummaryCard label="Avg. Daily Clicks" value={summary.avg_daily} color="from-emerald-500 to-green-600" />
+                <div className={`grid gap-4 mb-6 ${filter === 'all' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5' : 'grid-cols-1 sm:grid-cols-3'}`}>
+                    {(filter === 'all' || filter === 'links') && (
+                        <>
+                            <SummaryCard label="Link Clicks" value={summary.total_clicks} color="from-violet-500 to-purple-600" />
+                            <SummaryCard label="Unique Clicks" value={summary.unique_clicks} color="from-cyan-500 to-blue-600" />
+                        </>
+                    )}
+                    {(filter === 'all' || filter === 'bio') && <SummaryCard label="Bio Views" value={bio_summary.total_clicks} color="from-fuchsia-500 to-pink-600" />}
+                    {(filter === 'all' || filter === 'qr') && <SummaryCard label="QR Scans" value={qr_summary.total_clicks} color="from-amber-500 to-orange-600" />}
+                    {filter === 'qr' && <SummaryCard label="Unique Scans" value={qr_summary.unique_clicks} color="from-cyan-500 to-blue-600" />}
+                    {filter === 'bio' && <SummaryCard label="Unique Views" value={bio_summary.unique_clicks} color="from-cyan-500 to-blue-600" />}
+                    <SummaryCard label="Avg. Daily" value={filter === 'qr' ? qr_summary.avg_daily : filter === 'bio' ? bio_summary.avg_daily : summary.avg_daily} color="from-emerald-500 to-green-600" />
                 </div>
 
-                {/* Clicks Over Time */}
+                {/* Activity Over Time */}
                 <div className="rounded-xl bg-gray-900 border border-gray-800 p-6 mb-6">
                     <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Activity Over Time</h3>
                     {clicks_over_time.length > 0 || bio_visits_over_time.length > 0 || qr_scans_over_time.length > 0 ? (
@@ -97,9 +134,9 @@ export default function Stats({ range, ranges, custom_from, custom_to, summary, 
                                 <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 11 }} tickFormatter={(v) => new Date(v).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} allowDuplicatedCategory={false} />
                                 <YAxis tick={{ fill: '#6b7280', fontSize: 11 }} allowDecimals={false} />
                                 <Tooltip contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '0.75rem', color: '#e5e7eb' }} />
-                                {clicks_over_time.length > 0 && <Line type="monotone" data={clicks_over_time} dataKey="count" name="Link Clicks" stroke="#8b5cf6" strokeWidth={2} dot={false} />}
-                                {bio_visits_over_time.length > 0 && <Line type="monotone" data={bio_visits_over_time} dataKey="count" name="Bio Views" stroke="#d946ef" strokeWidth={2} dot={false} />}
-                                {qr_scans_over_time.length > 0 && <Line type="monotone" data={qr_scans_over_time} dataKey="count" name="QR Scans" stroke="#f59e0b" strokeWidth={2} dot={false} />}
+                                {(filter === 'all' || filter === 'links') && clicks_over_time.length > 0 && <Line type="monotone" data={clicks_over_time} dataKey="count" name="Link Clicks" stroke="#8b5cf6" strokeWidth={2} dot={false} />}
+                                {(filter === 'all' || filter === 'bio') && bio_visits_over_time.length > 0 && <Line type="monotone" data={bio_visits_over_time} dataKey="count" name="Bio Views" stroke="#d946ef" strokeWidth={2} dot={false} />}
+                                {(filter === 'all' || filter === 'qr') && qr_scans_over_time.length > 0 && <Line type="monotone" data={qr_scans_over_time} dataKey="count" name="QR Scans" stroke="#f59e0b" strokeWidth={2} dot={false} />}
                             </LineChart>
                         </ResponsiveContainer>
                     ) : (
