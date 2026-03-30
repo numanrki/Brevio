@@ -32,9 +32,9 @@ type PageState = 'idle' | 'checking' | 'installing' | 'success' | 'error';
 const INSTALL_STEPS: { key: string; label: string }[] = [
     { key: 'download', label: 'Downloading update package' },
     { key: 'extract', label: 'Extracting files' },
+    { key: 'migrate', label: 'Running database migrations' },
     { key: 'apply', label: 'Applying file changes' },
     { key: 'composer', label: 'Installing dependencies' },
-    { key: 'migrate', label: 'Running database migrations' },
     { key: 'cache', label: 'Clearing caches' },
 ];
 

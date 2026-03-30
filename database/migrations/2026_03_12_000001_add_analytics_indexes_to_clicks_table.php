@@ -9,10 +9,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('clicks', function (Blueprint $table) {
-            $table->index('browser');
-            $table->index('os');
-            $table->index('device');
-            $table->index('language');
+            try { $table->index('browser'); } catch (\Throwable $e) {}
+            try { $table->index('os'); } catch (\Throwable $e) {}
+            try { $table->index('device'); } catch (\Throwable $e) {}
+            try { $table->index('language'); } catch (\Throwable $e) {}
         });
     }
 

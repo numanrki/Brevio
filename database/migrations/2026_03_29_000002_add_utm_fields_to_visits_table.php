@@ -9,9 +9,15 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('visits', function (Blueprint $table) {
-            $table->string('utm_source', 100)->nullable()->after('language');
-            $table->string('utm_medium', 100)->nullable()->after('utm_source');
-            $table->string('utm_campaign', 100)->nullable()->after('utm_medium');
+            if (!Schema::hasColumn('visits', 'utm_source')) {
+                $table->string('utm_source', 100)->nullable()->after('language');
+            }
+            if (!Schema::hasColumn('visits', 'utm_medium')) {
+                $table->string('utm_medium', 100)->nullable()->after('utm_source');
+            }
+            if (!Schema::hasColumn('visits', 'utm_campaign')) {
+                $table->string('utm_campaign', 100)->nullable()->after('utm_medium');
+            }
         });
     }
 

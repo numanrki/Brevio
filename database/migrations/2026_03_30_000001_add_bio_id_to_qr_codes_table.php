@@ -8,6 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('qr_codes', 'bio_id')) return;
+
         Schema::table('qr_codes', function (Blueprint $table) {
             $table->foreignId('bio_id')->nullable()->after('url_id')->constrained()->cascadeOnDelete();
         });

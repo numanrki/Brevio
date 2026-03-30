@@ -8,6 +8,8 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasTable('visits')) return;
+
         Schema::create('visits', function (Blueprint $table) {
             $table->id();
             $table->string('visitable_type', 60);  // App\Models\Bio, App\Models\QrCode

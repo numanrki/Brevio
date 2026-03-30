@@ -218,36 +218,40 @@ class UpdateController extends Controller
     }
 
     /**
-     * Download, extract, and apply an update from GitHub.
+     * Download, extract, and install an update from GitHub.
      *
-     * KEY: Migrations run BEFORE new code is copied.
-     * This prevents 500 errors from new code referencing DB columns
-     * that don't exist yet.
+     * Order: Download → Extract → Copy migrations → Run migrations → Copy all files → Cache clear
+     * Migrations run BEFORE new app code to prevent 500 errors from missing DB columns.
      */
     private function performUpdate(string $zipUrl, string $channel, string $label): \Illuminate\Http\JsonResponse
     {
         $steps = [];
-        $log = storage_path('logs/update-migrate.log');
+        $log = storage_path('logs/update.log');
+
+        @file_put_contents($log, "\n" . str_repeat('=', 60) . "\n"
+            . date('Y-m-d H:i:s') . " Starting update to {$label} ({$channel})\n", FILE_APPEND);
 
         try {
-            @file_put_contents($log, "\n" . str_repeat('=', 60) . "\n" . date('Y-m-d H:i:s') . " Starting update to {$label} ({$channel})\n", FILE_APPEND);
-
-            // Step 1: Download
+            // ── Step 1: Download ──────────────────────────────────────
             $steps[] = ['step' => 'download', 'status' => 'running'];
 
+            $zipPath = storage_path('app/update.zip');
             $response = Http::withHeaders($this->githubHeaders())
                 ->timeout(120)
-                ->withOptions(['sink' => storage_path('app/update.zip')])
+                ->withOptions(['sink' => $zipPath])
                 ->get($zipUrl);
 
-            if ($response->failed()) {
-                return response()->json(['success' => false, 'message' => 'Failed to download update package.', 'step' => 'download'], 422);
+            if ($response->failed() || !file_exists($zipPath) || filesize($zipPath) < 1000) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Download failed (HTTP ' . $response->status() . '). Ensure your GitHub token has Contents:read permission.',
+                ], 422);
             }
 
             $steps[0]['status'] = 'done';
-            @file_put_contents($log, date('Y-m-d H:i:s') . " [1/6] Download complete\n", FILE_APPEND);
+            @file_put_contents($log, date('Y-m-d H:i:s') . " [1/6] Downloaded " . filesize($zipPath) . " bytes\n", FILE_APPEND);
 
-            // Step 2: Extract
+            // ── Step 2: Extract ───────────────────────────────────────
             $steps[] = ['step' => 'extract', 'status' => 'running'];
 
             $extractPath = storage_path('app/update-temp');
@@ -257,53 +261,45 @@ class UpdateController extends Controller
             File::makeDirectory($extractPath, 0755, true);
 
             $zip = new \ZipArchive();
-            if ($zip->open(storage_path('app/update.zip')) !== true) {
-                return response()->json(['success' => false, 'message' => 'Failed to open update package.', 'step' => 'extract'], 422);
+            $openResult = $zip->open($zipPath);
+            if ($openResult !== true) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Cannot open ZIP (code ' . $openResult . '). Download may be corrupt or token lacks Contents permission.',
+                ], 422);
             }
 
             $zip->extractTo($extractPath);
             $zip->close();
 
+            // GitHub zipballs have a root folder like "owner-repo-sha/"
             $extractedDirs = File::directories($extractPath);
             $sourceDir = $extractedDirs[0] ?? $extractPath;
 
             $steps[1]['status'] = 'done';
-            @file_put_contents($log, date('Y-m-d H:i:s') . " [2/6] Extract complete. Source: {$sourceDir}\n", FILE_APPEND);
+            @file_put_contents($log, date('Y-m-d H:i:s') . " [2/6] Extracted to {$sourceDir}\n", FILE_APPEND);
 
-            // Step 3: Copy ONLY migration files first, then run migrations
-            // This is the critical fix: new DB schema must exist BEFORE new code loads
+            // ── Step 3: Migrate BEFORE copying new code ───────────────
             $steps[] = ['step' => 'migrate', 'status' => 'running'];
 
-            $migrateOutput = '';
-            $newMigrationDir = $sourceDir . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'migrations';
-            $targetMigrationDir = base_path('database/migrations');
-
-            if (is_dir($newMigrationDir)) {
-                // Copy new migration files to the project
-                $migrationFiles = File::files($newMigrationDir);
-                foreach ($migrationFiles as $mFile) {
-                    $dest = $targetMigrationDir . DIRECTORY_SEPARATOR . $mFile->getFilename();
-                    if (!file_exists($dest)) {
-                        File::copy($mFile->getRealPath(), $dest);
-                        @file_put_contents($log, date('Y-m-d H:i:s') . " [3/6] Copied migration: {$mFile->getFilename()}\n", FILE_APPEND);
-                    }
+            // Copy ONLY migration files from the ZIP to the project
+            $newMigDir = $sourceDir . DIRECTORY_SEPARATOR . 'database' . DIRECTORY_SEPARATOR . 'migrations';
+            if (is_dir($newMigDir)) {
+                $targetMigDir = database_path('migrations');
+                foreach (File::files($newMigDir) as $mFile) {
+                    File::copy($mFile->getRealPath(), $targetMigDir . DIRECTORY_SEPARATOR . $mFile->getFilename());
                 }
+                @file_put_contents($log, date('Y-m-d H:i:s') . " [3/6] Copied " . count(File::files($newMigDir)) . " migration files\n", FILE_APPEND);
             }
 
-            // Run migrations using current (OLD) code + new migration files
-            try {
-                DB::purge();
-                Artisan::call('migrate', ['--force' => true]);
-                $migrateOutput = trim(Artisan::output());
-                @file_put_contents($log, date('Y-m-d H:i:s') . " [3/6] Artisan migrate OK: {$migrateOutput}\n", FILE_APPEND);
-            } catch (\Throwable $e) {
-                $migrateOutput = 'Artisan: ' . $e->getMessage();
-                @file_put_contents($log, date('Y-m-d H:i:s') . " [3/6] Artisan migrate failed: {$e->getMessage()}\n", FILE_APPEND);
-            }
+            // Run each migration individually (one failure won't stop the rest)
+            DB::purge();
+            $migResult = $this->runMigrationsIndividually($log);
 
             $steps[2]['status'] = 'done';
+            @file_put_contents($log, date('Y-m-d H:i:s') . " [3/6] Migrations: {$migResult['ran']} ran, {$migResult['skipped']} skipped, " . count($migResult['failed']) . " failed\n", FILE_APPEND);
 
-            // Step 4: Apply ALL files (overwrite everything except protected paths)
+            // ── Step 4: Copy all files ────────────────────────────────
             $steps[] = ['step' => 'apply', 'status' => 'running'];
 
             $this->applyFiles($sourceDir, base_path());
@@ -313,53 +309,50 @@ class UpdateController extends Controller
             }
 
             $steps[3]['status'] = 'done';
-            @file_put_contents($log, date('Y-m-d H:i:s') . " [4/6] Files applied\n", FILE_APPEND);
+            @file_put_contents($log, date('Y-m-d H:i:s') . " [4/6] All files applied\n", FILE_APPEND);
 
-            // Step 5: Install dependencies
+            // ── Step 5: Composer install ──────────────────────────────
             $steps[] = ['step' => 'composer', 'status' => 'running'];
-            $composerOutput = $this->runComposerInstall();
+            $this->runComposerInstall();
             $steps[4]['status'] = 'done';
 
-            // Step 6: Clear ALL caches
+            // ── Step 6: Clear caches & cleanup ────────────────────────
             $steps[] = ['step' => 'cache', 'status' => 'running'];
 
-            try {
-                Artisan::call('config:clear');
-                Artisan::call('cache:clear');
-                Artisan::call('view:clear');
-                Artisan::call('route:clear');
-            } catch (\Throwable) {}
+            $this->clearAllCaches();
 
-            // Remove any leftover flags
+            @File::delete($zipPath);
+            @File::deleteDirectory($extractPath);
             @unlink(storage_path('app/update_pending'));
             @unlink(storage_path('app/update_migrate_retries'));
 
             $steps[5]['status'] = 'done';
 
-            // Cleanup
-            File::delete(storage_path('app/update.zip'));
-            File::deleteDirectory($extractPath);
-
+            // Read new version
             $newConfig = @include base_path('config/app.php');
             $newVersion = $newConfig['version'] ?? $label;
 
-            @file_put_contents($log, date('Y-m-d H:i:s') . " [DONE] Update to {$newVersion} complete\n", FILE_APPEND);
+            @file_put_contents($log, date('Y-m-d H:i:s') . " [DONE] Updated to {$newVersion}\n", FILE_APPEND);
 
             return response()->json([
                 'success'     => true,
-                'message'     => "Update to {$label} ({$channel}) installed successfully!",
+                'message'     => "Updated to {$label} ({$channel}) successfully!",
                 'new_version' => $newVersion,
                 'steps'       => $steps,
-                'migrate'     => $migrateOutput,
+                'migrate'     => $migResult['output'],
             ]);
         } catch (\Throwable $e) {
-            File::delete(storage_path('app/update.zip'));
+            @File::delete(storage_path('app/update.zip'));
             if (File::isDirectory(storage_path('app/update-temp'))) {
-                File::deleteDirectory(storage_path('app/update-temp'));
+                @File::deleteDirectory(storage_path('app/update-temp'));
             }
             @file_put_contents($log, date('Y-m-d H:i:s') . " [FATAL] {$e->getMessage()}\n", FILE_APPEND);
 
-            return response()->json(['success' => false, 'message' => 'Update failed: ' . $e->getMessage(), 'steps' => $steps], 422);
+            return response()->json([
+                'success' => false,
+                'message' => 'Update failed: ' . $e->getMessage(),
+                'steps'   => $steps,
+            ], 422);
         }
     }
 
@@ -556,28 +549,125 @@ class UpdateController extends Controller
     }
 
     /**
-     * Run pending database migrations only (no file update).
+     * Run pending database migrations (manual trigger from admin panel).
      */
     public function runMigrations()
     {
-        try {
-            Artisan::call('migrate', ['--force' => true]);
-            $output = trim(Artisan::output());
+        $log = storage_path('logs/update.log');
 
-            Artisan::call('config:clear');
-            Artisan::call('cache:clear');
+        try {
+            DB::purge();
+            $result = $this->runMigrationsIndividually($log);
+            $this->clearAllCaches();
+
+            $pending = $this->getPendingMigrationCount();
+            $message = $result['ran'] > 0
+                ? "Ran {$result['ran']} migration(s) successfully."
+                : 'No pending migrations.';
+
+            if (!empty($result['failed'])) {
+                $message .= ' ' . count($result['failed']) . ' had errors.';
+            }
 
             return response()->json([
-                'success'            => true,
-                'message'            => 'Migrations completed successfully.',
-                'output'             => $output,
-                'pending_migrations' => $this->getPendingMigrationCount(),
+                'success'            => empty($result['failed']),
+                'message'            => $message,
+                'output'             => $result['output'] ?: 'Nothing to migrate.',
+                'pending_migrations' => $pending,
             ]);
         } catch (\Throwable $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Migration failed: ' . $e->getMessage(),
             ], 422);
+        }
+    }
+
+    /**
+     * Run all pending migrations individually — each in its own try/catch.
+     * One failing migration does NOT stop the others from running.
+     */
+    private function runMigrationsIndividually(string $log): array
+    {
+        $result = ['ran' => 0, 'skipped' => 0, 'failed' => [], 'output' => ''];
+        $migrationDir = database_path('migrations');
+
+        // Ensure migrations table exists
+        try {
+            $prefix = config('database.connections.mysql.prefix', '');
+            $table = $prefix . 'migrations';
+            DB::statement("CREATE TABLE IF NOT EXISTS `{$table}` (
+                `id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+                `migration` VARCHAR(255) NOT NULL,
+                `batch` INT NOT NULL
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+        } catch (\Throwable $e) {
+            $result['output'] = "Cannot access database: {$e->getMessage()}\n";
+            @file_put_contents($log, date('Y-m-d H:i:s') . " [MIGRATE] DB error: {$e->getMessage()}\n", FILE_APPEND);
+            return $result;
+        }
+
+        // Get already-run migration names
+        $ran = DB::table('migrations')->pluck('migration')->all();
+
+        // Get all migration files sorted chronologically
+        $files = collect(File::files($migrationDir))
+            ->filter(fn($f) => $f->getExtension() === 'php')
+            ->sortBy(fn($f) => $f->getFilename())
+            ->values();
+
+        $batch = ((int) DB::table('migrations')->max('batch')) + 1;
+
+        foreach ($files as $file) {
+            $name = pathinfo($file->getFilename(), PATHINFO_FILENAME);
+
+            if (in_array($name, $ran)) {
+                $result['skipped']++;
+                continue;
+            }
+
+            try {
+                $migration = require $file->getRealPath();
+                if (is_object($migration) && method_exists($migration, 'up')) {
+                    $migration->up();
+                }
+
+                DB::table('migrations')->insert(['migration' => $name, 'batch' => $batch]);
+                $result['ran']++;
+                $result['output'] .= "OK: {$name}\n";
+                @file_put_contents($log, date('Y-m-d H:i:s') . " [MIGRATE] OK: {$name}\n", FILE_APPEND);
+
+            } catch (\Throwable $e) {
+                $errMsg = $e->getMessage();
+                $result['failed'][] = $name;
+                $result['output'] .= "FAIL: {$name}: {$errMsg}\n";
+                @file_put_contents($log, date('Y-m-d H:i:s') . " [MIGRATE] FAIL: {$name}: {$errMsg}\n", FILE_APPEND);
+
+                // "Already exists" errors mean the DB is already in the right state
+                if (str_contains($errMsg, 'already exists') || str_contains($errMsg, 'Duplicate')) {
+                    try {
+                        DB::table('migrations')->insert(['migration' => $name, 'batch' => $batch]);
+                        $result['output'] .= "  (marked as applied — already exists in DB)\n";
+                    } catch (\Throwable) {}
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Clear all framework caches safely.
+     */
+    private function clearAllCaches(): void
+    {
+        try { Artisan::call('config:clear'); } catch (\Throwable) {}
+        try { Artisan::call('cache:clear'); } catch (\Throwable) {}
+        try { Artisan::call('view:clear'); } catch (\Throwable) {}
+        try { Artisan::call('route:clear'); } catch (\Throwable) {}
+
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
         }
     }
 }
