@@ -14,15 +14,18 @@ class ApiDocsController extends Controller
         'overview',
         'authentication',
         'links',
+        'bio-pages',
         'qr-codes',
         'deep-links',
+        'pixels',
+        'stats',
         'errors',
     ];
 
     /**
      * Generate a time-limited token and redirect to the protected doc page.
      */
-    public function gate(string $section)
+    public function gate(Request $request, string $section)
     {
         if (!in_array($section, self::SECTIONS, true)) {
             abort(404);

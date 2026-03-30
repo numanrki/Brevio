@@ -23,6 +23,10 @@ class CheckApiScope
             return response()->json(['message' => 'Invalid API key.'], 401);
         }
 
+        if (!$apiKey->is_active) {
+            return response()->json(['message' => 'API key is disabled.'], 403);
+        }
+
         if ($apiKey->expires_at && $apiKey->expires_at->isPast()) {
             return response()->json(['message' => 'API key has expired.'], 401);
         }

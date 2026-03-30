@@ -8,22 +8,30 @@ interface ApiKeyItem {
     name: string;
     key_prefix: string;
     scopes: string[];
+    is_active: boolean;
     last_used_at: string | null;
+    expires_at: string | null;
     created_at: string;
-}
-
-interface Props {
-    apiKeys: ApiKeyItem[];
-    availableScopes: Record<string, string>;
 }
 
 const DOC_SECTIONS = [
     { key: 'overview', label: 'Overview', desc: 'Introduction, base URL, rate limits' },
     { key: 'authentication', label: 'Authentication', desc: 'How to authenticate API requests' },
     { key: 'links', label: 'Links API', desc: 'Create, read, update, delete short links' },
+    { key: 'bio-pages', label: 'Bio Pages API', desc: 'Manage bio pages programmatically' },
     { key: 'qr-codes', label: 'QR Codes API', desc: 'Manage QR codes programmatically' },
     { key: 'deep-links', label: 'Deep Links API', desc: 'Smart routing & deep link management' },
+    { key: 'pixels', label: 'Pixels API', desc: 'Manage tracking pixels' },
+    { key: 'stats', label: 'Statistics API', desc: 'Access analytics & statistics' },
     { key: 'errors', label: 'Error Handling', desc: 'Error codes and troubleshooting' },
+];
+
+const EXPIRY_OPTIONS = [
+    { value: 'never', label: 'Never expires' },
+    { value: '30d', label: '30 days' },
+    { value: '60d', label: '60 days' },
+    { value: '90d', label: '90 days' },
+    { value: '1y', label: '1 year' },
 ];
 
 export default function Index() {
@@ -38,6 +46,7 @@ export default function Index() {
     const form = useForm({
         name: '',
         scopes: [] as string[],
+        expires_in: 'never',
     });
 
     const handleScopeToggle = (scope: string) => {
@@ -47,6 +56,14 @@ export default function Index() {
         } else {
             form.setData('scopes', [...current, scope]);
         }
+    };
+
+    const selectAllScopes = () => {
+        form.setData('scopes', Object.keys(availableScopes));
+    };
+
+    const clearAllScopes = () => {
+        form.setData('scopes', []);
     };
 
     const handleCreate = (e: React.FormEvent) => {
@@ -72,6 +89,10 @@ export default function Index() {
         router.post(url(`/admin/api-keys/${id}/regenerate`), {}, {
             onSuccess: () => setConfirmRegen(null),
         });
+    };
+
+    const handleToggle = (id: number) => {
+        router.post(url(`/admin/api-keys/${id}/toggle`));
     };
 
     const copyToClipboard = (text: string) => {
@@ -179,20 +200,41 @@ export default function Index() {
                             <div className="bg-gray-900 rounded-xl border border-gray-800 p-6">
                                 <h3 className="text-white font-semibold mb-4">Create New API Key</h3>
                                 <form onSubmit={handleCreate} className="space-y-5">
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-2">Key Name</label>
-                                        <input
-                                            type="text"
-                                            value={form.data.name}
-                                            onChange={e => form.setData('name', e.target.value)}
-                                            placeholder="e.g., Production Server, Mobile App"
-                                            className="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-sm"
-                                        />
-                                        {form.errors.name && <p className="text-red-400 text-xs mt-1">{form.errors.name}</p>}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-300 mb-2">Key Name</label>
+                                            <input
+                                                type="text"
+                                                value={form.data.name}
+                                                onChange={e => form.setData('name', e.target.value)}
+                                                placeholder="e.g., Production Server, Mobile App"
+                                                className="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-sm"
+                                            />
+                                            {form.errors.name && <p className="text-red-400 text-xs mt-1">{form.errors.name}</p>}
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-300 mb-2">Expiration</label>
+                                            <select
+                                                value={form.data.expires_in}
+                                                onChange={e => form.setData('expires_in', e.target.value)}
+                                                className="w-full bg-gray-950 border border-gray-700 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 text-sm"
+                                            >
+                                                {EXPIRY_OPTIONS.map(opt => (
+                                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                                ))}
+                                            </select>
+                                        </div>
                                     </div>
 
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-300 mb-3">Permissions (Scopes)</label>
+                                        <div className="flex items-center justify-between mb-3">
+                                            <label className="block text-sm font-medium text-gray-300">Permissions (Scopes)</label>
+                                            <div className="flex items-center gap-2">
+                                                <button type="button" onClick={selectAllScopes} className="text-xs text-violet-400 hover:text-violet-300 transition-colors">Select All</button>
+                                                <span className="text-gray-600">|</span>
+                                                <button type="button" onClick={clearAllScopes} className="text-xs text-gray-400 hover:text-gray-300 transition-colors">Clear All</button>
+                                            </div>
+                                        </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                             {Object.entries(scopeLabels).map(([scope, label]) => (
                                                 <label
@@ -264,14 +306,22 @@ export default function Index() {
                         ) : (
                             <div className="space-y-3">
                                 {apiKeys.map(key => (
-                                    <div key={key.id} className="bg-gray-900 rounded-xl border border-gray-800 p-5 hover:border-gray-700 transition-colors">
+                                    <div key={key.id} className={`bg-gray-900 rounded-xl border p-5 transition-colors ${key.is_active ? 'border-gray-800 hover:border-gray-700' : 'border-gray-800/50 opacity-60'}`}>
                                         <div className="flex items-start justify-between">
                                             <div className="flex-1">
-                                                <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-3 flex-wrap">
                                                     <h3 className="text-white font-semibold">{key.name}</h3>
                                                     <span className="text-xs font-mono text-gray-500 bg-gray-800 px-2 py-0.5 rounded">
                                                         {key.key_prefix}...
                                                     </span>
+                                                    {!key.is_active && (
+                                                        <span className="text-xs px-2 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20">Disabled</span>
+                                                    )}
+                                                    {key.expires_at && (
+                                                        <span className="text-xs px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                                                            Expires {key.expires_at}
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <div className="flex flex-wrap gap-1.5 mt-2">
                                                     {key.scopes.map(scope => (
@@ -285,7 +335,21 @@ export default function Index() {
                                                     {key.last_used_at && <span>Last used {key.last_used_at}</span>}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2">
+                                            <div className="flex items-center gap-2 flex-shrink-0">
+                                                {/* Toggle On/Off */}
+                                                <button
+                                                    onClick={() => handleToggle(key.id)}
+                                                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                                                        key.is_active ? 'bg-violet-600' : 'bg-gray-700'
+                                                    }`}
+                                                    title={key.is_active ? 'Disable API key' : 'Enable API key'}
+                                                >
+                                                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                                                        key.is_active ? 'translate-x-6' : 'translate-x-1'
+                                                    }`} />
+                                                </button>
+
+                                                {/* Regenerate */}
                                                 {confirmRegen === key.id ? (
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-xs text-amber-400">Regenerate?</span>
@@ -314,6 +378,7 @@ export default function Index() {
                                                     </button>
                                                 )}
 
+                                                {/* Delete */}
                                                 {confirmDelete === key.id ? (
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-xs text-red-400">Revoke?</span>
@@ -355,7 +420,7 @@ export default function Index() {
                     <div className="space-y-6">
                         <div>
                             <h2 className="text-lg font-semibold text-white">API Documentation</h2>
-                            <p className="text-sm text-gray-400 mt-1">Learn how to integrate with the Brevio API. Each section opens in a new tab with restricted access.</p>
+                            <p className="text-sm text-gray-400 mt-1">Learn how to integrate with the Brevio API. Each section opens in a new protected tab — links are token-secured and expire after 30 minutes.</p>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

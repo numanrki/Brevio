@@ -13,6 +13,7 @@ class ApiKey extends Model
         'key',
         'key_prefix',
         'scopes',
+        'is_active',
         'last_used_at',
         'expires_at',
     ];
@@ -21,6 +22,7 @@ class ApiKey extends Model
     {
         return [
             'scopes' => 'array',
+            'is_active' => 'boolean',
             'last_used_at' => 'datetime',
             'expires_at' => 'datetime',
         ];
