@@ -297,15 +297,40 @@ class UpdateController extends Controller
             $steps[] = ['step' => 'migrate', 'status' => 'running'];
 
             $migrateOutput = '';
+            $migrateSuccess = false;
+
+            // Attempt 1: Artisan migrate
             try {
+                DB::purge();
                 Artisan::call('migrate', ['--force' => true]);
                 $migrateOutput = trim(Artisan::output());
-                // Migration succeeded — remove the pending flag
-                @unlink(storage_path('app/update_pending'));
+                $migrateSuccess = true;
             } catch (\Throwable $e) {
-                $migrateOutput = 'Migration warning: ' . $e->getMessage();
-                // Flag stays — AutoMigrate middleware will retry on next page load
+                $migrateOutput = 'Artisan migrate failed: ' . $e->getMessage();
             }
+
+            // Attempt 2: Direct PDO migration fallback
+            if (!$migrateSuccess) {
+                try {
+                    $autoMigrate = new \App\Http\Middleware\AutoMigrate();
+                    $ref = new \ReflectionMethod($autoMigrate, 'runMigrationsViaPdo');
+                    $ref->setAccessible(true);
+                    $ref->invoke($autoMigrate, storage_path('logs/update-migrate.log'));
+                    $migrateOutput .= ' | PDO fallback succeeded';
+                    $migrateSuccess = true;
+                } catch (\Throwable $e2) {
+                    $migrateOutput .= ' | PDO fallback also failed: ' . $e2->getMessage();
+                }
+            }
+
+            if ($migrateSuccess) {
+                @unlink(storage_path('app/update_pending'));
+                @unlink(storage_path('app/update_migrate_retries'));
+            }
+            // If BOTH failed, the update_pending flag stays for AutoMigrate middleware
+
+            @file_put_contents(storage_path('logs/update-migrate.log'),
+                date('Y-m-d H:i:s') . " [UPDATE] Migration result: {$migrateOutput}\n", FILE_APPEND);
 
             $steps[4]['status'] = 'done';
 
