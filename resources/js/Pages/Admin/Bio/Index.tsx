@@ -4,16 +4,28 @@ import { Head, Link, router } from '@inertiajs/react';
 import { PaginatedData, Bio, QrCodeFull } from '@/types';
 import { url } from '@/utils';
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { QRCodeSVG, QRCodeCanvas } from 'qrcode.react';
 
 const HD_SIZE = 1024;
 
-function QrPopup({ qrData, name, onClose }: { qrData: QrCodeFull; name: string; onClose: () => void }) {
+function QrPopup({ qrData, name, onClose, anchorRef }: { qrData: QrCodeFull; name: string; onClose: () => void; anchorRef: React.RefObject<HTMLButtonElement | null> }) {
     const popupRef = useRef<HTMLDivElement>(null);
     const hdCanvasRef = useRef<HTMLDivElement>(null);
     const content = qrData.data?.content || '';
     const foreground = qrData.style?.foreground || '#000000';
     const background = qrData.style?.background || '#ffffff';
+    const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
+
+    useEffect(() => {
+        const rect = anchorRef.current?.getBoundingClientRect();
+        if (rect) {
+            const popupW = 320;
+            let left = rect.right - popupW;
+            if (left < 8) left = 8;
+            setPos({ top: rect.bottom + 8, left });
+        }
+    }, [anchorRef]);
 
     useEffect(() => {
         const handleClick = (e: MouseEvent) => {
@@ -80,22 +92,23 @@ function QrPopup({ qrData, name, onClose }: { qrData: QrCodeFull; name: string; 
         downloadFile(tmp.toDataURL('image/jpeg', 0.95), `${name}.jpg`);
     };
 
-    return (
-        <div ref={popupRef} className="absolute right-0 top-full mt-2 z-50 w-72 rounded-xl bg-gray-900 border border-gray-700 shadow-2xl shadow-black/50 p-4" onClick={(e) => e.stopPropagation()}>
+    return createPortal(
+        <div ref={popupRef} style={{ position: 'fixed', top: pos.top, left: pos.left, zIndex: 9999 }} className="w-80 rounded-xl bg-gray-900 border border-gray-700 shadow-2xl shadow-black/50 p-5" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-center mb-3">
-                <QRCodeSVG className="qr-svg-el" value={content} size={160} fgColor={foreground} bgColor={background} />
+                <QRCodeSVG className="qr-svg-el" value={content} size={220} fgColor={foreground} bgColor={background} />
             </div>
             <div style={{ position: 'absolute', left: '-9999px' }} ref={hdCanvasRef}>
                 <QRCodeCanvas value={content} size={HD_SIZE} fgColor={foreground} bgColor={background} />
             </div>
             <p className="text-[10px] text-gray-500 text-center mb-3 truncate">{content}</p>
-            <div className="grid grid-cols-2 gap-1.5">
+            <div className="grid grid-cols-4 gap-1.5">
                 <button onClick={downloadSVG} className="px-2 py-1.5 text-[11px] font-medium rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-all">SVG</button>
                 <button onClick={downloadPNG} className="px-2 py-1.5 text-[11px] font-medium rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-all">PNG</button>
-                <button onClick={downloadTransparentPNG} className="px-2 py-1.5 text-[11px] font-medium rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-all">Transparent</button>
+                <button onClick={downloadTransparentPNG} className="px-2 py-1.5 text-[11px] font-medium rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-all">Trans</button>
                 <button onClick={downloadJPG} className="px-2 py-1.5 text-[11px] font-medium rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 hover:text-white transition-all">JPG</button>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 }
 
@@ -123,6 +136,7 @@ export default function Index({ bios }: Props) {
         return map;
     });
     const [qrLoading, setQrLoading] = useState<number | null>(null);
+    const qrButtonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
 
     const handleQrClick = (bio: Bio & { widgets_count: number }) => {
         if (qrPopupId === bio.id) { setQrPopupId(null); return; }
@@ -223,6 +237,7 @@ export default function Index({ bios }: Props) {
                                                 </button>
                                                 <div className="relative">
                                                     <button
+                                                        ref={(el) => { qrButtonRefs.current[bio.id] = el; }}
                                                         onClick={() => handleQrClick(bio)}
                                                         className={`p-2 rounded-lg transition-all ${qrPopupId === bio.id ? 'text-violet-400 bg-violet-500/10' : 'text-gray-500 hover:text-violet-400 hover:bg-violet-500/10'}`}
                                                         title={qrDataMap[bio.id] ? 'Show QR Code' : 'Generate QR Code'}
@@ -234,7 +249,7 @@ export default function Index({ bios }: Props) {
                                                         )}
                                                     </button>
                                                     {qrPopupId === bio.id && qrDataMap[bio.id] && (
-                                                        <QrPopup qrData={qrDataMap[bio.id]} name={bio.alias} onClose={() => setQrPopupId(null)} />
+                                                        <QrPopup qrData={qrDataMap[bio.id]} name={bio.alias} onClose={() => setQrPopupId(null)} anchorRef={{ current: qrButtonRefs.current[bio.id] }} />
                                                     )}
                                                 </div>
                                                 <Link href={url(`/admin/bio/${bio.id}/analytics`)} className="p-2 text-gray-500 hover:text-cyan-400 hover:bg-cyan-500/10 rounded-lg transition-all" title="Analytics">
