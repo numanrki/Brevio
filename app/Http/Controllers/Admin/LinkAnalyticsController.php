@@ -14,12 +14,14 @@ class LinkAnalyticsController extends Controller
     {
         $range = $request->input('range', '30d');
         $analytics = new AnalyticsService();
-        [$from, $to] = $analytics->parseDateRange($range);
+        [$from, $to] = $analytics->parseDateRange($range, $request->input('from'), $request->input('to'));
 
         return Inertia::render('Admin/Links/Analytics', [
             'url' => $link->load('domain'),
             'range' => $range,
-            'ranges' => ['today', '7d', '15d', '30d', '3m', '12m'],
+            'ranges' => ['today', '7d', '15d', '30d', '3m', '12m', 'all', 'custom'],
+            'custom_from' => $from->toDateString(),
+            'custom_to' => $to->toDateString(),
             'summary' => $analytics->getSummary($link->id, $from, $to),
             'clicks_over_time' => $analytics->getClicksOverTime($link->id, $from, $to),
             'top_countries' => $analytics->getTopCountries($link->id, $from, $to),

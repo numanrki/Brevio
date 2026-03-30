@@ -22,6 +22,8 @@ interface Props {
     bio: { id: number; name: string; alias: string; views: number };
     range: string;
     ranges: string[];
+    custom_from: string;
+    custom_to: string;
     summary: AnalyticsSummary;
     visits_over_time: TimeSeriesPoint[];
     top_countries: BreakdownItem[];
@@ -37,16 +39,22 @@ interface Props {
 const PIE_COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#6366f1', '#14b8a6'];
 
 const rangeLabels: Record<string, string> = {
-    today: 'Today', '7d': '7 Days', '15d': '15 Days', '30d': '30 Days', '3m': '3 Months', '12m': '12 Months',
+    today: 'Today', '7d': '7 Days', '15d': '15 Days', '30d': '30 Days', '3m': '3 Months', '12m': '12 Months', 'all': 'All Time', 'custom': 'Custom',
 };
 
 type Tab = 'overview' | 'visitors';
 
-export default function Analytics({ bio, range, ranges, summary, visits_over_time, top_countries, top_cities, top_browsers, top_os, devices, top_referrers, link_clicks, visitor_log }: Props) {
+export default function Analytics({ bio, range, ranges, custom_from, custom_to, summary, visits_over_time, top_countries, top_cities, top_browsers, top_os, devices, top_referrers, link_clicks, visitor_log }: Props) {
     const [tab, setTab] = useState<Tab>('overview');
+    const [dateFrom, setDateFrom] = useState(custom_from);
+    const [dateTo, setDateTo] = useState(custom_to);
 
     const changeRange = (newRange: string) => {
-        router.get(url(`/admin/bio/${bio.id}/analytics`), { range: newRange }, { preserveState: true, preserveScroll: true });
+        if (newRange === 'custom') {
+            router.get(url(`/admin/bio/${bio.id}/analytics`), { range: 'custom', from: dateFrom, to: dateTo }, { preserveState: true, preserveScroll: true });
+        } else {
+            router.get(url(`/admin/bio/${bio.id}/analytics`), { range: newRange }, { preserveState: true, preserveScroll: true });
+        }
     };
 
     return (
@@ -64,7 +72,7 @@ export default function Analytics({ bio, range, ranges, summary, visits_over_tim
                         <h2 className="text-lg font-bold text-white">{bio.name}</h2>
                         <p className="text-sm text-gray-500">/{bio.alias}</p>
                     </div>
-                    <div className="flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1">
+                    <div className="flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1 flex-wrap">
                         {ranges.map((r) => (
                             <button key={r} onClick={() => changeRange(r)} className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${r === range ? 'bg-violet-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>
                                 {rangeLabels[r] || r}
@@ -72,6 +80,16 @@ export default function Analytics({ bio, range, ranges, summary, visits_over_tim
                         ))}
                     </div>
                 </div>
+
+                {range === 'custom' && (
+                    <div className="flex items-center gap-3 mb-6 p-3 rounded-xl bg-gray-900 border border-gray-800">
+                        <label className="text-xs text-gray-400">From</label>
+                        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="px-3 py-1.5 bg-gray-950 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/40" />
+                        <label className="text-xs text-gray-400">To</label>
+                        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="px-3 py-1.5 bg-gray-950 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/40" />
+                        <button onClick={() => changeRange('custom')} className="px-4 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-all">Apply</button>
+                    </div>
+                )}
 
                 {/* Summary cards */}
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">

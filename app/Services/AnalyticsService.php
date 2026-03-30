@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class AnalyticsService
 {
-    public function parseDateRange(string $range): array
+    public function parseDateRange(string $range, ?string $customFrom = null, ?string $customTo = null): array
     {
         $to = now();
 
@@ -22,6 +22,11 @@ class AnalyticsService
             '30d'    => [now()->subDays(30)->startOfDay(), $to],
             '3m'     => [now()->subMonths(3)->startOfDay(), $to],
             '12m'    => [now()->subYear()->startOfDay(), $to],
+            'all'    => [Carbon::create(2020, 1, 1), $to],
+            'custom' => [
+                $customFrom ? Carbon::parse($customFrom)->startOfDay() : now()->subDays(30)->startOfDay(),
+                $customTo ? Carbon::parse($customTo)->endOfDay() : $to,
+            ],
             default  => [now()->subDays(30)->startOfDay(), $to],
         };
     }

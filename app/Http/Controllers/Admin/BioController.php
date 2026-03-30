@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Bio;
+use App\Models\QrCode;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -12,6 +13,7 @@ class BioController extends Controller
     public function index()
     {
         $bios = Bio::withCount('widgets')
+            ->with(['qrCode' => fn($q) => $q->select('id', 'bio_id', 'name', 'data', 'style')])
             ->latest()
             ->paginate(15);
 
@@ -114,6 +116,29 @@ class BioController extends Controller
         $bio->delete();
 
         return redirect()->route('admin.bio.index')->with('success', 'Bio page deleted successfully.');
+    }
+
+    public function generateQr(Bio $bio)
+    {
+        $existing = QrCode::where('bio_id', $bio->id)->first();
+
+        if ($existing) {
+            return response()->json(['qrCode' => $existing]);
+        }
+
+        $base = rtrim(config('app.url'), '/');
+        $content = $base . '/bio/' . $bio->alias;
+
+        $qrCode = QrCode::create([
+            'user_id' => auth()->id(),
+            'bio_id' => $bio->id,
+            'name' => 'Bio: ' . $bio->name,
+            'type' => 'bio',
+            'data' => ['content' => $content],
+            'style' => ['foreground' => '#000000', 'background' => '#ffffff', 'size' => 300],
+        ]);
+
+        return response()->json(['qrCode' => $qrCode]);
     }
 
     /**

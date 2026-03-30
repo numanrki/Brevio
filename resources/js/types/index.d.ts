@@ -24,6 +24,7 @@ export interface Url {
     expiry_date?: string;
     created_at: string;
     user?: User;
+    qr_codes?: QrCodeFull[];
     meta?: {
         apply_timer?: boolean;
         show_button?: boolean;
@@ -51,6 +52,7 @@ export interface Bio {
     is_active: boolean;
     views: number;
     created_at: string;
+    qr_code?: QrCodeFull;
 }
 
 export interface QrCode {
@@ -60,6 +62,19 @@ export interface QrCode {
     type: string;
     scans: number;
     created_at: string;
+}
+
+export interface QrCodeFull {
+    id: number;
+    user_id?: number;
+    url_id?: number;
+    bio_id?: number;
+    name: string;
+    type?: string;
+    data: { content: string; [key: string]: unknown };
+    style: { foreground: string; background: string; size?: number; [key: string]: unknown };
+    scans?: number;
+    created_at?: string;
 }
 
 export interface Campaign {

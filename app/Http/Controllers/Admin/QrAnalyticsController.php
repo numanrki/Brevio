@@ -14,14 +14,16 @@ class QrAnalyticsController extends Controller
     {
         $range = $request->input('range', '30d');
         $analytics = new AnalyticsService();
-        [$from, $to] = $analytics->parseDateRange($range);
+        [$from, $to] = $analytics->parseDateRange($range, $request->input('from'), $request->input('to'));
 
         $type = QrCode::class;
 
         return Inertia::render('Admin/QrCodes/Analytics', [
             'qrCode' => $qrCode->load('url'),
             'range' => $range,
-            'ranges' => ['today', '7d', '15d', '30d', '3m', '12m'],
+            'ranges' => ['today', '7d', '15d', '30d', '3m', '12m', 'all', 'custom'],
+            'custom_from' => $from->toDateString(),
+            'custom_to' => $to->toDateString(),
             'summary' => $analytics->getVisitSummary($type, $qrCode->id, 'qr_scan', $from, $to),
             'visits_over_time' => $analytics->getVisitsOverTime($type, $qrCode->id, 'qr_scan', $from, $to),
             'top_countries' => $analytics->getVisitTopItems($type, $qrCode->id, 'qr_scan', $from, $to, 'country'),

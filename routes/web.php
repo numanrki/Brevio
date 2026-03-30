@@ -37,10 +37,12 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Links
     Route::get('links/{link}/analytics', [Admin\LinkAnalyticsController::class, 'show'])->name('links.analytics');
+    Route::post('links/{link}/generate-qr', [Admin\LinkController::class, 'generateQr'])->name('links.generate-qr');
     Route::resource('links', Admin\LinkController::class);
 
     // Bio Pages
     Route::get('bio/{bio}/analytics', [Admin\BioAnalyticsController::class, 'show'])->name('bio.analytics');
+    Route::post('bio/{bio}/generate-qr', [Admin\BioController::class, 'generateQr'])->name('bio.generate-qr');
     Route::post('bio/upload-image', [Admin\BioController::class, 'uploadImage'])->name('bio.upload-image');
     Route::post('bio/upload-avatar', [Admin\BioController::class, 'uploadAvatar'])->name('bio.upload-avatar');
     Route::resource('bio', Admin\BioController::class);

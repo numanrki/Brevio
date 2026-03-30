@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Domain;
+use App\Models\QrCode;
 use App\Models\Url;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -14,6 +15,7 @@ class LinkController extends Controller
     public function index(Request $request)
     {
         $urls = Url::query()
+            ->with(['qrCodes' => fn($q) => $q->select('id', 'url_id', 'name', 'data', 'style')->limit(1)])
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('alias', 'like', "%{$search}%")
@@ -139,5 +141,28 @@ class LinkController extends Controller
         $link->delete();
 
         return redirect()->route('admin.links.index')->with('success', 'Link deleted successfully.');
+    }
+
+    public function generateQr(Url $link)
+    {
+        $existing = QrCode::where('url_id', $link->id)->first();
+
+        if ($existing) {
+            return response()->json(['qrCode' => $existing]);
+        }
+
+        $base = rtrim(config('app.url'), '/');
+        $content = $base . '/' . $link->alias;
+
+        $qrCode = QrCode::create([
+            'user_id' => auth()->id(),
+            'url_id' => $link->id,
+            'name' => $link->title ?: $link->alias,
+            'type' => 'url',
+            'data' => ['content' => $content],
+            'style' => ['foreground' => '#000000', 'background' => '#ffffff', 'size' => 300],
+        ]);
+
+        return response()->json(['qrCode' => $qrCode]);
     }
 }

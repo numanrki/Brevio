@@ -13,6 +13,7 @@ class QrCode extends Model
     protected $fillable = [
         'user_id',
         'url_id',
+        'bio_id',
         'name',
         'type',
         'data',
@@ -37,6 +38,11 @@ class QrCode extends Model
     public function url(): BelongsTo
     {
         return $this->belongsTo(Url::class);
+    }
+
+    public function bio(): BelongsTo
+    {
+        return $this->belongsTo(Bio::class);
     }
 
     public function visits(): MorphMany
