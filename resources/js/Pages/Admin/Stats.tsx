@@ -2,11 +2,14 @@ import AdminLayout from '@/Layouts/AdminLayout';
 import { Head, router } from '@inertiajs/react';
 import { AnalyticsSummary, TimeSeriesPoint, BreakdownItem } from '@/types';
 import { url } from '@/utils';
+import { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
 
 interface Props {
     range: string;
     ranges: string[];
+    custom_from: string;
+    custom_to: string;
     summary: AnalyticsSummary;
     clicks_over_time: TimeSeriesPoint[];
     top_countries: BreakdownItem[];
@@ -30,11 +33,19 @@ const rangeLabels: Record<string, string> = {
     '30d': '30 Days',
     '3m': '3 Months',
     '12m': '12 Months',
+    'all': 'All Time',
+    'custom': 'Custom',
 };
 
-export default function Stats({ range, ranges, summary, clicks_over_time, top_countries, top_referrers, top_browsers, top_os, devices, top_languages, bio_summary, bio_visits_over_time, qr_summary, qr_scans_over_time }: Props) {
+export default function Stats({ range, ranges, custom_from, custom_to, summary, clicks_over_time, top_countries, top_referrers, top_browsers, top_os, devices, top_languages, bio_summary, bio_visits_over_time, qr_summary, qr_scans_over_time }: Props) {
+    const [dateFrom, setDateFrom] = useState(custom_from);
+    const [dateTo, setDateTo] = useState(custom_to);
     const changeRange = (newRange: string) => {
-        router.get(url('/admin/stats'), { range: newRange }, { preserveState: true, preserveScroll: true });
+        if (newRange === 'custom') {
+            router.get(url('/admin/stats'), { range: 'custom', from: dateFrom, to: dateTo }, { preserveState: true, preserveScroll: true });
+        } else {
+            router.get(url('/admin/stats'), { range: newRange }, { preserveState: true, preserveScroll: true });
+        }
     };
 
     return (
@@ -56,6 +67,16 @@ export default function Stats({ range, ranges, summary, clicks_over_time, top_co
                         ))}
                     </div>
                 </div>
+
+                {range === 'custom' && (
+                    <div className="flex items-center gap-3 mb-6 p-3 rounded-xl bg-gray-900 border border-gray-800">
+                        <label className="text-xs text-gray-400">From</label>
+                        <input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} className="px-3 py-1.5 bg-gray-950 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/40" />
+                        <label className="text-xs text-gray-400">To</label>
+                        <input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} className="px-3 py-1.5 bg-gray-950 border border-gray-700 rounded-lg text-sm text-white focus:outline-none focus:ring-2 focus:ring-violet-500/40" />
+                        <button onClick={() => changeRange('custom')} className="px-4 py-1.5 bg-violet-600 hover:bg-violet-500 text-white text-xs font-medium rounded-lg transition-all">Apply</button>
+                    </div>
+                )}
 
                 {/* Summary Cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-6">

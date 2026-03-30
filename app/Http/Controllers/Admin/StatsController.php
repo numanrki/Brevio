@@ -16,12 +16,16 @@ class StatsController extends Controller
         $urlIds = \App\Models\Url::pluck('id')->toArray();
 
         $range = $request->input('range', '30d');
+        $customFrom = $request->input('from');
+        $customTo = $request->input('to');
         $analytics = new AnalyticsService();
-        [$from, $to] = $analytics->parseDateRange($range);
+        [$from, $to] = $analytics->parseDateRange($range, $customFrom, $customTo);
 
         return Inertia::render('Admin/Stats', [
             'range' => $range,
-            'ranges' => ['today', '7d', '15d', '30d', '3m', '12m'],
+            'ranges' => ['today', '7d', '15d', '30d', '3m', '12m', 'all', 'custom'],
+            'custom_from' => $customFrom ?? $from->format('Y-m-d'),
+            'custom_to' => $customTo ?? $to->format('Y-m-d'),
             'summary' => $analytics->getGlobalSummary($urlIds, $from, $to),
             'clicks_over_time' => $analytics->getGlobalClicksOverTime($urlIds, $from, $to),
             'top_countries' => $analytics->getGlobalTopItems($urlIds, $from, $to, 'country'),
