@@ -14,7 +14,17 @@ $uri = urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
 $uri = str_replace('/welink', '', $uri);
 
 // Serve static files from public/ directly with correct MIME types
+// PHP files must NOT be served as static — they need to execute
 if ($uri !== '/' && file_exists($publicPath.$uri) && is_file($publicPath.$uri)) {
+    $ext = strtolower(pathinfo($uri, PATHINFO_EXTENSION));
+
+    // PHP files should be executed, not served as static text
+    if ($ext === 'php') {
+        $_SERVER['SCRIPT_FILENAME'] = $publicPath . $uri;
+        require_once $publicPath . $uri;
+        exit;
+    }
+
     $mimeTypes = [
         'css'   => 'text/css',
         'js'    => 'application/javascript',
