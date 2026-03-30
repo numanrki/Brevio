@@ -273,6 +273,10 @@ class UpdateController extends Controller
             // Step 3: Apply files
             $steps[] = ['step' => 'apply', 'status' => 'running'];
 
+            // Set update_pending flag BEFORE applying files so auto-migration
+            // kicks in on next boot if the migration step below fails
+            file_put_contents(storage_path('app/update_pending'), now()->toIso8601String());
+
             $this->applyFiles($sourceDir, base_path());
 
             // Reset OPcache so PHP serves the new files
@@ -296,8 +300,11 @@ class UpdateController extends Controller
             try {
                 Artisan::call('migrate', ['--force' => true]);
                 $migrateOutput = trim(Artisan::output());
+                // Migration succeeded — remove the pending flag
+                @unlink(storage_path('app/update_pending'));
             } catch (\Throwable $e) {
                 $migrateOutput = 'Migration warning: ' . $e->getMessage();
+                // Flag stays — AutoMigrate middleware will retry on next page load
             }
 
             $steps[4]['status'] = 'done';

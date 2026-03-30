@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
+            \App\Http\Middleware\AutoMigrate::class,
             \App\Http\Middleware\CheckInstalled::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
@@ -26,5 +27,21 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo('/admin');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+            $flag = storage_path('app/update_pending');
+            if (file_exists($flag) && (
+                $e instanceof \Illuminate\Database\QueryException ||
+                $e instanceof \PDOException
+            )) {
+                try {
+                    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+                    \Illuminate\Support\Facades\Artisan::call('config:clear');
+                    \Illuminate\Support\Facades\Artisan::call('cache:clear');
+                    @unlink($flag);
+                    return redirect($request->fullUrl());
+                } catch (\Throwable) {
+                    @unlink($flag);
+                }
+            }
+        });
     })->create();
