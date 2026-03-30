@@ -34,6 +34,7 @@ interface Props {
     summary: AnalyticsSummary;
     clicks_over_time: TimeSeriesPoint[];
     top_countries: BreakdownItem[];
+    top_referrers: BreakdownItem[];
     top_browsers: BreakdownItem[];
     top_os: BreakdownItem[];
     devices: BreakdownItem[];
@@ -48,7 +49,7 @@ const rangeLabels: Record<string, string> = {
     '3m': '3 Months', '12m': '12 Months', all: 'All Time', custom: 'Custom',
 };
 
-export default function Analytics({ deepLink, range, ranges, custom_from, custom_to, summary, clicks_over_time, top_countries, top_browsers, top_os, devices, rule_performance, visitor_log }: Props) {
+export default function Analytics({ deepLink, range, ranges, custom_from, custom_to, summary, clicks_over_time, top_countries, top_referrers, top_browsers, top_os, devices, rule_performance, visitor_log }: Props) {
     const [tab, setTab] = useState<'overview' | 'visitors'>('overview');
     const [dateFrom, setDateFrom] = useState(custom_from);
     const [dateTo, setDateTo] = useState(custom_to);
@@ -178,6 +179,21 @@ export default function Analytics({ deepLink, range, ranges, custom_from, custom
                                 ) : <p className="text-sm text-gray-500">No data.</p>}
                             </div>
 
+                            {/* Referrers */}
+                            <div className="rounded-xl bg-gray-900 border border-gray-800 p-6">
+                                <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">Top Referrers</h3>
+                                {top_referrers.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {top_referrers.map((item) => (
+                                            <div key={item.name} className="flex items-center justify-between text-sm">
+                                                <span className="text-gray-300">{item.name}</span>
+                                                <span className="text-gray-500">{item.count}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : <p className="text-sm text-gray-500">No data.</p>}
+                            </div>
+
                             {/* Devices */}
                             <div className="rounded-xl bg-gray-900 border border-gray-800 p-6">
                                 <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">Devices</h3>
@@ -233,6 +249,7 @@ export default function Analytics({ deepLink, range, ranges, custom_from, custom
                                     <th className="px-4 py-3 font-medium">Time</th>
                                     <th className="px-4 py-3 font-medium">Country</th>
                                     <th className="px-4 py-3 font-medium">City</th>
+                                    <th className="px-4 py-3 font-medium">Referrer</th>
                                     <th className="px-4 py-3 font-medium">Browser</th>
                                     <th className="px-4 py-3 font-medium">OS</th>
                                     <th className="px-4 py-3 font-medium">Device</th>
@@ -242,12 +259,13 @@ export default function Analytics({ deepLink, range, ranges, custom_from, custom
                             </thead>
                             <tbody className="divide-y divide-gray-800/50">
                                 {visitor_log.length === 0 ? (
-                                    <tr><td colSpan={8} className="px-4 py-8 text-center text-gray-500">No visitors in this period.</td></tr>
+                                    <tr><td colSpan={9} className="px-4 py-8 text-center text-gray-500">No visitors in this period.</td></tr>
                                 ) : visitor_log.map((v) => (
                                     <tr key={v.id} className="hover:bg-gray-900/40">
                                         <td className="px-4 py-2.5 text-gray-400 whitespace-nowrap">{new Date(v.created_at).toLocaleString()}</td>
                                         <td className="px-4 py-2.5 text-gray-300">{v.country || '—'}</td>
                                         <td className="px-4 py-2.5 text-gray-300">{v.city || '—'}</td>
+                                        <td className="px-4 py-2.5 text-gray-300 truncate max-w-[150px]">{v.referrer || '—'}</td>
                                         <td className="px-4 py-2.5 text-gray-300">{v.browser || '—'}</td>
                                         <td className="px-4 py-2.5 text-gray-300">{v.os || '—'}</td>
                                         <td className="px-4 py-2.5 text-gray-300">{v.device || '—'}</td>

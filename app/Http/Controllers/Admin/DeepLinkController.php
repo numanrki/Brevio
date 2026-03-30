@@ -7,6 +7,7 @@ use App\Models\DeepLink;
 use App\Models\DeepLinkRule;
 use App\Models\Pixel;
 use App\Models\QrCode;
+use App\Services\AnalyticsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -243,6 +244,7 @@ class DeepLinkController extends Controller
                 ->whereNotNull('country')->where('country', '!=', '')
                 ->selectRaw('country as name, COUNT(*) as count')
                 ->groupBy('country')->orderByDesc('count')->limit(10)->get(),
+            'top_referrers' => $this->getParsedReferrers($clicksQuery, $from, $to),
             'top_browsers' => (clone $clicksQuery)
                 ->whereNotNull('browser')->where('browser', '!=', '')
                 ->selectRaw('browser as name, COUNT(*) as count')
@@ -288,5 +290,21 @@ class DeepLinkController extends Controller
             ],
             default  => [now()->subDays(30)->startOfDay(), $to],
         };
+    }
+
+    private function getParsedReferrers($clicksQuery, $from, $to): \Illuminate\Support\Collection
+    {
+        $raw = (clone $clicksQuery)
+            ->whereNotNull('referrer')
+            ->where('referrer', '!=', '')
+            ->selectRaw('referrer, COUNT(*) as count')
+            ->groupBy('referrer')
+            ->get();
+
+        return $raw->groupBy(fn($item) => AnalyticsService::normalizeReferrer($item->referrer))
+            ->map(fn($group, $name) => ['name' => $name, 'count' => $group->sum('count')])
+            ->sortByDesc('count')
+            ->take(10)
+            ->values();
     }
 }
