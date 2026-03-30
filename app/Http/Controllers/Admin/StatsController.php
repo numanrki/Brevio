@@ -42,6 +42,9 @@ class StatsController extends Controller
         $data['qr_summary'] = in_array($filter, ['all', 'qr'])
             ? $analytics->getGlobalVisitSummary(QrCode::class, 'qr_scan', $from, $to)
             : $emptySummary;
+        $data['dl_summary'] = in_array($filter, ['all', 'deep_links'])
+            ? $analytics->getDeepLinkSummary($from, $to)
+            : $emptySummary;
 
         // Chart data
         $data['clicks_over_time'] = in_array($filter, ['all', 'links'])
@@ -50,9 +53,18 @@ class StatsController extends Controller
             ? $analytics->getGlobalVisitsOverTime(Bio::class, 'page_view', $from, $to) : [];
         $data['qr_scans_over_time'] = in_array($filter, ['all', 'qr'])
             ? $analytics->getGlobalVisitsOverTime(QrCode::class, 'qr_scan', $from, $to) : [];
+        $data['dl_clicks_over_time'] = in_array($filter, ['all', 'deep_links'])
+            ? $analytics->getDeepLinkClicksOverTime($from, $to) : [];
 
         // Breakdowns based on filter type
-        if ($filter === 'qr') {
+        if ($filter === 'deep_links') {
+            $data['top_countries'] = $analytics->getDeepLinkTopItems($from, $to, 'country');
+            $data['top_referrers'] = $analytics->getDeepLinkTopReferrersParsed($from, $to);
+            $data['top_browsers'] = $analytics->getDeepLinkTopItems($from, $to, 'browser');
+            $data['top_os'] = $analytics->getDeepLinkTopItems($from, $to, 'os');
+            $data['devices'] = $analytics->getDeepLinkTopItems($from, $to, 'device');
+            $data['top_languages'] = $analytics->getDeepLinkTopItems($from, $to, 'language');
+        } elseif ($filter === 'qr') {
             $data['top_countries'] = $analytics->getGlobalVisitTopItems(QrCode::class, 'qr_scan', $from, $to, 'country');
             $data['top_referrers'] = $analytics->getGlobalVisitTopReferrersParsed(QrCode::class, 'qr_scan', $from, $to);
             $data['top_browsers'] = $analytics->getGlobalVisitTopItems(QrCode::class, 'qr_scan', $from, $to, 'browser');

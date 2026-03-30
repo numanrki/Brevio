@@ -23,6 +23,8 @@ interface Props {
     bio_visits_over_time: TimeSeriesPoint[];
     qr_summary: AnalyticsSummary;
     qr_scans_over_time: TimeSeriesPoint[];
+    dl_summary: AnalyticsSummary;
+    dl_clicks_over_time: TimeSeriesPoint[];
 }
 
 const PIE_COLORS = ['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#6366f1', '#14b8a6'];
@@ -43,9 +45,10 @@ const filterLabels: Record<string, string> = {
     links: 'Links',
     qr: 'QR Codes',
     bio: 'Bio Pages',
+    deep_links: 'Deep Links',
 };
 
-export default function Stats({ range, ranges, custom_from, custom_to, filter, summary, clicks_over_time, top_countries, top_referrers, top_browsers, top_os, devices, top_languages, bio_summary, bio_visits_over_time, qr_summary, qr_scans_over_time }: Props) {
+export default function Stats({ range, ranges, custom_from, custom_to, filter, summary, clicks_over_time, top_countries, top_referrers, top_browsers, top_os, devices, top_languages, bio_summary, bio_visits_over_time, qr_summary, qr_scans_over_time, dl_summary, dl_clicks_over_time }: Props) {
     const [dateFrom, setDateFrom] = useState(custom_from);
     const [dateTo, setDateTo] = useState(custom_to);
     const [showCustom, setShowCustom] = useState(range === 'custom');
@@ -84,7 +87,7 @@ export default function Stats({ range, ranges, custom_from, custom_to, filter, s
                 {/* Filter + Range Selector */}
                 <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                     <div className="flex items-center gap-1 bg-gray-900 border border-gray-800 rounded-xl p-1">
-                        {(['all', 'links', 'qr', 'bio'] as const).map((f) => (
+                        {(['all', 'links', 'qr', 'bio', 'deep_links'] as const).map((f) => (
                             <button key={f} onClick={() => changeFilter(f)} className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-all ${f === filter ? 'bg-fuchsia-600 text-white' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>
                                 {filterLabels[f]}
                             </button>
@@ -110,7 +113,7 @@ export default function Stats({ range, ranges, custom_from, custom_to, filter, s
                 )}
 
                 {/* Summary Cards */}
-                <div className={`grid gap-4 mb-6 ${filter === 'all' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-5' : 'grid-cols-1 sm:grid-cols-3'}`}>
+                <div className={`grid gap-4 mb-6 ${filter === 'all' ? 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-6' : 'grid-cols-1 sm:grid-cols-3'}`}>
                     {(filter === 'all' || filter === 'links') && (
                         <>
                             <SummaryCard label="Link Clicks" value={summary.total_clicks} color="from-violet-500 to-purple-600" />
@@ -119,15 +122,17 @@ export default function Stats({ range, ranges, custom_from, custom_to, filter, s
                     )}
                     {(filter === 'all' || filter === 'bio') && <SummaryCard label="Bio Views" value={bio_summary.total_clicks} color="from-fuchsia-500 to-pink-600" />}
                     {(filter === 'all' || filter === 'qr') && <SummaryCard label="QR Scans" value={qr_summary.total_clicks} color="from-amber-500 to-orange-600" />}
+                    {(filter === 'all' || filter === 'deep_links') && <SummaryCard label="Deep Link Clicks" value={dl_summary.total_clicks} color="from-teal-500 to-emerald-600" />}
                     {filter === 'qr' && <SummaryCard label="Unique Scans" value={qr_summary.unique_clicks} color="from-cyan-500 to-blue-600" />}
                     {filter === 'bio' && <SummaryCard label="Unique Views" value={bio_summary.unique_clicks} color="from-cyan-500 to-blue-600" />}
-                    <SummaryCard label="Avg. Daily" value={filter === 'qr' ? qr_summary.avg_daily : filter === 'bio' ? bio_summary.avg_daily : summary.avg_daily} color="from-emerald-500 to-green-600" />
+                    {filter === 'deep_links' && <SummaryCard label="Unique Clicks" value={dl_summary.unique_clicks} color="from-cyan-500 to-blue-600" />}
+                    <SummaryCard label="Avg. Daily" value={filter === 'deep_links' ? dl_summary.avg_daily : filter === 'qr' ? qr_summary.avg_daily : filter === 'bio' ? bio_summary.avg_daily : summary.avg_daily} color="from-emerald-500 to-green-600" />
                 </div>
 
                 {/* Activity Over Time */}
                 <div className="rounded-xl bg-gray-900 border border-gray-800 p-6 mb-6">
                     <h3 className="text-sm font-semibold text-gray-400 uppercase tracking-wider mb-4">Activity Over Time</h3>
-                    {clicks_over_time.length > 0 || bio_visits_over_time.length > 0 || qr_scans_over_time.length > 0 ? (
+                    {clicks_over_time.length > 0 || bio_visits_over_time.length > 0 || qr_scans_over_time.length > 0 || dl_clicks_over_time.length > 0 ? (
                         <ResponsiveContainer width="100%" height={300}>
                             <LineChart>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
@@ -137,6 +142,7 @@ export default function Stats({ range, ranges, custom_from, custom_to, filter, s
                                 {(filter === 'all' || filter === 'links') && clicks_over_time.length > 0 && <Line type="monotone" data={clicks_over_time} dataKey="count" name="Link Clicks" stroke="#8b5cf6" strokeWidth={2} dot={false} />}
                                 {(filter === 'all' || filter === 'bio') && bio_visits_over_time.length > 0 && <Line type="monotone" data={bio_visits_over_time} dataKey="count" name="Bio Views" stroke="#d946ef" strokeWidth={2} dot={false} />}
                                 {(filter === 'all' || filter === 'qr') && qr_scans_over_time.length > 0 && <Line type="monotone" data={qr_scans_over_time} dataKey="count" name="QR Scans" stroke="#f59e0b" strokeWidth={2} dot={false} />}
+                                {(filter === 'all' || filter === 'deep_links') && dl_clicks_over_time.length > 0 && <Line type="monotone" data={dl_clicks_over_time} dataKey="count" name="Deep Links" stroke="#14b8a6" strokeWidth={2} dot={false} />}
                             </LineChart>
                         </ResponsiveContainer>
                     ) : (

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Click;
+use App\Models\DeepLinkClick;
 use App\Models\Visit;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -537,6 +538,59 @@ class AnalyticsService
         }
 
         $raw = $q->select('referrer', DB::raw('COUNT(*) as count'))
+            ->groupBy('referrer')
+            ->get();
+
+        return $raw->groupBy(fn($item) => self::normalizeReferrer($item->referrer))
+            ->map(fn($group, $name) => ['name' => $name, 'count' => $group->sum('count')])
+            ->sortByDesc('count')
+            ->take($limit)
+            ->values();
+    }
+
+    // ── Deep Link analytics ──
+
+    public function getDeepLinkSummary(Carbon $from, Carbon $to): array
+    {
+        $q = DeepLinkClick::whereBetween('created_at', [$from, $to]);
+        $total = (clone $q)->count();
+        $unique = (clone $q)->where('is_unique', true)->count();
+        $days = max($from->diffInDays($to), 1);
+
+        return [
+            'total_clicks' => $total,
+            'unique_clicks' => $unique,
+            'avg_daily' => round($total / $days, 1),
+        ];
+    }
+
+    public function getDeepLinkClicksOverTime(Carbon $from, Carbon $to): Collection
+    {
+        return DeepLinkClick::whereBetween('created_at', [$from, $to])
+            ->select(DB::raw('DATE(created_at) as date'), DB::raw('COUNT(*) as count'))
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+    }
+
+    public function getDeepLinkTopItems(Carbon $from, Carbon $to, string $column, int $limit = 10): Collection
+    {
+        return DeepLinkClick::whereBetween('created_at', [$from, $to])
+            ->whereNotNull($column)
+            ->where($column, '!=', '')
+            ->select("{$column} as name", DB::raw('COUNT(*) as count'))
+            ->groupBy($column)
+            ->orderByDesc('count')
+            ->take($limit)
+            ->get();
+    }
+
+    public function getDeepLinkTopReferrersParsed(Carbon $from, Carbon $to, int $limit = 10): Collection
+    {
+        $raw = DeepLinkClick::whereBetween('created_at', [$from, $to])
+            ->whereNotNull('referrer')
+            ->where('referrer', '!=', '')
+            ->select('referrer', DB::raw('COUNT(*) as count'))
             ->groupBy('referrer')
             ->get();
 

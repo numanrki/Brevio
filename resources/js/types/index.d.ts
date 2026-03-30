@@ -117,6 +117,7 @@ export interface DeepLink {
     alias: string;
     fallback_url: string;
     is_active: boolean;
+    allowed_devices?: string[] | null;
     expiry_date?: string;
     total_clicks: number;
     utm_source?: string;
@@ -125,6 +126,7 @@ export interface DeepLink {
     meta?: Record<string, unknown>;
     rules?: DeepLinkRule[];
     pixels?: Pixel[];
+    qr_codes?: QrCodeFull[];
     rules_count?: number;
     clicks_count?: number;
     created_at: string;

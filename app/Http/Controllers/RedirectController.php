@@ -111,6 +111,33 @@ class RedirectController extends Controller
         $os = $this->parseOs($userAgent);
         $device = $this->parseDevice($userAgent);
 
+        // Enforce access restrictions
+        $allowed = $deepLink->allowed_devices;
+        if (!empty($allowed) && is_array($allowed)) {
+            $isAllowed = false;
+            foreach ($allowed as $restriction) {
+                $r = strtolower($restriction);
+                // Device-level: mobile, tablet, desktop
+                if (in_array($r, ['mobile', 'tablet', 'desktop']) && strtolower($device) === $r) {
+                    $isAllowed = true;
+                    break;
+                }
+                // OS-level: android, ios, windows, macos, linux
+                if ($r === 'android' && strtolower($os) === 'android') { $isAllowed = true; break; }
+                if ($r === 'ios' && strtolower($os) === 'ios') { $isAllowed = true; break; }
+                if ($r === 'windows' && strtolower($os) === 'windows') { $isAllowed = true; break; }
+                if ($r === 'macos' && strtolower($os) === 'macos') { $isAllowed = true; break; }
+                if ($r === 'linux' && strtolower($os) === 'linux') { $isAllowed = true; break; }
+            }
+
+            if (!$isAllowed) {
+                return Inertia::render('DeepLinkRestricted', [
+                    'name' => $deepLink->name,
+                    'allowed_devices' => $allowed,
+                ]);
+            }
+        }
+
         $ip = $request->ip();
         $country = null;
         $city = null;

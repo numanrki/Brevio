@@ -1,9 +1,10 @@
 import AdminLayout from '@/Layouts/AdminLayout';
 import Pagination from '@/Components/Pagination';
 import { Head, Link, router } from '@inertiajs/react';
-import { PaginatedData, DeepLink } from '@/types';
+import { PaginatedData, DeepLink, QrCodeFull } from '@/types';
 import { useState, useCallback } from 'react';
 import { url } from '@/utils';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface Props {
     deepLinks: PaginatedData<DeepLink>;
@@ -12,6 +13,25 @@ interface Props {
 
 export default function Index({ deepLinks, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
+    const [qrModal, setQrModal] = useState<{ dl: DeepLink; qr: QrCodeFull | null; loading: boolean } | null>(null);
+
+    const openQr = async (dl: DeepLink) => {
+        const existing = dl.qr_codes?.[0] || null;
+        if (existing) { setQrModal({ dl, qr: existing, loading: false }); return; }
+        setQrModal({ dl, qr: null, loading: true });
+        try {
+            const res = await fetch(url(`/admin/deep-links/${dl.id}/generate-qr`), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                    Accept: 'application/json',
+                },
+            });
+            const data = await res.json();
+            setQrModal({ dl, qr: data.qrCode || null, loading: false });
+        } catch { setQrModal(null); }
+    };
 
     const applyFilters = useCallback(
         (overrides: Record<string, string> = {}) => {
@@ -104,6 +124,9 @@ export default function Index({ deepLinks, filters }: Props) {
                                         </td>
                                         <td className="px-4 py-3 text-right">
                                             <div className="flex items-center justify-end gap-1">
+                                                <button onClick={() => openQr(dl)} className="p-1.5 text-gray-500 hover:text-white transition-colors" title="QR Code">
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                                                </button>
                                                 <Link href={url(`/admin/deep-links/${dl.id}/analytics`)} className="p-1.5 text-gray-500 hover:text-white transition-colors" title="Analytics">
                                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                                                 </Link>
@@ -131,6 +154,30 @@ export default function Index({ deepLinks, filters }: Props) {
                         lastPage={deepLinks.last_page}
                     />
                 </>
+            )}
+
+            {/* QR Modal */}
+            {qrModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60" onClick={() => setQrModal(null)}>
+                    <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-sm font-semibold text-white">{qrModal.dl.name} — QR</h3>
+                            <button onClick={() => setQrModal(null)} className="text-gray-500 hover:text-white"><svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg></button>
+                        </div>
+                        {qrModal.loading ? (
+                            <div className="flex justify-center py-8"><div className="w-8 h-8 border-2 border-violet-500 border-t-transparent rounded-full animate-spin" /></div>
+                        ) : qrModal.qr ? (
+                            <>
+                                <div className="flex justify-center p-4 bg-white rounded-xl mb-3">
+                                    <QRCodeSVG value={qrModal.qr.data?.content || `${window.location.origin}/${qrModal.dl.alias}`} size={200} fgColor={qrModal.qr.style?.foreground || '#000000'} bgColor={qrModal.qr.style?.background || '#ffffff'} />
+                                </div>
+                                <p className="text-xs text-gray-500 text-center break-all">{`${window.location.origin}/${qrModal.dl.alias}`}</p>
+                            </>
+                        ) : (
+                            <p className="text-sm text-gray-400 text-center py-4">Failed to generate QR code.</p>
+                        )}
+                    </div>
+                </div>
             )}
         </AdminLayout>
     );

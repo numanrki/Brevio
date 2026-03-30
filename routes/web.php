@@ -60,6 +60,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Deep Links
     Route::get('deep-links/{deep_link}/analytics', [Admin\DeepLinkController::class, 'analytics'])->name('deep-links.analytics');
+    Route::post('deep-links/{deep_link}/generate-qr', [Admin\DeepLinkController::class, 'generateQr'])->name('deep-links.generate-qr');
     Route::resource('deep-links', Admin\DeepLinkController::class);
 
     // Tracking Pixels

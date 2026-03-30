@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\DeepLink;
 use App\Models\DeepLinkRule;
 use App\Models\Pixel;
+use App\Models\QrCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -15,6 +16,7 @@ class DeepLinkController extends Controller
     public function index(Request $request)
     {
         $deepLinks = DeepLink::query()
+            ->with(['qrCodes' => fn($q) => $q->select('id', 'deep_link_id', 'name', 'data', 'style')->limit(1)])
             ->withCount(['rules', 'clicks'])
             ->when($request->search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
@@ -57,6 +59,8 @@ class DeepLinkController extends Controller
             'alias' => 'nullable|string|max:255|unique:deep_links,alias',
             'fallback_url' => 'required|url|max:2048',
             'is_active' => 'boolean',
+            'allowed_devices' => 'nullable|array',
+            'allowed_devices.*' => 'string|in:android,ios,windows,macos,linux,mobile,tablet,desktop',
             'expiry_date' => 'nullable|date|after:now',
             'utm_source' => 'nullable|string|max:255',
             'utm_medium' => 'nullable|string|max:255',
@@ -68,6 +72,11 @@ class DeepLinkController extends Controller
             'pixel_ids' => 'nullable|array',
             'pixel_ids.*' => 'exists:pixels,id',
         ]);
+
+        // Normalize empty allowed_devices to null (no restriction)
+        if (empty($validated['allowed_devices'])) {
+            $validated['allowed_devices'] = null;
+        }
 
         if (empty($validated['alias'])) {
             do {
@@ -134,6 +143,8 @@ class DeepLinkController extends Controller
             'name' => 'required|string|max:255',
             'fallback_url' => 'required|url|max:2048',
             'is_active' => 'boolean',
+            'allowed_devices' => 'nullable|array',
+            'allowed_devices.*' => 'string|in:android,ios,windows,macos,linux,mobile,tablet,desktop',
             'expiry_date' => 'nullable|date',
             'utm_source' => 'nullable|string|max:255',
             'utm_medium' => 'nullable|string|max:255',
@@ -145,6 +156,10 @@ class DeepLinkController extends Controller
             'pixel_ids' => 'nullable|array',
             'pixel_ids.*' => 'exists:pixels,id',
         ]);
+
+        if (empty($validated['allowed_devices'])) {
+            $validated['allowed_devices'] = null;
+        }
 
         $deepLink->update(collect($validated)->except(['rules', 'pixel_ids'])->toArray());
 
@@ -172,6 +187,29 @@ class DeepLinkController extends Controller
         $deepLink->delete();
 
         return redirect()->route('admin.deep-links.index')->with('success', 'Deep link deleted successfully.');
+    }
+
+    public function generateQr(DeepLink $deepLink)
+    {
+        $existing = QrCode::where('deep_link_id', $deepLink->id)->first();
+
+        if ($existing) {
+            return response()->json(['qrCode' => $existing]);
+        }
+
+        $base = rtrim(config('app.url'), '/');
+        $content = $base . '/' . $deepLink->alias;
+
+        $qrCode = QrCode::create([
+            'user_id' => auth()->id(),
+            'deep_link_id' => $deepLink->id,
+            'name' => $deepLink->name ?: $deepLink->alias,
+            'type' => 'deep_link',
+            'data' => ['content' => $content],
+            'style' => ['foreground' => '#000000', 'background' => '#ffffff', 'size' => 300],
+        ]);
+
+        return response()->json(['qrCode' => $qrCode]);
     }
 
     public function analytics(Request $request, DeepLink $deepLink)

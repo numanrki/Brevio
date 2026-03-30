@@ -14,6 +14,7 @@ class QrCode extends Model
         'user_id',
         'url_id',
         'bio_id',
+        'deep_link_id',
         'name',
         'type',
         'data',
@@ -43,6 +44,11 @@ class QrCode extends Model
     public function bio(): BelongsTo
     {
         return $this->belongsTo(Bio::class);
+    }
+
+    public function deepLink(): BelongsTo
+    {
+        return $this->belongsTo(DeepLink::class);
     }
 
     public function visits(): MorphMany

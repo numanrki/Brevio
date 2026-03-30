@@ -20,6 +20,7 @@ export default function Edit({ deepLink, pixels }: Props) {
         name: string;
         fallback_url: string;
         is_active: boolean;
+        allowed_devices: string[];
         expiry_date: string;
         utm_source: string;
         utm_medium: string;
@@ -30,6 +31,7 @@ export default function Edit({ deepLink, pixels }: Props) {
         name: deepLink.name,
         fallback_url: deepLink.fallback_url,
         is_active: deepLink.is_active,
+        allowed_devices: deepLink.allowed_devices || [],
         expiry_date: deepLink.expiry_date ? deepLink.expiry_date.slice(0, 16) : '',
         utm_source: deepLink.utm_source || '',
         utm_medium: deepLink.utm_medium || '',
@@ -56,6 +58,12 @@ export default function Edit({ deepLink, pixels }: Props) {
         setData('pixel_ids', data.pixel_ids.includes(pixelId)
             ? data.pixel_ids.filter((id) => id !== pixelId)
             : [...data.pixel_ids, pixelId]);
+    };
+
+    const toggleDevice = (device: string) => {
+        setData('allowed_devices', data.allowed_devices.includes(device)
+            ? data.allowed_devices.filter((d) => d !== device)
+            : [...data.allowed_devices, device]);
     };
 
     const submit = (e: FormEvent) => {
@@ -109,6 +117,33 @@ export default function Edit({ deepLink, pixels }: Props) {
                                     <span className="text-sm text-gray-300">Active</span>
                                 </label>
                             </div>
+                        </div>
+                    </div>
+
+                    {/* Access Restrictions */}
+                    <div className="rounded-xl bg-gray-900 border border-gray-800 p-6 space-y-4">
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider">Access Restrictions</h3>
+                            <p className="text-xs text-gray-500 mt-1">Leave all unchecked to allow everyone. Select specific platforms to restrict access.</p>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            {[
+                                { value: 'android', label: 'Android', color: 'text-green-400' },
+                                { value: 'ios', label: 'iOS', color: 'text-gray-200' },
+                                { value: 'windows', label: 'Windows', color: 'text-blue-400' },
+                                { value: 'macos', label: 'macOS', color: 'text-gray-300' },
+                                { value: 'linux', label: 'Linux', color: 'text-orange-400' },
+                                { value: 'mobile', label: 'Mobile', color: 'text-violet-400' },
+                                { value: 'tablet', label: 'Tablet', color: 'text-cyan-400' },
+                                { value: 'desktop', label: 'Desktop', color: 'text-yellow-400' },
+                            ].map((opt) => (
+                                <label key={opt.value} className={`flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition-colors ${
+                                    data.allowed_devices.includes(opt.value) ? 'bg-violet-500/10 border-violet-500/30' : 'bg-gray-950 border-gray-800 hover:border-gray-700'
+                                }`}>
+                                    <input type="checkbox" checked={data.allowed_devices.includes(opt.value)} onChange={() => toggleDevice(opt.value)} className="w-4 h-4 bg-gray-950 border-gray-700 rounded text-violet-500 focus:ring-violet-500/40" />
+                                    <span className={`text-sm font-medium ${opt.color}`}>{opt.label}</span>
+                                </label>
+                            ))}
                         </div>
                     </div>
 

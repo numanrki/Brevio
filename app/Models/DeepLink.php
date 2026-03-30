@@ -18,6 +18,7 @@ class DeepLink extends Model
         'alias',
         'fallback_url',
         'is_active',
+        'allowed_devices',
         'expiry_date',
         'total_clicks',
         'utm_source',
@@ -30,6 +31,7 @@ class DeepLink extends Model
     {
         return [
             'is_active' => 'boolean',
+            'allowed_devices' => 'array',
             'expiry_date' => 'datetime',
             'meta' => 'array',
         ];
@@ -58,5 +60,10 @@ class DeepLink extends Model
     public function pixels(): BelongsToMany
     {
         return $this->belongsToMany(Pixel::class, 'deep_link_pixel');
+    }
+
+    public function qrCodes(): HasMany
+    {
+        return $this->hasMany(QrCode::class);
     }
 }
