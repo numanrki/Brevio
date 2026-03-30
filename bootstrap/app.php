@@ -29,18 +29,17 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
             $flag = storage_path('app/update_pending');
-            if (file_exists($flag) && (
-                $e instanceof \Illuminate\Database\QueryException ||
-                $e instanceof \PDOException
-            )) {
+            if (file_exists($flag)) {
                 try {
+                    \Illuminate\Support\Facades\DB::purge();
                     \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
                     \Illuminate\Support\Facades\Artisan::call('config:clear');
                     \Illuminate\Support\Facades\Artisan::call('cache:clear');
                     @unlink($flag);
+                    @unlink(storage_path('app/update_migrate_retries'));
                     return redirect($request->fullUrl());
                 } catch (\Throwable) {
-                    @unlink($flag);
+                    // Migration still failing — let normal error handling proceed
                 }
             }
         });
