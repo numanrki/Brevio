@@ -78,6 +78,16 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('settings', [Admin\SettingController::class, 'update'])->name('settings.update');
     Route::post('cache-clear', [Admin\SettingController::class, 'clearCache'])->name('cache.clear')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
 
+    // API Keys
+    Route::get('api-keys', [Admin\ApiKeyController::class, 'index'])->name('api-keys.index');
+    Route::post('api-keys', [Admin\ApiKeyController::class, 'store'])->name('api-keys.store');
+    Route::delete('api-keys/{apiKey}', [Admin\ApiKeyController::class, 'destroy'])->name('api-keys.destroy');
+    Route::post('api-keys/{apiKey}/regenerate', [Admin\ApiKeyController::class, 'regenerate'])->name('api-keys.regenerate');
+
+    // API Documentation (protected pages)
+    Route::get('api-docs/{section}', [Admin\ApiDocsController::class, 'gate'])->name('api-docs.show');
+    Route::post('api-docs/verify', [Admin\ApiDocsController::class, 'verify'])->name('api-docs.verify')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
     // Ads & Interstitial
     Route::get('ads', [Admin\AdsController::class, 'index'])->name('ads.index');
     Route::post('ads', [Admin\AdsController::class, 'update'])->name('ads.update');

@@ -98,4 +98,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(DeepLink::class);
     }
+
+    public function apiKeys(): HasMany
+    {
+        return $this->hasMany(ApiKey::class);
+    }
 }
