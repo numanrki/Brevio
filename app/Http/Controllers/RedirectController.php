@@ -197,7 +197,7 @@ class RedirectController extends Controller
             'browser' => $browser,
             'os' => $os,
             'device' => $device,
-            'referrer' => $request->header('referer'),
+            'referrer' => $request->header('referer') ?: $this->detectAppReferrer($userAgent),
             'language' => $request->getPreferredLanguage(),
             'utm_source' => $request->query('utm_source') ?? $deepLink->utm_source,
             'utm_medium' => $request->query('utm_medium') ?? $deepLink->utm_medium,
@@ -333,7 +333,7 @@ class RedirectController extends Controller
             'browser' => $browser,
             'os' => $os,
             'device' => $device,
-            'referrer' => $request->header('referer'),
+            'referrer' => $request->header('referer') ?: $this->detectAppReferrer($userAgent),
             'language' => $request->getPreferredLanguage(),
             'country' => $country,
             'city' => $city,
@@ -453,5 +453,42 @@ class RedirectController extends Controller
         if (str_contains($userAgent, 'Mobile') || str_contains($userAgent, 'Android')) return 'mobile';
         if (str_contains($userAgent, 'Tablet') || str_contains($userAgent, 'iPad')) return 'tablet';
         return 'desktop';
+    }
+
+    /**
+     * Detect in-app browser from User-Agent when Referer header is missing.
+     */
+    private function detectAppReferrer(string $userAgent): ?string
+    {
+        $ua = strtolower($userAgent);
+
+        $apps = [
+            'telegram'    => 'https://t.me',
+            'instagram'   => 'https://instagram.com',
+            'fban'        => 'https://facebook.com',   // Facebook in-app
+            'fbav'        => 'https://facebook.com',   // Facebook app
+            'fb_iab'      => 'https://facebook.com',
+            'twitter'     => 'https://x.com',
+            'whatsapp'    => 'https://whatsapp.com',
+            'snapchat'    => 'https://snapchat.com',
+            'linkedin'    => 'https://linkedin.com',
+            'pinterest'   => 'https://pinterest.com',
+            'discord'     => 'https://discord.com',
+            'slack'       => 'https://slack.com',
+            'viber'       => 'https://viber.com',
+            'line/'       => 'https://line.me',
+            'kakaotalk'   => 'https://kakaotalk.com',
+            'wechat'      => 'https://wechat.com',
+            'tiktok'      => 'https://tiktok.com',
+            'threads'     => 'https://threads.net',
+        ];
+
+        foreach ($apps as $needle => $referrer) {
+            if (str_contains($ua, $needle)) {
+                return $referrer;
+            }
+        }
+
+        return null;
     }
 }
