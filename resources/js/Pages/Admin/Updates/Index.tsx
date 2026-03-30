@@ -334,7 +334,7 @@ export default function Index({ currentVersion, lastCheck, pendingMigrations: in
                             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                     </div>
-                    <h2 className="text-xl font-bold text-white mb-2">Update Installed!</h2>
+                    <h2 className="text-xl font-bold text-white mb-2">Update Installed Successfully!</h2>
                     <p className="text-sm text-gray-400 mb-2">
                         Updated from <span className="text-gray-300 font-medium">v{currentVersion}</span> to{' '}
                         <span className="text-emerald-400 font-medium">v{newVersion}</span>
