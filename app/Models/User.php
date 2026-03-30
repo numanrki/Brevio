@@ -93,4 +93,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Pixel::class);
     }
+
+    public function deepLinks(): HasMany
+    {
+        return $this->hasMany(DeepLink::class);
+    }
 }

@@ -102,6 +102,67 @@ export interface Pixel {
     name: string;
     provider: string;
     pixel_id: string;
+    type: string;
+    token: string;
+    is_active: boolean;
+    total_fires: number;
+    fires_count?: number;
+    created_at?: string;
+}
+
+export interface DeepLink {
+    id: number;
+    user_id: number;
+    name: string;
+    alias: string;
+    fallback_url: string;
+    is_active: boolean;
+    expiry_date?: string;
+    total_clicks: number;
+    utm_source?: string;
+    utm_medium?: string;
+    utm_campaign?: string;
+    meta?: Record<string, unknown>;
+    rules?: DeepLinkRule[];
+    pixels?: Pixel[];
+    rules_count?: number;
+    clicks_count?: number;
+    created_at: string;
+    updated_at?: string;
+}
+
+export interface DeepLinkRule {
+    id: number;
+    deep_link_id: number;
+    priority: number;
+    type: 'device' | 'country' | 'os' | 'browser';
+    value: string;
+    destination_url: string;
+}
+
+export interface DeepLinkClick {
+    id: number;
+    country?: string;
+    city?: string;
+    browser?: string;
+    os?: string;
+    device?: string;
+    referrer?: string;
+    destination_url?: string;
+    is_unique: boolean;
+    created_at: string;
+}
+
+export interface PixelFire {
+    id: number;
+    country?: string;
+    city?: string;
+    browser?: string;
+    os?: string;
+    device?: string;
+    referrer?: string;
+    is_unique: boolean;
+    created_at: string;
 }
 
 export interface Report {

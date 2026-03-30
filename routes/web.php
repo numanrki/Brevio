@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BioPageController;
 use App\Http\Controllers\InstallController;
+use App\Http\Controllers\PixelFireController;
 use App\Http\Controllers\QrScanController;
 use App\Http\Controllers\RedirectController;
 use App\Http\Controllers\Admin;
@@ -57,6 +58,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Domains
     Route::resource('domains', Admin\DomainController::class);
 
+    // Deep Links
+    Route::get('deep-links/{deep_link}/analytics', [Admin\DeepLinkController::class, 'analytics'])->name('deep-links.analytics');
+    Route::resource('deep-links', Admin\DeepLinkController::class);
+
+    // Tracking Pixels
+    Route::get('pixels/{pixel}/analytics', [Admin\PixelController::class, 'analytics'])->name('pixels.analytics');
+    Route::resource('pixels', Admin\PixelController::class);
+
     // Pages
     Route::resource('pages', Admin\PageController::class);
 
@@ -103,6 +112,14 @@ Route::post('/bio/{alias}/track', [BioPageController::class, 'track'])->name('bi
 |--------------------------------------------------------------------------
 */
 Route::get('/qr/{id}', [QrScanController::class, 'handle'])->name('qr.scan')->where('id', '[0-9]+');
+
+/*
+|--------------------------------------------------------------------------
+| Pixel Tracking (public, no auth)
+|--------------------------------------------------------------------------
+*/
+Route::get('/pixel/{token}.gif', [PixelFireController::class, 'image'])->where('token', '[a-zA-Z0-9]{32}');
+Route::get('/pixel/{token}.js', [PixelFireController::class, 'script'])->where('token', '[a-zA-Z0-9]{32}');
 
 /*
 |--------------------------------------------------------------------------
