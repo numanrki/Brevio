@@ -119,6 +119,7 @@ export default function Index() {
         try {
             const res = await fetch(url(`/admin/api-keys/${id}/reveal`), {
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin',
             });
             if (res.ok) {
                 const data = await res.json();

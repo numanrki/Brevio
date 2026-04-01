@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ApiKey;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -66,14 +67,19 @@ class ApiKeyController extends Controller
 
         $plainKey = 'brev_' . Str::random(48);
 
-        auth()->user()->apiKeys()->create([
-            'name'          => $validated['name'],
-            'key'           => hash('sha256', $plainKey),
-            'key_encrypted' => $plainKey,
-            'key_prefix'    => substr($plainKey, 0, 12),
-            'scopes'        => $validated['scopes'],
-            'expires_at'    => $expiresAt,
-        ]);
+        $data = [
+            'name'       => $validated['name'],
+            'key'        => hash('sha256', $plainKey),
+            'key_prefix' => substr($plainKey, 0, 12),
+            'scopes'     => $validated['scopes'],
+            'expires_at' => $expiresAt,
+        ];
+
+        try {
+            $data['key_encrypted'] = Crypt::encryptString($plainKey);
+        } catch (\Throwable) {}
+
+        auth()->user()->apiKeys()->create($data);
 
         return redirect()->back()->with('success', 'API key created successfully.')
             ->with('new_key', $plainKey);
@@ -98,11 +104,16 @@ class ApiKeyController extends Controller
 
         $plainKey = 'brev_' . Str::random(48);
 
-        $apiKey->update([
-            'key'           => hash('sha256', $plainKey),
-            'key_encrypted' => $plainKey,
-            'key_prefix'    => substr($plainKey, 0, 12),
-        ]);
+        $updateData = [
+            'key'        => hash('sha256', $plainKey),
+            'key_prefix' => substr($plainKey, 0, 12),
+        ];
+
+        try {
+            $updateData['key_encrypted'] = Crypt::encryptString($plainKey);
+        } catch (\Throwable) {}
+
+        $apiKey->update($updateData);
 
         return redirect()->back()->with('success', 'API key regenerated successfully.')
             ->with('new_key', $plainKey);

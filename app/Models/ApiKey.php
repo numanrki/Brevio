@@ -27,7 +27,6 @@ class ApiKey extends Model
     protected function casts(): array
     {
         return [
-            'key_encrypted' => 'encrypted',
             'scopes' => 'array',
             'is_active' => 'boolean',
             'last_used_at' => 'datetime',
@@ -37,7 +36,15 @@ class ApiKey extends Model
 
     public function getPlainKey(): ?string
     {
-        return $this->key_encrypted;
+        if (empty($this->key_encrypted)) {
+            return null;
+        }
+
+        try {
+            return \Illuminate\Support\Facades\Crypt::decryptString($this->key_encrypted);
+        } catch (\Throwable) {
+            return null;
+        }
     }
 
     public function user(): BelongsTo
