@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\Auth\NewPasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Admin\TwoFactorController;
 use Illuminate\Support\Facades\Route;
 
@@ -10,6 +12,12 @@ Route::middleware('guest')->group(function () {
         ->name('login');
 
     Route::post('admin/login', [AuthenticatedSessionController::class, 'store']);
+
+    // Password Reset
+    Route::get('admin/forgot-password', [PasswordResetLinkController::class, 'create'])->name('password.request');
+    Route::post('admin/forgot-password', [PasswordResetLinkController::class, 'store'])->name('password.email');
+    Route::get('admin/reset-password/{token}', [NewPasswordController::class, 'create'])->name('password.reset');
+    Route::post('admin/reset-password', [NewPasswordController::class, 'store'])->name('password.store');
 
     // 2FA challenge (guest because user is not fully authenticated yet)
     Route::get('admin/2fa', [TwoFactorController::class, 'challenge'])->name('2fa.challenge');

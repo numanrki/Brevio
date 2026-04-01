@@ -117,15 +117,20 @@ export default function Login({ status, googleEnabled, googleAuthOnly }: { statu
                                     {errors.password && <p className="mt-1.5 text-xs text-red-400">{errors.password}</p>}
                                 </div>
 
-                                <label className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={data.remember}
-                                        onChange={(e) => setData('remember', e.target.checked)}
-                                        className="w-4 h-4 rounded border-gray-700 bg-gray-950 text-violet-500 focus:ring-violet-500/40 focus:ring-offset-0"
-                                    />
-                                    <span className="text-sm text-gray-400">Remember me</span>
-                                </label>
+                                <div className="flex items-center justify-between">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={data.remember}
+                                            onChange={(e) => setData('remember', e.target.checked)}
+                                            className="w-4 h-4 rounded border-gray-700 bg-gray-950 text-violet-500 focus:ring-violet-500/40 focus:ring-offset-0"
+                                        />
+                                        <span className="text-sm text-gray-400">Remember me</span>
+                                    </label>
+                                    <a href={url('/admin/forgot-password')} className="text-sm text-violet-400 hover:text-violet-300 transition-colors">
+                                        Forgot password?
+                                    </a>
+                                </div>
 
                                 <button
                                     type="submit"
