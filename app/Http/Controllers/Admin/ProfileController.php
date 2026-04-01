@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -16,7 +17,8 @@ class ProfileController extends Controller
     public function index(): Response
     {
         $user = auth()->user();
-        $googleEnabled = !empty(config('services.google.client_id'));
+        $googleEnabled = Setting::get('google_login_enabled') === '1'
+            && !empty(Setting::get('google_client_id', config('services.google.client_id')));
 
         return Inertia::render('Admin/Profile/Index', [
             'user' => $user,
@@ -87,6 +89,7 @@ class ProfileController extends Controller
     {
         $validated = $request->validate([
             'google_auth_only' => ['required', 'boolean'],
+            'google_require_2fa' => ['sometimes', 'boolean'],
         ]);
 
         $user = $request->user();
@@ -97,6 +100,11 @@ class ProfileController extends Controller
         }
 
         $user->google_auth_only = $validated['google_auth_only'];
+
+        if (isset($validated['google_require_2fa'])) {
+            $user->google_require_2fa = $validated['google_require_2fa'];
+        }
+
         $user->save();
 
         return back()->with('success', 'Google authentication settings updated.');

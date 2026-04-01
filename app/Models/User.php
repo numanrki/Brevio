@@ -24,6 +24,7 @@ class User extends Authenticatable
         'avatar',
         'google_id',
         'google_auth_only',
+        'google_require_2fa',
     ];
 
     protected $hidden = [
@@ -40,6 +41,7 @@ class User extends Authenticatable
             'is_banned' => 'boolean',
             'is_verified' => 'boolean',
             'google_auth_only' => 'boolean',
+            'google_require_2fa' => 'boolean',
         ];
     }
 

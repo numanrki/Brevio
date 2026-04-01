@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -11,13 +12,33 @@ use Laravel\Socialite\Facades\Socialite;
 
 class GoogleAuthController extends Controller
 {
+    /**
+     * Configure Socialite Google driver from DB settings at runtime.
+     */
+    private function configureGoogle(): void
+    {
+        $clientId = Setting::get('google_client_id', config('services.google.client_id'));
+        $clientSecret = Setting::get('google_client_secret', config('services.google.client_secret'));
+        $redirect = config('services.google.redirect', '/auth/google/callback');
+
+        config([
+            'services.google.client_id' => $clientId,
+            'services.google.client_secret' => $clientSecret,
+            'services.google.redirect' => $redirect,
+        ]);
+    }
+
     public function redirect(): RedirectResponse
     {
+        $this->configureGoogle();
+
         return Socialite::driver('google')->redirect();
     }
 
     public function callback(Request $request): RedirectResponse
     {
+        $this->configureGoogle();
+
         try {
             $googleUser = Socialite::driver('google')->user();
         } catch (\Throwable $e) {
@@ -49,6 +70,27 @@ class GoogleAuthController extends Controller
         if (!$user->avatar && $googleUser->getAvatar()) {
             $user->avatar = $googleUser->getAvatar();
             $user->save();
+        }
+
+        // Check if 2FA is required after Google login
+        $has2fa = false;
+        try {
+            $has2fa = $user->two_factor_secret && $user->two_factor_confirmed_at;
+        } catch (\Throwable $e) {
+            // 2FA columns may not exist yet
+        }
+
+        $globalRequire2fa = Setting::get('google_require_2fa') === '1';
+        $userRequire2fa = (bool) $user->google_require_2fa;
+
+        if ($has2fa && ($globalRequire2fa || $userRequire2fa)) {
+            // Store user ID in session and redirect to 2FA challenge
+            $request->session()->put('2fa_user_id', $user->id);
+            $request->session()->put('2fa_remember', true);
+
+            $user->update(['last_login_at' => now()]);
+
+            return redirect()->route('2fa.challenge');
         }
 
         Auth::login($user, true);

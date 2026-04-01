@@ -22,6 +22,7 @@ export default function ProfileIndex({ user, googleEnabled }: Props) {
 
     const googleForm = useForm({
         google_auth_only: user.google_auth_only,
+        google_require_2fa: user.google_require_2fa,
     });
 
     const submitProfile: FormEventHandler = (e) => {
@@ -213,23 +214,40 @@ export default function ProfileIndex({ user, googleEnabled }: Props) {
                                     <span className="text-sm text-emerald-400 font-medium">Google account connected</span>
                                 </div>
 
-                                <form onSubmit={submitGoogleAuth}>
-                                    <label className="flex items-center gap-3 cursor-pointer">
+                                <form onSubmit={submitGoogleAuth} className="space-y-4">
+                                    <label className="flex items-start gap-3 cursor-pointer">
                                         <input
                                             type="checkbox"
                                             checked={googleForm.data.google_auth_only}
-                                            onChange={(e) => {
-                                                googleForm.setData('google_auth_only', e.target.checked);
-                                                // Auto-submit on change
-                                                googleForm.post(url('/admin/profile/google-auth'), { preserveScroll: true });
-                                            }}
-                                            className="w-4 h-4 rounded border-gray-700 bg-gray-950 text-violet-500 focus:ring-violet-500/40 focus:ring-offset-0"
+                                            onChange={(e) => googleForm.setData('google_auth_only', e.target.checked)}
+                                            className="w-4 h-4 mt-0.5 rounded border-gray-700 bg-gray-950 text-violet-500 focus:ring-violet-500/40 focus:ring-offset-0"
                                         />
                                         <div>
                                             <span className="text-sm text-gray-300 font-medium">Hide login form</span>
                                             <p className="text-xs text-gray-500">When enabled, the email/password form will be hidden and only Google sign-in will be shown.</p>
                                         </div>
                                     </label>
+
+                                    <label className="flex items-start gap-3 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={googleForm.data.google_require_2fa}
+                                            onChange={(e) => googleForm.setData('google_require_2fa', e.target.checked)}
+                                            className="w-4 h-4 mt-0.5 rounded border-gray-700 bg-gray-950 text-violet-500 focus:ring-violet-500/40 focus:ring-offset-0"
+                                        />
+                                        <div>
+                                            <span className="text-sm text-gray-300 font-medium">Require 2FA after Google login</span>
+                                            <p className="text-xs text-gray-500">When enabled, signing in with Google will still require two-factor authentication. When disabled, Google login skips the 2FA step.</p>
+                                        </div>
+                                    </label>
+
+                                    <button
+                                        type="submit"
+                                        disabled={googleForm.processing}
+                                        className="px-5 py-2.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm font-medium rounded-xl transition-colors"
+                                    >
+                                        {googleForm.processing ? 'Saving...' : 'Save Settings'}
+                                    </button>
                                 </form>
 
                                 <button

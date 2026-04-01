@@ -35,6 +35,7 @@ class SettingController extends Controller
             'mail_driver', 'mail_host', 'mail_port', 'mail_username', 'mail_password', 'mail_from',
             'facebook_url', 'twitter_url',
             'google_analytics_id', 'custom_head_code', 'custom_footer_code',
+            'google_client_id', 'google_client_secret', 'google_login_enabled', 'google_require_2fa',
         ];
 
         foreach ($allowedKeys as $key) {

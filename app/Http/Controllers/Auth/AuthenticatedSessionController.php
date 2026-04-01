@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,7 +18,8 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): Response
     {
-        $googleEnabled = !empty(config('services.google.client_id'));
+        $googleEnabled = Setting::get('google_login_enabled') === '1'
+            && !empty(Setting::get('google_client_id', config('services.google.client_id')));
 
         // Check if any admin has google_auth_only enabled
         $googleAuthOnly = false;

@@ -10,6 +10,7 @@ export interface User {
     avatar?: string;
     google_id?: string;
     google_auth_only: boolean;
+    google_require_2fa: boolean;
     created_at: string;
     updated_at: string;
 }
