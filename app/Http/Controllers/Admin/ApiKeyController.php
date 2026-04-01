@@ -67,11 +67,12 @@ class ApiKeyController extends Controller
         $plainKey = 'brev_' . Str::random(48);
 
         auth()->user()->apiKeys()->create([
-            'name'       => $validated['name'],
-            'key'        => hash('sha256', $plainKey),
-            'key_prefix' => substr($plainKey, 0, 12),
-            'scopes'     => $validated['scopes'],
-            'expires_at' => $expiresAt,
+            'name'          => $validated['name'],
+            'key'           => hash('sha256', $plainKey),
+            'key_encrypted' => $plainKey,
+            'key_prefix'    => substr($plainKey, 0, 12),
+            'scopes'        => $validated['scopes'],
+            'expires_at'    => $expiresAt,
         ]);
 
         return redirect()->back()->with('success', 'API key created successfully.')
@@ -98,8 +99,9 @@ class ApiKeyController extends Controller
         $plainKey = 'brev_' . Str::random(48);
 
         $apiKey->update([
-            'key'        => hash('sha256', $plainKey),
-            'key_prefix' => substr($plainKey, 0, 12),
+            'key'           => hash('sha256', $plainKey),
+            'key_encrypted' => $plainKey,
+            'key_prefix'    => substr($plainKey, 0, 12),
         ]);
 
         return redirect()->back()->with('success', 'API key regenerated successfully.')
@@ -117,5 +119,16 @@ class ApiKeyController extends Controller
         $status = $apiKey->is_active ? 'enabled' : 'disabled';
 
         return redirect()->back()->with('success', "API key {$status} successfully.");
+    }
+
+    public function reveal(ApiKey $apiKey)
+    {
+        if ($apiKey->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        return response()->json([
+            'key' => $apiKey->getPlainKey(),
+        ]);
     }
 }

@@ -11,6 +11,7 @@ class ApiKey extends Model
         'user_id',
         'name',
         'key',
+        'key_encrypted',
         'key_prefix',
         'scopes',
         'is_active',
@@ -18,14 +19,25 @@ class ApiKey extends Model
         'expires_at',
     ];
 
+    protected $hidden = [
+        'key',
+        'key_encrypted',
+    ];
+
     protected function casts(): array
     {
         return [
+            'key_encrypted' => 'encrypted',
             'scopes' => 'array',
             'is_active' => 'boolean',
             'last_used_at' => 'datetime',
             'expires_at' => 'datetime',
         ];
+    }
+
+    public function getPlainKey(): string
+    {
+        return $this->key_encrypted;
     }
 
     public function user(): BelongsTo

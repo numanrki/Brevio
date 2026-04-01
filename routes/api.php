@@ -14,6 +14,9 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
 // API Key-based auth with scopes
 Route::prefix('v1')->group(function () {
+    // Public health check (no auth required)
+    Route::get('/ping', fn () => response()->json(['status' => 'ok', 'timestamp' => now()->toIso8601String()]));
+
     // Links
     Route::middleware('api.scope:links:read')->group(function () {
         Route::get('/links', [LinkController::class, 'index']);

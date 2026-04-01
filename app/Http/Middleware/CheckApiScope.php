@@ -44,9 +44,9 @@ class CheckApiScope
             $apiKey->update(['last_used_at' => now()]);
         }
 
-        // Attach the API key and its owner to the request
+        // Attach the API key and its owner to the request (stateless, no session)
         $request->merge(['api_key' => $apiKey]);
-        auth()->login($apiKey->user);
+        $request->setUserResolver(fn () => $apiKey->user);
 
         return $next($request);
     }
