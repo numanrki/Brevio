@@ -42,10 +42,29 @@ class GoogleAuthController extends Controller
         try {
             $googleUser = Socialite::driver('google')->user();
         } catch (\Throwable $e) {
+            // If already logged in, redirect to profile with error
+            if (Auth::check()) {
+                return redirect()->route('admin.profile.index')->with('error', 'Google authentication failed.');
+            }
             return redirect()->route('login')->withErrors(['email' => 'Google authentication failed.']);
         }
 
-        // Find admin user whose email matches the Google account email
+        // If user is already authenticated — this is a "Connect Google" from profile
+        if (Auth::check()) {
+            $user = Auth::user();
+            $user->google_id = $googleUser->getId();
+
+            // Update avatar from Google if user has no custom avatar
+            if (!$user->avatar && $googleUser->getAvatar()) {
+                $user->avatar = $googleUser->getAvatar();
+            }
+
+            $user->save();
+
+            return redirect()->route('admin.profile.index')->with('success', 'Google account connected successfully.');
+        }
+
+        // Guest login flow — find admin user by email
         $user = User::where('email', $googleUser->getEmail())
             ->where('role', 'admin')
             ->first();
@@ -83,7 +102,6 @@ class GoogleAuthController extends Controller
         $userRequire2fa = (bool) $user->google_require_2fa;
 
         if ($has2fa && $userRequire2fa) {
-            // Store user ID in session and redirect to 2FA challenge
             $request->session()->put('2fa_user_id', $user->id);
             $request->session()->put('2fa_remember', true);
 

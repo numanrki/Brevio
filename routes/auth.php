@@ -22,11 +22,11 @@ Route::middleware('guest')->group(function () {
     // 2FA challenge (guest because user is not fully authenticated yet)
     Route::get('admin/2fa', [TwoFactorController::class, 'challenge'])->name('2fa.challenge');
     Route::post('admin/2fa', [TwoFactorController::class, 'verify'])->name('2fa.verify');
-
-    // Google OAuth
-    Route::get('auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
-    Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
 });
+
+// Google OAuth — accessible to both guests (login) and authenticated users (profile connect)
+Route::get('auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
+Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
 
 Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])

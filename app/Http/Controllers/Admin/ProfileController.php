@@ -17,8 +17,7 @@ class ProfileController extends Controller
     public function index(): Response
     {
         $user = auth()->user();
-        $googleEnabled = Setting::get('google_login_enabled') === '1'
-            && !empty(Setting::get('google_client_id', config('services.google.client_id')));
+        $googleEnabled = !empty(Setting::get('google_client_id', config('services.google.client_id')));
 
         return Inertia::render('Admin/Profile/Index', [
             'user' => $user,
