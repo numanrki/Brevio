@@ -35,15 +35,49 @@ class ApiKeyController extends Controller
     {
         if (self::$columns === null) {
             self::$columns = [];
+            $missing = false;
             foreach (['is_active', 'key_encrypted', 'last_used_at', 'expires_at'] as $c) {
                 try {
                     self::$columns[$c] = Schema::hasColumn('api_keys', $c);
+                    if (!self::$columns[$c]) $missing = true;
                 } catch (\Throwable) {
                     self::$columns[$c] = false;
+                    $missing = true;
+                }
+            }
+
+            // Auto-add missing columns on first access
+            if ($missing) {
+                try {
+                    $this->addMissingColumns();
+                    // Re-check after adding
+                    foreach (['is_active', 'key_encrypted', 'last_used_at', 'expires_at'] as $c) {
+                        self::$columns[$c] = Schema::hasColumn('api_keys', $c);
+                    }
+                } catch (\Throwable $e) {
+                    Log::error('ApiKeyController: auto-add columns failed: ' . $e->getMessage());
                 }
             }
         }
         return self::$columns[$name] ?? false;
+    }
+
+    private function addMissingColumns(): void
+    {
+        Schema::table('api_keys', function (\Illuminate\Database\Schema\Blueprint $table) {
+            if (!Schema::hasColumn('api_keys', 'is_active')) {
+                $table->boolean('is_active')->default(true);
+            }
+            if (!Schema::hasColumn('api_keys', 'last_used_at')) {
+                $table->timestamp('last_used_at')->nullable();
+            }
+            if (!Schema::hasColumn('api_keys', 'expires_at')) {
+                $table->timestamp('expires_at')->nullable();
+            }
+            if (!Schema::hasColumn('api_keys', 'key_encrypted')) {
+                $table->text('key_encrypted')->nullable();
+            }
+        });
     }
 
     public function index()
