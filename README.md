@@ -1,11 +1,11 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Brevio-Open%20Source%20Link%20Shortener-7c3aed?style=for-the-badge&logo=link&logoColor=white" alt="Brevio — Open Source Link Shortener" />
+  <img src="https://img.shields.io/badge/Brevio-Open%20Source%20Link%20Shortener-7c3aed?style=for-the-badge&logo=link&logoColor=white" alt="Brevio - Open Source Link Shortener" />
 </p>
 
 <h1 align="center">Brevio</h1>
 
 <p align="center">
-  <strong>The open-source, self-hosted URL shortener and link management platform.<br />Shorten links, generate QR codes, build bio pages, set up smart deep links, and track everything with real-time analytics — all on your own server.</strong>
+  <strong>The open-source, self-hosted URL shortener and link management platform.<br />Shorten links, generate QR codes, build bio pages, set up smart deep links, and track everything with real-time analytics - all on your own server.</strong>
 </p>
 
 <p align="center">
@@ -36,9 +36,9 @@
 
 ## Why Brevio?
 
-Most link shorteners are either expensive SaaS tools or outdated PHP scripts from 2015. Brevio is different — it's a **modern, full-stack application** built with the same technologies used by top startups: Laravel 12, React 18, TypeScript, and Tailwind CSS.
+Most link shorteners are either expensive SaaS tools or outdated PHP scripts from 2015. Brevio is different - it's a **modern, full-stack application** built with the same technologies used by top startups: Laravel 12, React 18, TypeScript, and Tailwind CSS.
 
-You get complete control over your data, your domain, and your branding. No monthly fees. No tracking limits. No vendor lock-in. Deploy it on a $5/month VPS or your enterprise infrastructure — it scales with you.
+You get complete control over your data, your domain, and your branding. No monthly fees. No tracking limits. No vendor lock-in. Deploy it on a $5/month VPS or your enterprise infrastructure - it scales with you.
 
 **Who is Brevio for?**
 
@@ -75,95 +75,95 @@ You get complete control over your data, your domain, and your branding. No mont
 
 Create short, branded links in seconds. Every link comes with full control and tracking.
 
-- **Custom aliases** — Choose your own short slug (e.g., `yourdomain.com/sale`) or let Brevio auto-generate one
-- **Password protection** — Require a password before redirecting visitors
-- **Expiry dates** — Automatically disable links after a set date and time
-- **Geo-targeting** — Route visitors to different destinations based on their country
-- **Device targeting** — Send mobile users to an app store and desktop users to a website
-- **Language targeting** — Redirect based on the visitor's browser language
-- **Interstitial pages** — Show a countdown page or click-through confirmation before redirecting
-- **Soft deletes** — Accidentally deleted a link? Restore it from the trash
+- **Custom aliases** - Choose your own short slug (e.g., `yourdomain.com/sale`) or let Brevio auto-generate one
+- **Password protection** - Require a password before redirecting visitors
+- **Expiry dates** - Automatically disable links after a set date and time
+- **Geo-targeting** - Route visitors to different destinations based on their country
+- **Device targeting** - Send mobile users to an app store and desktop users to a website
+- **Language targeting** - Redirect based on the visitor's browser language
+- **Interstitial pages** - Show a countdown page or click-through confirmation before redirecting
+- **Soft deletes** - Accidentally deleted a link? Restore it from the trash
 
 ### 🚀 Smart Deep Links
 
 Go beyond simple redirects with conditional routing powered by a priority-based rule engine.
 
-- **Conditional routing** — Route visitors based on their **device**, **operating system**, **browser**, or **country**
-- **Platform restrictions** — Create links that only work on Android, iOS, mobile, or desktop
-- **Fallback URL** — Define a default destination when no rules match
-- **UTM injection** — Automatically append UTM parameters (source, medium, campaign) to each rule's destination
-- **Unlimited rules** — Stack as many routing rules as you need with drag-and-drop priority ordering
-- **Per-rule analytics** — See exactly which rules are getting triggered and how often
+- **Conditional routing** - Route visitors based on their **device**, **operating system**, **browser**, or **country**
+- **Platform restrictions** - Create links that only work on Android, iOS, mobile, or desktop
+- **Fallback URL** - Define a default destination when no rules match
+- **UTM injection** - Automatically append UTM parameters (source, medium, campaign) to each rule's destination
+- **Unlimited rules** - Stack as many routing rules as you need with drag-and-drop priority ordering
+- **Per-rule analytics** - See exactly which rules are getting triggered and how often
 
 ### 📊 Analytics & Tracking
 
 Know exactly who clicks your links, when, where, and from which platform.
 
-- **Real-time click tracking** — Country, city, browser, OS, device type, referrer, language
-- **Smart referrer detection** — Identifies traffic from **Telegram, WhatsApp, Instagram, Facebook, Twitter/X, TikTok, Discord, Slack, LinkedIn, Pinterest,** and 6+ more platforms via User-Agent parsing — even when the Referer header is stripped
-- **UTM tracking** — Capture and report on source, medium, and campaign parameters
-- **Global stats dashboard** — Filter analytics across Links, Bio Pages, QR Codes, and Deep Links
-- **Interactive charts** — Line, bar, and pie charts powered by Recharts with hover tooltips
-- **Referrer normalization** — Raw URLs are automatically mapped to friendly platform names
+- **Real-time click tracking** - Country, city, browser, OS, device type, referrer, language
+- **Smart referrer detection** - Identifies traffic from **Telegram, WhatsApp, Instagram, Facebook, Twitter/X, TikTok, Discord, Slack, LinkedIn, Pinterest,** and 6+ more platforms via User-Agent parsing - even when the Referer header is stripped
+- **UTM tracking** - Capture and report on source, medium, and campaign parameters
+- **Global stats dashboard** - Filter analytics across Links, Bio Pages, QR Codes, and Deep Links
+- **Interactive charts** - Line, bar, and pie charts powered by Recharts with hover tooltips
+- **Referrer normalization** - Raw URLs are automatically mapped to friendly platform names
 
 ### 📱 QR Code Generator
 
 Generate scannable QR codes for any link, deep link, or standalone content.
 
-- **Custom colors** — Set foreground and background colors with a live preview
-- **Multiple content types** — URLs, text, vCards, Wi-Fi configs, and more
-- **Scan tracking** — Every scan is tracked through a redirect route with full analytics
-- **Per-QR analytics** — View scans over time, top countries, browsers, devices, and referrers
+- **Custom colors** - Set foreground and background colors with a live preview
+- **Multiple content types** - URLs, text, vCards, Wi-Fi configs, and more
+- **Scan tracking** - Every scan is tracked through a redirect route with full analytics
+- **Per-QR analytics** - View scans over time, top countries, browsers, devices, and referrers
 
 ### 🌐 Bio Pages (Link-in-Bio)
 
 Build beautiful, mobile-optimized landing pages with a drag-and-drop editor.
 
-- **9 widget types** — Link, Heading, Text, Divider, Image, Social Links, Video, Spotify, Map
-- **Live preview** — See changes in real-time inside a phone-frame preview panel
-- **Custom themes** — Choose from built-in themes or write your own CSS
-- **SEO fields** — Custom title, description, and Open Graph image for each bio page
-- **View & click tracking** — Full analytics for page views and individual link clicks
+- **9 widget types** - Link, Heading, Text, Divider, Image, Social Links, Video, Spotify, Map
+- **Live preview** - See changes in real-time inside a phone-frame preview panel
+- **Custom themes** - Choose from built-in themes or write your own CSS
+- **SEO fields** - Custom title, description, and Open Graph image for each bio page
+- **View & click tracking** - Full analytics for page views and individual link clicks
 
 ### 🔐 Security & Authentication
 
 Enterprise-grade security with two-factor authentication and encrypted storage.
 
-- **Two-factor authentication (2FA)** — TOTP-based with support for Google Authenticator, Authy, and all TOTP apps
-- **QR code setup** — Scan a QR code or manually enter the secret key to set up 2FA
-- **AES-256 encryption** — All sensitive data (secrets, API keys) is encrypted at rest
-- **Password-protected 2FA disable** — Prevents unauthorized users from turning off 2FA
-- **API key management** — Create, revoke, and scope API keys with granular permissions
+- **Two-factor authentication (2FA)** - TOTP-based with support for Google Authenticator, Authy, and all TOTP apps
+- **QR code setup** - Scan a QR code or manually enter the secret key to set up 2FA
+- **AES-256 encryption** - All sensitive data (secrets, API keys) is encrypted at rest
+- **Password-protected 2FA disable** - Prevents unauthorized users from turning off 2FA
+- **API key management** - Create, revoke, and scope API keys with granular permissions
 
 ### 🖥️ Admin Dashboard
 
 A clean, modern admin panel with a dark theme designed for productivity.
 
-- **6 real-time stat cards** — Links, Deep Links, QR Codes, Bio Pages, Total Clicks, Total Scans
-- **7-day activity chart** — Visual comparison of link vs. deep link creation over the past week
-- **Top widgets** — Most-used referrers, top countries, and popular browsers at a glance
-- **Recent activity** — Quick-access panels showing your latest links and deep links
-- **Pending migration detection** — An amber banner appears when database updates are available, with a one-click "Run Migrations" button
+- **6 real-time stat cards** - Links, Deep Links, QR Codes, Bio Pages, Total Clicks, Total Scans
+- **7-day activity chart** - Visual comparison of link vs. deep link creation over the past week
+- **Top widgets** - Most-used referrers, top countries, and popular browsers at a glance
+- **Recent activity** - Quick-access panels showing your latest links and deep links
+- **Pending migration detection** - An amber banner appears when database updates are available, with a one-click "Run Migrations" button
 
 ### 🔄 Built-in Update System
 
 Keep Brevio up to date without SSH access or command-line knowledge.
 
-- **One-click updates** — Check for new versions and install directly from the admin panel
-- **Automatic process** — Download → Extract → Apply files → Run migrations → Clear caches
-- **Release channels** — Choose between stable releases and beta commits
-- **Git-pull support** — If you deploy via Git, pending migrations are auto-detected
-- **Release notes** — View what changed before you update
+- **One-click updates** - Check for new versions and install directly from the admin panel
+- **Automatic process** - Download → Extract → Apply files → Run migrations → Clear caches
+- **Release channels** - Choose between stable releases and beta commits
+- **Git-pull support** - If you deploy via Git, pending migrations are auto-detected
+- **Release notes** - View what changed before you update
 
 ### 🔌 REST API with Scoped Permissions
 
 Integrate Brevio into your own applications, scripts, or automation workflows.
 
-- **Full CRUD** — Create, read, update, and delete links and QR codes programmatically
-- **Scoped API keys** — Grant only the permissions each key needs (e.g., read-only links, write QR codes)
-- **Bearer token auth** — Standard `Authorization: Bearer <key>` authentication
-- **JSON responses** — Clean, consistent JSON output with proper HTTP status codes and validation errors
-- **Health check endpoint** — Public `/api/v1/ping` endpoint for uptime monitoring
+- **Full CRUD** - Create, read, update, and delete links and QR codes programmatically
+- **Scoped API keys** - Grant only the permissions each key needs (e.g., read-only links, write QR codes)
+- **Bearer token auth** - Standard `Authorization: Bearer <key>` authentication
+- **JSON responses** - Clean, consistent JSON output with proper HTTP status codes and validation errors
+- **Health check endpoint** - Public `/api/v1/ping` endpoint for uptime monitoring
 
 > See the full [REST API documentation](#-rest-api) below.
 
@@ -203,7 +203,7 @@ Before installing Brevio, make sure your server meets these requirements:
 
 ## 📦 Installation
 
-### Option 1 — Clone from GitHub (Recommended)
+### Option 1 - Clone from GitHub (Recommended)
 
 ```bash
 # 1. Clone the repository
@@ -223,7 +223,7 @@ cp .env.example .env
 php artisan key:generate
 ```
 
-### Option 2 — Download a Release
+### Option 2 - Download a Release
 
 1. Go to the [Releases](https://github.com/numanrki/Brevio/releases) page
 2. Download the latest `.zip` file
@@ -282,7 +282,7 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-After deploying, visit **Admin → Updates** in the admin panel. If there are pending database migrations, an amber banner will appear with a **Run Migrations** button — click it to apply them.
+After deploying, visit **Admin → Updates** in the admin panel. If there are pending database migrations, an amber banner will appear with a **Run Migrations** button - click it to apply them.
 
 ### Deploying Manually (FTP / File Manager)
 
@@ -408,7 +408,7 @@ Brevio provides a fully-featured REST API that lets you manage links and QR code
 2. Go to **Admin → API Keys**
 3. Click **Create API Key**
 4. Give it a name (e.g., "My App") and select the permission scopes it needs
-5. Click **Create** — your API key will be displayed **once**. Copy it and store it securely.
+5. Click **Create** - your API key will be displayed **once**. Copy it and store it securely.
 
 #### 2. Authenticate Your Requests
 
@@ -673,7 +673,7 @@ All errors follow a consistent format:
 | `401 Unauthorized` | Missing or invalid API key |
 | `403 Forbidden` | API key is disabled, expired, or missing the required scope |
 | `404 Not Found` | Resource does not exist or belongs to another user |
-| `422 Unprocessable Entity` | Validation failed — check the `errors` object in the response |
+| `422 Unprocessable Entity` | Validation failed - check the `errors` object in the response |
 
 **Example error response:**
 
@@ -705,7 +705,7 @@ Brevio is open-source software licensed under the **[MIT License](LICENSE)**. Yo
 
 ## ⭐ Support the Project
 
-If Brevio helps you, consider giving it a **star** on GitHub — it helps others discover the project.
+If Brevio helps you, consider giving it a **star** on GitHub - it helps others discover the project.
 
 <p align="center">
   <a href="https://github.com/numanrki/Brevio"><img src="https://img.shields.io/github/stars/numanrki/Brevio?style=social" alt="Star on GitHub" /></a>
