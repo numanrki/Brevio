@@ -90,14 +90,15 @@ class ApiKeyController extends Controller
         ]);
 
         $expiresAt = match ($validated['expires_in'] ?? 'never') {
-            '30d'   => now()->addDays(30),
-            '60d'   => now()->addDays(60),
-            '90d'   => now()->addDays(90),
-            '1y'    => now()->addYear(),
+            '30d'   => now()->addDays(30)->format('Y-m-d H:i:s'),
+            '60d'   => now()->addDays(60)->format('Y-m-d H:i:s'),
+            '90d'   => now()->addDays(90)->format('Y-m-d H:i:s'),
+            '1y'    => now()->addYear()->format('Y-m-d H:i:s'),
             default => null,
         };
 
         $plainKey = 'brev_' . Str::random(48);
+        $nowStr = now()->format('Y-m-d H:i:s');
 
         $insertData = [
             'user_id'    => auth()->id(),
@@ -107,21 +108,23 @@ class ApiKeyController extends Controller
             'scopes'     => json_encode($validated['scopes']),
             'is_active'  => 1,
             'expires_at' => $expiresAt,
-            'created_at' => now(),
-            'updated_at' => now(),
+            'created_at' => $nowStr,
+            'updated_at' => $nowStr,
         ];
 
         if ($this->hasEncryptedColumn()) {
             try {
                 $insertData['key_encrypted'] = Crypt::encryptString($plainKey);
-            } catch (\Throwable) {}
+            } catch (\Throwable) {
+                $insertData['key_encrypted'] = '';
+            }
         }
 
         try {
             DB::table('api_keys')->insert($insertData);
         } catch (\Throwable $e) {
-            Log::error('ApiKeyController@store failed: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to create API key.');
+            Log::error('ApiKeyController@store: ' . $e->getMessage() . ' | Data keys: ' . implode(',', array_keys($insertData)));
+            return redirect()->back()->with('error', 'Failed to create API key. Check logs.');
         }
 
         return redirect()->back()->with('success', 'API key created successfully.')
@@ -149,13 +152,15 @@ class ApiKeyController extends Controller
         $updateData = [
             'key'        => hash('sha256', $plainKey),
             'key_prefix' => substr($plainKey, 0, 12),
-            'updated_at' => now(),
+            'updated_at' => now()->format('Y-m-d H:i:s'),
         ];
 
         if ($this->hasEncryptedColumn()) {
             try {
                 $updateData['key_encrypted'] = Crypt::encryptString($plainKey);
-            } catch (\Throwable) {}
+            } catch (\Throwable) {
+                $updateData['key_encrypted'] = '';
+            }
         }
 
         try {
@@ -164,7 +169,7 @@ class ApiKeyController extends Controller
                 ->where('user_id', auth()->id())
                 ->update($updateData);
         } catch (\Throwable $e) {
-            Log::error('ApiKeyController@regenerate failed: ' . $e->getMessage());
+            Log::error('ApiKeyController@regenerate: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Failed to regenerate API key.');
         }
 
@@ -190,7 +195,7 @@ class ApiKeyController extends Controller
                 ->where('id', $id)
                 ->update([
                     'is_active'  => $newStatus,
-                    'updated_at' => now(),
+                    'updated_at' => now()->format('Y-m-d H:i:s'),
                 ]);
 
             $status = $newStatus ? 'enabled' : 'disabled';
