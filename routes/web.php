@@ -81,10 +81,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // API Keys
     Route::get('api-keys', [Admin\ApiKeyController::class, 'index'])->name('api-keys.index');
     Route::post('api-keys', [Admin\ApiKeyController::class, 'store'])->name('api-keys.store');
-    Route::delete('api-keys/{apiKey}', [Admin\ApiKeyController::class, 'destroy'])->name('api-keys.destroy');
-    Route::post('api-keys/{apiKey}/regenerate', [Admin\ApiKeyController::class, 'regenerate'])->name('api-keys.regenerate');
-    Route::post('api-keys/{apiKey}/toggle', [Admin\ApiKeyController::class, 'toggle'])->name('api-keys.toggle');
-    Route::get('api-keys/{apiKey}/reveal', [Admin\ApiKeyController::class, 'reveal'])->name('api-keys.reveal');
+    Route::delete('api-keys/{id}', [Admin\ApiKeyController::class, 'destroy'])->name('api-keys.destroy');
+    Route::post('api-keys/{id}/regenerate', [Admin\ApiKeyController::class, 'regenerate'])->name('api-keys.regenerate');
+    Route::post('api-keys/{id}/toggle', [Admin\ApiKeyController::class, 'toggle'])->name('api-keys.toggle');
+    Route::get('api-keys/{id}/reveal', [Admin\ApiKeyController::class, 'reveal'])->name('api-keys.reveal');
 
     // API Documentation (protected pages)
     Route::get('api-docs/{section}', [Admin\ApiDocsController::class, 'gate'])->name('api-docs.show');

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ApiKey;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 
@@ -28,18 +29,19 @@ class ApiKeyController extends Controller
 
     public function index()
     {
-        $keys = auth()->user()->apiKeys()
+        $keys = DB::table('api_keys')
+            ->where('user_id', auth()->id())
             ->orderByDesc('created_at')
             ->get()
-            ->map(fn (ApiKey $key) => [
+            ->map(fn ($key) => [
                 'id'           => $key->id,
                 'name'         => $key->name,
                 'key_prefix'   => $key->key_prefix,
-                'scopes'       => $key->scopes,
-                'is_active'    => $key->is_active,
-                'last_used_at' => $key->last_used_at?->diffForHumans(),
-                'expires_at'   => $key->expires_at?->format('M d, Y'),
-                'created_at'   => $key->created_at->format('M d, Y'),
+                'scopes'       => json_decode($key->scopes, true) ?: [],
+                'is_active'    => (bool) $key->is_active,
+                'last_used_at' => $key->last_used_at ? \Carbon\Carbon::parse($key->last_used_at)->diffForHumans() : null,
+                'expires_at'   => $key->expires_at ? \Carbon\Carbon::parse($key->expires_at)->format('M d, Y') : null,
+                'created_at'   => \Carbon\Carbon::parse($key->created_at)->format('M d, Y'),
             ]);
 
         return Inertia::render('Admin/ApiKeys/Index', [
@@ -67,39 +69,51 @@ class ApiKeyController extends Controller
 
         $plainKey = 'brev_' . Str::random(48);
 
-        $data = [
+        $insertData = [
+            'user_id'    => auth()->id(),
             'name'       => $validated['name'],
             'key'        => hash('sha256', $plainKey),
             'key_prefix' => substr($plainKey, 0, 12),
-            'scopes'     => $validated['scopes'],
+            'scopes'     => json_encode($validated['scopes']),
+            'is_active'  => true,
             'expires_at' => $expiresAt,
+            'created_at' => now(),
+            'updated_at' => now(),
         ];
 
         try {
-            $data['key_encrypted'] = Crypt::encryptString($plainKey);
+            $insertData['key_encrypted'] = Crypt::encryptString($plainKey);
         } catch (\Throwable) {}
 
-        auth()->user()->apiKeys()->create($data);
+        DB::table('api_keys')->insert($insertData);
 
         return redirect()->back()->with('success', 'API key created successfully.')
             ->with('new_key', $plainKey);
     }
 
-    public function destroy(ApiKey $apiKey)
+    public function destroy($id)
     {
-        if ($apiKey->user_id !== auth()->id()) {
-            abort(403);
-        }
+        $deleted = DB::table('api_keys')
+            ->where('id', $id)
+            ->where('user_id', auth()->id())
+            ->delete();
 
-        $apiKey->delete();
+        if (!$deleted) {
+            return redirect()->back()->with('error', 'API key not found.');
+        }
 
         return redirect()->back()->with('success', 'API key revoked successfully.');
     }
 
-    public function regenerate(ApiKey $apiKey)
+    public function regenerate($id)
     {
-        if ($apiKey->user_id !== auth()->id()) {
-            abort(403);
+        $apiKey = DB::table('api_keys')
+            ->where('id', $id)
+            ->where('user_id', auth()->id())
+            ->first();
+
+        if (!$apiKey) {
+            return redirect()->back()->with('error', 'API key not found.');
         }
 
         $plainKey = 'brev_' . Str::random(48);
@@ -107,48 +121,72 @@ class ApiKeyController extends Controller
         $updateData = [
             'key'        => hash('sha256', $plainKey),
             'key_prefix' => substr($plainKey, 0, 12),
+            'updated_at' => now(),
         ];
 
         try {
             $updateData['key_encrypted'] = Crypt::encryptString($plainKey);
         } catch (\Throwable) {}
 
-        $apiKey->update($updateData);
+        DB::table('api_keys')->where('id', $id)->update($updateData);
 
         return redirect()->back()->with('success', 'API key regenerated successfully.')
             ->with('new_key', $plainKey);
     }
 
-    public function toggle(ApiKey $apiKey)
+    public function toggle($id)
     {
-        if ($apiKey->user_id !== auth()->id()) {
-            abort(403);
+        $apiKey = DB::table('api_keys')
+            ->where('id', $id)
+            ->where('user_id', auth()->id())
+            ->first();
+
+        if (!$apiKey) {
+            return redirect()->back()->with('error', 'API key not found.');
         }
 
-        $apiKey->update(['is_active' => !$apiKey->is_active]);
+        $newStatus = $apiKey->is_active ? 0 : 1;
 
-        $status = $apiKey->is_active ? 'enabled' : 'disabled';
+        DB::table('api_keys')
+            ->where('id', $id)
+            ->update([
+                'is_active'  => $newStatus,
+                'updated_at' => now(),
+            ]);
+
+        $status = $newStatus ? 'enabled' : 'disabled';
 
         return redirect()->back()->with('success', "API key {$status} successfully.");
     }
 
-    public function reveal(ApiKey $apiKey)
+    public function reveal($id)
     {
-        if ($apiKey->user_id !== auth()->id()) {
-            abort(403);
+        $apiKey = DB::table('api_keys')
+            ->where('id', $id)
+            ->where('user_id', auth()->id())
+            ->first();
+
+        if (!$apiKey) {
+            return response()->json(['message' => 'API key not found.'], 404);
         }
 
-        $key = $apiKey->getPlainKey();
+        $encryptedKey = $apiKey->key_encrypted ?? null;
 
-        if (!$key) {
+        if (empty($encryptedKey)) {
             return response()->json([
                 'key' => null,
                 'message' => 'Key not available. Regenerate to enable viewing.',
             ], 404);
         }
 
-        return response()->json([
-            'key' => $key,
-        ]);
+        try {
+            $key = Crypt::decryptString($encryptedKey);
+            return response()->json(['key' => $key]);
+        } catch (\Throwable) {
+            return response()->json([
+                'key' => null,
+                'message' => 'Key not available. Regenerate to enable viewing.',
+            ], 404);
+        }
     }
 }
