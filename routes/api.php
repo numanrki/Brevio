@@ -1,9 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\BioController;
+use App\Http\Controllers\Api\DeepLinkController;
 use App\Http\Controllers\Api\LinkController;
 use App\Http\Controllers\Api\LinkAnalyticsController;
+use App\Http\Controllers\Api\PixelController;
 use App\Http\Controllers\Api\QrCodeController;
+use App\Http\Controllers\Api\StatsController;
 use Illuminate\Support\Facades\Route;
 
 // Legacy Sanctum-based auth (preserved for backward compatibility)
@@ -22,7 +25,6 @@ Route::prefix('v1')->group(function () {
     Route::middleware('api.scope:links:read')->group(function () {
         Route::get('/links', [LinkController::class, 'index']);
         Route::get('/links/{link}', [LinkController::class, 'show']);
-        Route::get('/links/{link}/analytics', [LinkAnalyticsController::class, 'show']);
     });
     Route::middleware('api.scope:links:write')->group(function () {
         Route::post('/links', [LinkController::class, 'store']);
@@ -50,5 +52,34 @@ Route::prefix('v1')->group(function () {
         Route::post('/bio', [BioController::class, 'store']);
         Route::put('/bio/{bio}', [BioController::class, 'update']);
         Route::delete('/bio/{bio}', [BioController::class, 'destroy']);
+    });
+
+    // Deep Links
+    Route::middleware('api.scope:deep-links:read')->group(function () {
+        Route::get('/deep-links', [DeepLinkController::class, 'index']);
+        Route::get('/deep-links/{deepLink}', [DeepLinkController::class, 'show']);
+    });
+    Route::middleware('api.scope:deep-links:write')->group(function () {
+        Route::post('/deep-links', [DeepLinkController::class, 'store']);
+        Route::put('/deep-links/{deepLink}', [DeepLinkController::class, 'update']);
+        Route::delete('/deep-links/{deepLink}', [DeepLinkController::class, 'destroy']);
+    });
+
+    // Pixels
+    Route::middleware('api.scope:pixels:read')->group(function () {
+        Route::get('/pixels', [PixelController::class, 'index']);
+        Route::get('/pixels/{pixel}', [PixelController::class, 'show']);
+    });
+    Route::middleware('api.scope:pixels:write')->group(function () {
+        Route::post('/pixels', [PixelController::class, 'store']);
+        Route::put('/pixels/{pixel}', [PixelController::class, 'update']);
+        Route::delete('/pixels/{pixel}', [PixelController::class, 'destroy']);
+    });
+
+    // Statistics & Analytics
+    Route::middleware('api.scope:stats:read')->group(function () {
+        Route::get('/stats/overview', [StatsController::class, 'overview']);
+        Route::get('/stats/links/{link}', [StatsController::class, 'link']);
+        Route::get('/stats/deep-links/{deepLink}', [StatsController::class, 'deepLink']);
     });
 });

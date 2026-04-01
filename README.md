@@ -827,6 +827,357 @@ DELETE /api/v1/bio/{id}
 }
 ```
 
+### Deep Links
+
+Smart routing links that redirect visitors to different destinations based on their device, OS, browser, or country.
+
+#### List All Deep Links
+
+```
+GET /api/v1/deep-links
+```
+
+**Required scope:** `deep-links:read`
+
+**Query Parameters:**
+
+| Parameter | Type | Description |
+|:----------|:-----|:------------|
+| `search` | string | Filter by name or alias |
+| `per_page` | integer | Results per page (default: 15) |
+| `page` | integer | Page number |
+
+**Example Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "App Download",
+      "alias": "get-app",
+      "short_url": "https://yourdomain.com/dl/get-app",
+      "fallback_url": "https://example.com/app",
+      "is_active": true,
+      "allowed_devices": ["mobile"],
+      "total_clicks": 87,
+      "rules_count": 3,
+      "expiry_date": null,
+      "created_at": "2026-03-20T10:00:00+00:00"
+    }
+  ]
+}
+```
+
+#### Create a Deep Link
+
+```
+POST /api/v1/deep-links
+```
+
+**Required scope:** `deep-links:write`
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|:------|:-----|:---------|:------------|
+| `name` | string | Yes | Deep link name (max 255 chars) |
+| `alias` | string | No | Custom slug. Auto-generated if omitted |
+| `fallback_url` | string | Yes | Default destination when no rules match |
+| `is_active` | boolean | No | Whether the deep link is active (default: true) |
+| `allowed_devices` | array | No | Restrict to specific devices: `mobile`, `desktop`, `tablet` |
+| `expiry_date` | datetime | No | Auto-disable after this date |
+| `utm_source` | string | No | UTM source parameter |
+| `utm_medium` | string | No | UTM medium parameter |
+| `utm_campaign` | string | No | UTM campaign parameter |
+| `rules` | array | No | Routing rules (see rule format below) |
+
+**Rule format:**
+
+Each rule in the `rules` array should have:
+
+| Field | Type | Required | Description |
+|:------|:-----|:---------|:------------|
+| `type` | string | Yes | Rule type: `device`, `country`, `os`, `browser` |
+| `value` | string | Yes | Value to match (e.g., `android`, `US`, `Chrome`) |
+| `destination_url` | string | Yes | Where to redirect when this rule matches |
+| `priority` | integer | No | Higher priority rules are checked first. Auto-assigned if omitted |
+
+**Example Request:**
+
+```bash
+curl -X POST https://yourdomain.com/api/v1/deep-links \
+  -H "Authorization: Bearer brev_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "name": "App Download",
+    "fallback_url": "https://example.com/app",
+    "utm_source": "website",
+    "rules": [
+      { "type": "os", "value": "android", "destination_url": "https://play.google.com/store/apps/details?id=com.example", "priority": 2 },
+      { "type": "os", "value": "ios", "destination_url": "https://apps.apple.com/app/example/id123456", "priority": 1 }
+    ]
+  }'
+```
+
+**Example Response (201 Created):**
+
+```json
+{
+  "data": {
+    "id": 5,
+    "name": "App Download",
+    "alias": "aB3xKm",
+    "short_url": "https://yourdomain.com/dl/aB3xKm",
+    "fallback_url": "https://example.com/app",
+    "is_active": true,
+    "total_clicks": 0,
+    "rules_count": 2,
+    "created_at": "2026-04-01T12:00:00+00:00"
+  }
+}
+```
+
+#### Get a Deep Link
+
+```
+GET /api/v1/deep-links/{id}
+```
+
+**Required scope:** `deep-links:read`
+
+Returns the full deep link including all routing rules.
+
+#### Update a Deep Link
+
+```
+PUT /api/v1/deep-links/{id}
+```
+
+**Required scope:** `deep-links:write`
+
+**Request Body:** Same fields as Create (all optional). If you include `rules`, the existing rules will be **replaced** with the new ones.
+
+#### Delete a Deep Link
+
+```
+DELETE /api/v1/deep-links/{id}
+```
+
+**Required scope:** `deep-links:write`
+
+**Response:**
+
+```json
+{
+  "message": "Deep link deleted successfully."
+}
+```
+
+### Pixels
+
+Manage tracking pixels that fire when your deep links are visited.
+
+#### List All Pixels
+
+```
+GET /api/v1/pixels
+```
+
+**Required scope:** `pixels:read`
+
+**Example Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "Facebook Pixel",
+      "provider": "facebook",
+      "pixel_id": "123456789",
+      "type": "page_view",
+      "is_active": true,
+      "total_fires": 542,
+      "created_at": "2026-03-10T08:00:00+00:00"
+    }
+  ]
+}
+```
+
+#### Create a Pixel
+
+```
+POST /api/v1/pixels
+```
+
+**Required scope:** `pixels:write`
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|:------|:-----|:---------|:------------|
+| `name` | string | Yes | Pixel name (max 255 chars) |
+| `provider` | string | Yes | Provider name: `facebook`, `google`, `tiktok`, `twitter`, etc. |
+| `pixel_id` | string | Yes | Your pixel/tag ID from the provider |
+| `type` | string | No | Pixel type: `page_view`, `conversion`, or `custom` (default: page_view) |
+| `token` | string | No | API token for server-side tracking (some providers require this) |
+| `is_active` | boolean | No | Whether the pixel is active (default: true) |
+
+**Example Request:**
+
+```bash
+curl -X POST https://yourdomain.com/api/v1/pixels \
+  -H "Authorization: Bearer brev_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "name": "Facebook Pixel",
+    "provider": "facebook",
+    "pixel_id": "123456789",
+    "type": "page_view"
+  }'
+```
+
+#### Get a Pixel
+
+```
+GET /api/v1/pixels/{id}
+```
+
+**Required scope:** `pixels:read`
+
+#### Update a Pixel
+
+```
+PUT /api/v1/pixels/{id}
+```
+
+**Required scope:** `pixels:write`
+
+#### Delete a Pixel
+
+```
+DELETE /api/v1/pixels/{id}
+```
+
+**Required scope:** `pixels:write`
+
+### Statistics
+
+Access analytics and statistics for your links and deep links.
+
+#### Account Overview
+
+Get a summary of all your resources and their total engagement.
+
+```
+GET /api/v1/stats/overview
+```
+
+**Required scope:** `stats:read`
+
+**Example Response:**
+
+```json
+{
+  "data": {
+    "links": { "total": 42, "total_clicks": 1580 },
+    "bio_pages": { "total": 3, "total_views": 892 },
+    "deep_links": { "total": 8, "total_clicks": 324 },
+    "qr_codes": { "total": 12 },
+    "pixels": { "total": 4 }
+  }
+}
+```
+
+#### Link Analytics
+
+Get detailed analytics for a specific short link.
+
+```
+GET /api/v1/stats/links/{id}
+```
+
+**Required scope:** `stats:read`
+
+**Query Parameters:**
+
+| Parameter | Type | Description |
+|:----------|:-----|:------------|
+| `range` | string | Date range: `today`, `7d`, `15d`, `30d`, `3m`, `12m`, `all`, `custom` (default: 30d) |
+| `from` | date | Start date for custom range (format: `YYYY-MM-DD`) |
+| `to` | date | End date for custom range (format: `YYYY-MM-DD`) |
+
+**Example Response:**
+
+```json
+{
+  "data": {
+    "link_id": 1,
+    "range": "30d",
+    "from": "2026-03-02",
+    "to": "2026-04-01",
+    "summary": {
+      "total_clicks": 142,
+      "unique_clicks": 98,
+      "avg_daily": 4.7
+    },
+    "clicks_over_time": [
+      { "date": "2026-03-15", "count": 12 },
+      { "date": "2026-03-16", "count": 8 }
+    ],
+    "top_countries": [
+      { "name": "United States", "count": 45 },
+      { "name": "Germany", "count": 23 }
+    ],
+    "top_browsers": [
+      { "name": "Chrome", "count": 67 },
+      { "name": "Safari", "count": 34 }
+    ],
+    "devices": [
+      { "name": "mobile", "count": 82 },
+      { "name": "desktop", "count": 60 }
+    ]
+  }
+}
+```
+
+#### Deep Link Analytics
+
+Get detailed analytics for a specific deep link, including rule performance.
+
+```
+GET /api/v1/stats/deep-links/{id}
+```
+
+**Required scope:** `stats:read`
+
+**Query Parameters:** Same as Link Analytics (`range`, `from`, `to`).
+
+**Example Response:**
+
+```json
+{
+  "data": {
+    "deep_link_id": 5,
+    "range": "30d",
+    "summary": {
+      "total_clicks": 87,
+      "unique_clicks": 64,
+      "avg_daily": 2.9
+    },
+    "clicks_over_time": [...],
+    "top_countries": [...],
+    "rule_performance": [
+      { "rule_id": 1, "destination_url": "https://play.google.com/...", "count": 45 },
+      { "rule_id": 2, "destination_url": "https://apps.apple.com/...", "count": 32 }
+    ]
+  }
+}
+```
+
 ### Error Responses
 
 All errors follow a consistent format:
