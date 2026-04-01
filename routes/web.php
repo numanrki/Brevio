@@ -107,6 +107,14 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::post('updates/install-stable', [Admin\UpdateController::class, 'installStable'])->name('updates.install-stable')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
     Route::post('updates/install-beta', [Admin\UpdateController::class, 'installBeta'])->name('updates.install-beta')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
     Route::post('updates/run-migrations', [Admin\UpdateController::class, 'runMigrations'])->name('updates.run-migrations')->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
+
+    // Profile
+    Route::get('profile', [Admin\ProfileController::class, 'index'])->name('profile.index');
+    Route::post('profile', [Admin\ProfileController::class, 'update'])->name('profile.update');
+    Route::post('profile/avatar', [Admin\ProfileController::class, 'uploadAvatar'])->name('profile.avatar');
+    Route::delete('profile/avatar', [Admin\ProfileController::class, 'removeAvatar'])->name('profile.avatar.remove');
+    Route::post('profile/google-auth', [Admin\ProfileController::class, 'updateGoogleAuth'])->name('profile.google-auth');
+    Route::delete('profile/google', [Admin\ProfileController::class, 'disconnectGoogle'])->name('profile.google.disconnect');
 });
 
 require __DIR__.'/auth.php';

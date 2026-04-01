@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
+use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Admin\TwoFactorController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,6 +14,10 @@ Route::middleware('guest')->group(function () {
     // 2FA challenge (guest because user is not fully authenticated yet)
     Route::get('admin/2fa', [TwoFactorController::class, 'challenge'])->name('2fa.challenge');
     Route::post('admin/2fa', [TwoFactorController::class, 'verify'])->name('2fa.verify');
+
+    // Google OAuth
+    Route::get('auth/google/redirect', [GoogleAuthController::class, 'redirect'])->name('google.redirect');
+    Route::get('auth/google/callback', [GoogleAuthController::class, 'callback'])->name('google.callback');
 });
 
 Route::middleware('auth')->group(function () {

@@ -25,15 +25,20 @@
     21 => 'Illuminate\\Validation\\ValidationServiceProvider',
     22 => 'Illuminate\\View\\ViewServiceProvider',
     23 => 'Inertia\\ServiceProvider',
-    24 => 'Laravel\\Fortify\\FortifyServiceProvider',
-    25 => 'Laravel\\Sanctum\\SanctumServiceProvider',
-    26 => 'Laravel\\Tinker\\TinkerServiceProvider',
-    27 => 'Carbon\\Laravel\\ServiceProvider',
-    28 => 'Termwind\\Laravel\\TermwindServiceProvider',
-    29 => 'Stevebauman\\Location\\LocationServiceProvider',
-    30 => 'Tighten\\Ziggy\\ZiggyServiceProvider',
-    31 => 'App\\Providers\\AppServiceProvider',
-    32 => 'App\\Providers\\FortifyServiceProvider',
+    24 => 'Laravel\\Breeze\\BreezeServiceProvider',
+    25 => 'Laravel\\Fortify\\FortifyServiceProvider',
+    26 => 'Laravel\\Pail\\PailServiceProvider',
+    27 => 'Laravel\\Sail\\SailServiceProvider',
+    28 => 'Laravel\\Sanctum\\SanctumServiceProvider',
+    29 => 'Laravel\\Socialite\\SocialiteServiceProvider',
+    30 => 'Laravel\\Tinker\\TinkerServiceProvider',
+    31 => 'Carbon\\Laravel\\ServiceProvider',
+    32 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
+    33 => 'Termwind\\Laravel\\TermwindServiceProvider',
+    34 => 'Stevebauman\\Location\\LocationServiceProvider',
+    35 => 'Tighten\\Ziggy\\ZiggyServiceProvider',
+    36 => 'App\\Providers\\AppServiceProvider',
+    37 => 'App\\Providers\\FortifyServiceProvider',
   ),
   'eager' => 
   array (
@@ -49,13 +54,15 @@
     9 => 'Illuminate\\View\\ViewServiceProvider',
     10 => 'Inertia\\ServiceProvider',
     11 => 'Laravel\\Fortify\\FortifyServiceProvider',
-    12 => 'Laravel\\Sanctum\\SanctumServiceProvider',
-    13 => 'Carbon\\Laravel\\ServiceProvider',
-    14 => 'Termwind\\Laravel\\TermwindServiceProvider',
-    15 => 'Stevebauman\\Location\\LocationServiceProvider',
-    16 => 'Tighten\\Ziggy\\ZiggyServiceProvider',
-    17 => 'App\\Providers\\AppServiceProvider',
-    18 => 'App\\Providers\\FortifyServiceProvider',
+    12 => 'Laravel\\Pail\\PailServiceProvider',
+    13 => 'Laravel\\Sanctum\\SanctumServiceProvider',
+    14 => 'Carbon\\Laravel\\ServiceProvider',
+    15 => 'NunoMaduro\\Collision\\Adapters\\Laravel\\CollisionServiceProvider',
+    16 => 'Termwind\\Laravel\\TermwindServiceProvider',
+    17 => 'Stevebauman\\Location\\LocationServiceProvider',
+    18 => 'Tighten\\Ziggy\\ZiggyServiceProvider',
+    19 => 'App\\Providers\\AppServiceProvider',
+    20 => 'App\\Providers\\FortifyServiceProvider',
   ),
   'deferred' => 
   array (
@@ -213,6 +220,10 @@
     'validator' => 'Illuminate\\Validation\\ValidationServiceProvider',
     'validation.presence' => 'Illuminate\\Validation\\ValidationServiceProvider',
     'Illuminate\\Contracts\\Validation\\UncompromisedVerifier' => 'Illuminate\\Validation\\ValidationServiceProvider',
+    'Laravel\\Breeze\\Console\\InstallCommand' => 'Laravel\\Breeze\\BreezeServiceProvider',
+    'Laravel\\Sail\\Console\\InstallCommand' => 'Laravel\\Sail\\SailServiceProvider',
+    'Laravel\\Sail\\Console\\PublishCommand' => 'Laravel\\Sail\\SailServiceProvider',
+    'Laravel\\Socialite\\Contracts\\Factory' => 'Laravel\\Socialite\\SocialiteServiceProvider',
     'command.tinker' => 'Laravel\\Tinker\\TinkerServiceProvider',
   ),
   'when' => 
@@ -254,6 +265,15 @@
     array (
     ),
     'Illuminate\\Validation\\ValidationServiceProvider' => 
+    array (
+    ),
+    'Laravel\\Breeze\\BreezeServiceProvider' => 
+    array (
+    ),
+    'Laravel\\Sail\\SailServiceProvider' => 
+    array (
+    ),
+    'Laravel\\Socialite\\SocialiteServiceProvider' => 
     array (
     ),
     'Laravel\\Tinker\\TinkerServiceProvider' => 

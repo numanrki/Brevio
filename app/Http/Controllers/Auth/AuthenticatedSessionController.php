@@ -17,8 +17,20 @@ class AuthenticatedSessionController extends Controller
      */
     public function create(): Response
     {
+        $googleEnabled = !empty(config('services.google.client_id'));
+
+        // Check if any admin has google_auth_only enabled
+        $googleAuthOnly = false;
+        if ($googleEnabled) {
+            $googleAuthOnly = \App\Models\User::where('role', 'admin')
+                ->where('google_auth_only', true)
+                ->exists();
+        }
+
         return Inertia::render('Auth/Login', [
             'status' => session('status'),
+            'googleEnabled' => $googleEnabled,
+            'googleAuthOnly' => $googleAuthOnly,
         ]);
     }
 

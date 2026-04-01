@@ -7,6 +7,9 @@ export interface User {
     is_banned: boolean;
     is_verified: boolean;
     last_login_at?: string;
+    avatar?: string;
+    google_id?: string;
+    google_auth_only: boolean;
     created_at: string;
     updated_at: string;
 }

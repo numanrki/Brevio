@@ -21,6 +21,9 @@ class User extends Authenticatable
         'is_banned',
         'is_verified',
         'last_login_at',
+        'avatar',
+        'google_id',
+        'google_auth_only',
     ];
 
     protected $hidden = [
@@ -36,6 +39,7 @@ class User extends Authenticatable
             'last_login_at' => 'datetime',
             'is_banned' => 'boolean',
             'is_verified' => 'boolean',
+            'google_auth_only' => 'boolean',
         ];
     }
 
