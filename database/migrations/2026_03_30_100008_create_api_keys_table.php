@@ -14,7 +14,7 @@ return new class extends Migration
                 $table->foreignId('user_id')->constrained()->cascadeOnDelete();
                 $table->string('name');
                 $table->string('key', 128)->unique();
-                $table->text('key_encrypted');
+                $table->text('key_encrypted')->nullable();
                 $table->string('key_prefix', 12);
                 $table->json('scopes');
                 $table->boolean('is_active')->default(true);

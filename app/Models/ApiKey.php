@@ -35,7 +35,7 @@ class ApiKey extends Model
         ];
     }
 
-    public function getPlainKey(): string
+    public function getPlainKey(): ?string
     {
         return $this->key_encrypted;
     }

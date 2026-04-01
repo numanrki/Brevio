@@ -127,8 +127,17 @@ class ApiKeyController extends Controller
             abort(403);
         }
 
+        $key = $apiKey->getPlainKey();
+
+        if (!$key) {
+            return response()->json([
+                'key' => null,
+                'message' => 'Key not available. Regenerate to enable viewing.',
+            ], 404);
+        }
+
         return response()->json([
-            'key' => $apiKey->getPlainKey(),
+            'key' => $key,
         ]);
     }
 }

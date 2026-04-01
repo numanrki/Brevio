@@ -103,6 +103,8 @@ export default function Index() {
         setTimeout(() => setCopied(false), 2000);
     };
 
+    const [revealError, setRevealError] = useState<Record<number, string>>({});
+
     const handleRevealKey = async (id: number) => {
         if (revealedKeys[id]) {
             setRevealedKeys(prev => {
@@ -113,6 +115,7 @@ export default function Index() {
             return;
         }
         setRevealLoading(id);
+        setRevealError(prev => { const next = { ...prev }; delete next[id]; return next; });
         try {
             const res = await fetch(url(`/admin/api-keys/${id}/reveal`), {
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
@@ -120,6 +123,9 @@ export default function Index() {
             if (res.ok) {
                 const data = await res.json();
                 setRevealedKeys(prev => ({ ...prev, [id]: data.key }));
+            } else {
+                const data = await res.json().catch(() => null);
+                setRevealError(prev => ({ ...prev, [id]: data?.message || 'Failed to reveal key. Try regenerating it.' }));
             }
         } finally {
             setRevealLoading(null);
@@ -364,6 +370,11 @@ export default function Index() {
                                                         <code className="flex-1 bg-gray-950 text-violet-300 px-3 py-2 rounded-lg text-xs font-mono border border-gray-800 break-all">
                                                             {revealedKeys[key.id]}
                                                         </code>
+                                                    </div>
+                                                )}
+                                                {revealError[key.id] && (
+                                                    <div className="mt-3 text-xs text-amber-400 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2">
+                                                        {revealError[key.id]}
                                                     </div>
                                                 )}
                                             </div>
