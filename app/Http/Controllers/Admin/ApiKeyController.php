@@ -124,7 +124,7 @@ class ApiKeyController extends Controller
             DB::table('api_keys')->insert($insertData);
         } catch (\Throwable $e) {
             Log::error('ApiKeyController@store: ' . $e->getMessage() . ' | Data keys: ' . implode(',', array_keys($insertData)));
-            return redirect()->back()->with('error', 'Failed to create API key. Check logs.');
+            return redirect()->back()->with('error', 'DB Error: ' . $e->getMessage());
         }
 
         return redirect()->back()->with('success', 'API key created successfully.')
@@ -170,7 +170,7 @@ class ApiKeyController extends Controller
                 ->update($updateData);
         } catch (\Throwable $e) {
             Log::error('ApiKeyController@regenerate: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to regenerate API key.');
+            return redirect()->back()->with('error', 'Regenerate Error: ' . $e->getMessage());
         }
 
         return redirect()->back()->with('success', 'API key regenerated successfully.')
@@ -203,7 +203,7 @@ class ApiKeyController extends Controller
             return redirect()->back()->with('success', "API key {$status} successfully.");
         } catch (\Throwable $e) {
             Log::error('ApiKeyController@toggle failed: ' . $e->getMessage());
-            return redirect()->back()->with('error', 'Failed to toggle API key.');
+            return redirect()->back()->with('error', 'Toggle Error: ' . $e->getMessage());
         }
     }
 
