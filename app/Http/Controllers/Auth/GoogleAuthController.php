@@ -19,7 +19,7 @@ class GoogleAuthController extends Controller
     {
         $clientId = Setting::get('google_client_id', config('services.google.client_id'));
         $clientSecret = Setting::get('google_client_secret', config('services.google.client_secret'));
-        $redirect = config('services.google.redirect', '/auth/google/callback');
+        $redirect = url('/auth/google/callback');
 
         config([
             'services.google.client_id' => $clientId,
@@ -44,9 +44,9 @@ class GoogleAuthController extends Controller
         } catch (\Throwable $e) {
             // If already logged in, redirect to profile with error
             if (Auth::check()) {
-                return redirect()->route('admin.profile.index')->with('error', 'Google authentication failed.');
+                return redirect()->route('admin.profile.index')->with('error', 'Google authentication failed: ' . $e->getMessage());
             }
-            return redirect()->route('login')->withErrors(['email' => 'Google authentication failed.']);
+            return redirect()->route('login')->withErrors(['email' => 'Google authentication failed: ' . $e->getMessage()]);
         }
 
         // If user is already authenticated — this is a "Connect Google" from profile

@@ -209,7 +209,7 @@ export default function Index({ currentVersion, lastCheck, pendingMigrations: in
             </div>
 
             {/* Pending Migrations Banner */}
-            {pendingMigrations > 0 && (
+            {pendingMigrations > 0 && migratingState !== 'idle' && (
                 <div className="rounded-xl bg-amber-500/5 border border-amber-500/20 p-5 mb-6">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex items-start gap-3">

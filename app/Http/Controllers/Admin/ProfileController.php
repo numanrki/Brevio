@@ -17,7 +17,15 @@ class ProfileController extends Controller
     public function index(): Response
     {
         $user = auth()->user();
-        $googleEnabled = !empty(Setting::get('google_client_id', config('services.google.client_id')));
+
+        $googleEnabled = false;
+        try {
+            $clientId = Setting::get('google_client_id') ?: config('services.google.client_id');
+            $clientSecret = Setting::get('google_client_secret') ?: config('services.google.client_secret');
+            $googleEnabled = !empty($clientId) && !empty($clientSecret);
+        } catch (\Throwable $e) {
+            // Settings table may not exist yet
+        }
 
         return Inertia::render('Admin/Profile/Index', [
             'user' => $user,
