@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             if (!Schema::hasColumn('users', 'google_require_2fa')) {
-                $table->boolean('google_require_2fa')->default(false)->after('google_auth_only');
+                $table->boolean('google_require_2fa')->default(false)->after('google_id');
             }
         });
     }
