@@ -23,7 +23,7 @@ class User extends Authenticatable
         'last_login_at',
         'avatar',
         'google_id',
-        'google_auth_only',
+        'login_display',
         'google_require_2fa',
     ];
 
@@ -40,7 +40,6 @@ class User extends Authenticatable
             'last_login_at' => 'datetime',
             'is_banned' => 'boolean',
             'is_verified' => 'boolean',
-            'google_auth_only' => 'boolean',
             'google_require_2fa' => 'boolean',
         ];
     }

@@ -21,8 +21,8 @@ export default function ProfileIndex({ user, googleEnabled }: Props) {
     });
 
     const googleForm = useForm({
-        google_auth_only: user.google_auth_only,
         google_require_2fa: user.google_require_2fa,
+        login_display: user.login_display ?? 'both',
     });
 
     const submitProfile: FormEventHandler = (e) => {
@@ -202,11 +202,20 @@ export default function ProfileIndex({ user, googleEnabled }: Props) {
                 {/* Google Authentication */}
                 {googleEnabled && (
                     <div className="rounded-2xl bg-gray-900 border border-gray-800 p-6">
-                        <h3 className="text-lg font-semibold text-white mb-1">Google Authentication</h3>
-                        <p className="text-sm text-gray-500 mb-5">Link your Google account for quick sign-in.</p>
+                        <div className="flex items-center gap-3 mb-1">
+                            <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+                                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                            </svg>
+                            <h3 className="text-lg font-semibold text-white">Google Authentication</h3>
+                        </div>
+                        <p className="text-sm text-gray-500 mb-5">Link your Google account and configure login preferences.</p>
 
+                        {/* Connection Status */}
                         {user.google_id ? (
-                            <div className="space-y-5">
+                            <div className="space-y-6">
                                 <div className="flex items-center gap-3 px-4 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
                                     <svg className="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -214,20 +223,8 @@ export default function ProfileIndex({ user, googleEnabled }: Props) {
                                     <span className="text-sm text-emerald-400 font-medium">Google account connected</span>
                                 </div>
 
-                                <form onSubmit={submitGoogleAuth} className="space-y-4">
-                                    <label className="flex items-start gap-3 cursor-pointer">
-                                        <input
-                                            type="checkbox"
-                                            checked={googleForm.data.google_auth_only}
-                                            onChange={(e) => googleForm.setData('google_auth_only', e.target.checked)}
-                                            className="w-4 h-4 mt-0.5 rounded border-gray-700 bg-gray-950 text-violet-500 focus:ring-violet-500/40 focus:ring-offset-0"
-                                        />
-                                        <div>
-                                            <span className="text-sm text-gray-300 font-medium">Hide login form</span>
-                                            <p className="text-xs text-gray-500">When enabled, the email/password form will be hidden and only Google sign-in will be shown.</p>
-                                        </div>
-                                    </label>
-
+                                <form onSubmit={submitGoogleAuth} className="space-y-5">
+                                    {/* 2FA Checkbox */}
                                     <label className="flex items-start gap-3 cursor-pointer">
                                         <input
                                             type="checkbox"
@@ -236,41 +233,78 @@ export default function ProfileIndex({ user, googleEnabled }: Props) {
                                             className="w-4 h-4 mt-0.5 rounded border-gray-700 bg-gray-950 text-violet-500 focus:ring-violet-500/40 focus:ring-offset-0"
                                         />
                                         <div>
-                                            <span className="text-sm text-gray-300 font-medium">Require 2FA after Google login</span>
-                                            <p className="text-xs text-gray-500">When enabled, signing in with Google will still require two-factor authentication. When disabled, Google login skips the 2FA step.</p>
+                                            <span className="text-sm text-gray-300 font-medium">Enable 2FA after Google login</span>
+                                            <p className="text-xs text-gray-500">When enabled, signing in with Google will still require two-factor authentication as an extra security layer.</p>
                                         </div>
                                     </label>
 
-                                    <button
-                                        type="submit"
-                                        disabled={googleForm.processing}
-                                        className="px-5 py-2.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm font-medium rounded-xl transition-colors"
-                                    >
-                                        {googleForm.processing ? 'Saving...' : 'Save Settings'}
-                                    </button>
-                                </form>
+                                    {/* Login Page Display Preference */}
+                                    <div className="border-t border-gray-800 pt-5">
+                                        <h4 className="text-sm font-medium text-gray-300 mb-3">Login Page Display</h4>
+                                        <p className="text-xs text-gray-500 mb-4">Choose what appears on the admin login page.</p>
+                                        <div className="space-y-3">
+                                            {[
+                                                { value: 'both', label: 'Show both', desc: 'Display Google sign-in button and email/password form together.' },
+                                                { value: 'form_only', label: 'Manual login form only', desc: 'Only show the email/password form. Hide Google button.' },
+                                                { value: 'google_only', label: 'Google Sign-In only', desc: 'Only show the Google sign-in button. Hide email/password form.' },
+                                            ].map((option) => (
+                                                <label key={option.value} className="flex items-start gap-3 cursor-pointer p-3 rounded-xl border border-gray-800 hover:border-gray-700 transition-colors has-[:checked]:border-violet-500/40 has-[:checked]:bg-violet-500/5">
+                                                    <input
+                                                        type="radio"
+                                                        name="login_display"
+                                                        value={option.value}
+                                                        checked={googleForm.data.login_display === option.value}
+                                                        onChange={(e) => googleForm.setData('login_display', e.target.value as 'both' | 'form_only' | 'google_only')}
+                                                        className="w-4 h-4 mt-0.5 border-gray-700 bg-gray-950 text-violet-500 focus:ring-violet-500/40 focus:ring-offset-0"
+                                                    />
+                                                    <div>
+                                                        <span className="text-sm text-gray-300 font-medium">{option.label}</span>
+                                                        <p className="text-xs text-gray-500">{option.desc}</p>
+                                                    </div>
+                                                </label>
+                                            ))}
+                                        </div>
+                                    </div>
 
-                                <button
-                                    type="button"
-                                    onClick={disconnectGoogle}
-                                    className="px-4 py-2 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-red-500/20 rounded-xl transition-colors"
-                                >
-                                    Disconnect Google
-                                </button>
+                                    <div className="flex items-center gap-3 pt-2">
+                                        <button
+                                            type="submit"
+                                            disabled={googleForm.processing}
+                                            className="px-5 py-2.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-sm font-medium rounded-xl transition-colors"
+                                        >
+                                            {googleForm.processing ? 'Saving...' : 'Save Settings'}
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={disconnectGoogle}
+                                            className="px-4 py-2.5 text-sm font-medium text-red-400 hover:text-red-300 hover:bg-red-500/10 border border-red-500/20 rounded-xl transition-colors"
+                                        >
+                                            Disconnect Google
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         ) : (
-                            <a
-                                href={url('/auth/google/redirect')}
-                                className="inline-flex items-center gap-3 px-5 py-2.5 bg-white hover:bg-gray-100 text-gray-800 text-sm font-medium rounded-xl transition-colors"
-                            >
-                                <svg className="w-5 h-5" viewBox="0 0 24 24">
-                                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
-                                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                                </svg>
-                                Connect Google Account
-                            </a>
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3 px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                                    <svg className="w-5 h-5 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    <span className="text-sm text-amber-400">No Google account connected. Link your account to enable Google login features.</span>
+                                </div>
+                                <a
+                                    href={url('/auth/google/redirect')}
+                                    className="inline-flex items-center gap-3 px-5 py-2.5 bg-white hover:bg-gray-100 text-gray-800 text-sm font-medium rounded-xl transition-colors"
+                                >
+                                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
+                                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
+                                    </svg>
+                                    Connect with Google
+                                </a>
+                            </div>
                         )}
                     </div>
                 )}

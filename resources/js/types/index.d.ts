@@ -9,7 +9,7 @@ export interface User {
     last_login_at?: string;
     avatar?: string;
     google_id?: string;
-    google_auth_only: boolean;
+    login_display: 'both' | 'form_only' | 'google_only';
     google_require_2fa: boolean;
     created_at: string;
     updated_at: string;

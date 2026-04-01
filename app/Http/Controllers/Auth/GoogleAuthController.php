@@ -80,10 +80,9 @@ class GoogleAuthController extends Controller
             // 2FA columns may not exist yet
         }
 
-        $globalRequire2fa = Setting::get('google_require_2fa') === '1';
         $userRequire2fa = (bool) $user->google_require_2fa;
 
-        if ($has2fa && ($globalRequire2fa || $userRequire2fa)) {
+        if ($has2fa && $userRequire2fa) {
             // Store user ID in session and redirect to 2FA challenge
             $request->session()->put('2fa_user_id', $user->id);
             $request->session()->put('2fa_remember', true);

@@ -88,21 +88,23 @@ class ProfileController extends Controller
     public function updateGoogleAuth(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'google_auth_only' => ['required', 'boolean'],
+            'google_login_enabled' => ['sometimes', 'boolean'],
             'google_require_2fa' => ['sometimes', 'boolean'],
+            'login_display' => ['sometimes', 'string', 'in:both,form_only,google_only'],
         ]);
 
         $user = $request->user();
 
-        // Only allow enabling google_auth_only if user has a google_id linked
-        if ($validated['google_auth_only'] && !$user->google_id) {
-            return back()->with('error', 'You must connect Google first.');
-        }
-
-        $user->google_auth_only = $validated['google_auth_only'];
-
         if (isset($validated['google_require_2fa'])) {
             $user->google_require_2fa = $validated['google_require_2fa'];
+        }
+
+        if (isset($validated['login_display'])) {
+            // Only allow google_only if user has a google_id linked
+            if ($validated['login_display'] === 'google_only' && !$user->google_id) {
+                return back()->with('error', 'You must connect Google first to use Google-only login.');
+            }
+            $user->login_display = $validated['login_display'];
         }
 
         $user->save();
@@ -120,7 +122,8 @@ class ProfileController extends Controller
         }
 
         $user->google_id = null;
-        $user->google_auth_only = false;
+        $user->login_display = 'both';
+        $user->google_require_2fa = false;
         $user->save();
 
         return back()->with('success', 'Google account disconnected.');

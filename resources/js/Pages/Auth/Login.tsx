@@ -2,7 +2,7 @@ import { Head, useForm } from '@inertiajs/react';
 import { FormEventHandler } from 'react';
 import { url } from '@/utils';
 
-export default function Login({ status, googleEnabled, googleAuthOnly }: { status?: string; googleEnabled?: boolean; googleAuthOnly?: boolean }) {
+export default function Login({ status, googleEnabled, loginDisplay = 'both' }: { status?: string; googleEnabled?: boolean; loginDisplay?: 'both' | 'form_only' | 'google_only' }) {
     const { data, setData, post, processing, errors } = useForm({
         email: '',
         password: '',
@@ -14,7 +14,8 @@ export default function Login({ status, googleEnabled, googleAuthOnly }: { statu
         post(url('/admin/login'));
     };
 
-    const showLoginForm = !googleAuthOnly;
+    const showGoogle = googleEnabled && loginDisplay !== 'form_only';
+    const showForm = loginDisplay !== 'google_only';
 
     return (
         <>
@@ -56,8 +57,8 @@ export default function Login({ status, googleEnabled, googleAuthOnly }: { statu
                         )}
 
                         {/* Google Sign-In */}
-                        {googleEnabled && (
-                            <div className={showLoginForm ? 'mb-5' : ''}>
+                        {showGoogle && (
+                            <div className={showForm ? 'mb-5' : ''}>
                                 <a
                                     href={url('/auth/google/redirect')}
                                     className="flex items-center justify-center gap-3 w-full py-2.5 px-4 bg-white hover:bg-gray-100 text-gray-800 text-sm font-medium rounded-xl transition-colors"
@@ -71,7 +72,7 @@ export default function Login({ status, googleEnabled, googleAuthOnly }: { statu
                                     Sign in with Google
                                 </a>
 
-                                {showLoginForm && (
+                                {showForm && (
                                     <div className="relative mt-5">
                                         <div className="absolute inset-0 flex items-center">
                                             <div className="w-full border-t border-gray-800" />
@@ -85,7 +86,7 @@ export default function Login({ status, googleEnabled, googleAuthOnly }: { statu
                         )}
 
                         {/* Email/Password Form */}
-                        {showLoginForm && (
+                        {showForm && (
                             <form onSubmit={submit} className="space-y-5">
                                 <div>
                                     <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">Email</label>

@@ -21,18 +21,19 @@ class AuthenticatedSessionController extends Controller
         $googleEnabled = Setting::get('google_login_enabled') === '1'
             && !empty(Setting::get('google_client_id', config('services.google.client_id')));
 
-        // Check if any admin has google_auth_only enabled
-        $googleAuthOnly = false;
+        // Get the admin's login display preference (both, form_only, google_only)
+        $loginDisplay = 'both';
         if ($googleEnabled) {
-            $googleAuthOnly = \App\Models\User::where('role', 'admin')
-                ->where('google_auth_only', true)
-                ->exists();
+            $admin = \App\Models\User::where('role', 'admin')->first();
+            if ($admin) {
+                $loginDisplay = $admin->login_display ?? 'both';
+            }
         }
 
         return Inertia::render('Auth/Login', [
             'status' => session('status'),
             'googleEnabled' => $googleEnabled,
-            'googleAuthOnly' => $googleAuthOnly,
+            'loginDisplay' => $loginDisplay,
         ]);
     }
 
