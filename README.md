@@ -1,60 +1,68 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Brevio-Link%20Management%20Platform-7c3aed?style=for-the-badge&logo=link&logoColor=white" alt="Brevio" />
+  <img src="https://img.shields.io/badge/Brevio-Open%20Source%20Link%20Shortener-7c3aed?style=for-the-badge&logo=link&logoColor=white" alt="Brevio — Open Source Link Shortener" />
 </p>
 
 <h1 align="center">Brevio</h1>
 
 <p align="center">
-  <strong>A modern, self-hosted URL shortener & link management platform with deep linking, QR codes, bio pages, and real-time analytics.</strong>
+  <strong>The open-source, self-hosted URL shortener and link management platform.<br />Shorten links, generate QR codes, build bio pages, set up smart deep links, and track everything with real-time analytics — all on your own server.</strong>
 </p>
 
 <p align="center">
+  <a href="https://github.com/numanrki/Brevio/releases"><img src="https://img.shields.io/github/downloads/numanrki/Brevio/total?style=flat-square&label=Downloads&color=7c3aed" alt="Total Downloads" /></a>
+  <a href="https://github.com/numanrki/Brevio/releases/latest"><img src="https://img.shields.io/github/v/release/numanrki/Brevio?style=flat-square&label=Latest&color=22c55e" alt="Latest Release" /></a>
+  <a href="https://github.com/numanrki/Brevio/stargazers"><img src="https://img.shields.io/github/stars/numanrki/Brevio?style=flat-square&color=f59e0b" alt="Stars" /></a>
+  <a href="https://github.com/numanrki/Brevio/network/members"><img src="https://img.shields.io/github/forks/numanrki/Brevio?style=flat-square&color=3b82f6" alt="Forks" /></a>
   <img src="https://img.shields.io/badge/Laravel-12-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 12" />
   <img src="https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react&logoColor=black" alt="React 18" />
-  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript" />
-  <img src="https://img.shields.io/badge/Inertia.js-2-9553E9?style=flat-square" alt="Inertia.js" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS" />
-  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?style=flat-square&logo=typescript&logoColor=white" alt="TypeScript 5" />
+  <img src="https://img.shields.io/badge/Tailwind_CSS-3-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white" alt="Tailwind CSS 3" />
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/numanrki/Brevio?style=flat-square&color=10b981" alt="MIT License" /></a>
 </p>
 
 <p align="center">
-  <a href="#-screenshots">Screenshots</a> •
+  <a href="#-screenshot-gallery">Screenshots</a> •
   <a href="#-features">Features</a> •
   <a href="#-tech-stack">Tech Stack</a> •
+  <a href="#-requirements">Requirements</a> •
   <a href="#-installation">Installation</a> •
   <a href="#-deployment">Deployment</a> •
-  <a href="#-updates">Updates</a> •
-  <a href="#-api-reference">API</a> •
-  <a href="#-contact">Contact</a>
+  <a href="#-update-system">Updates</a> •
+  <a href="#-rest-api">API Docs</a> •
+  <a href="#-license">License</a>
 </p>
 
 ---
 
-## 📸 Screenshots
+## Why Brevio?
 
-<details>
-<summary><strong>Click to expand all screenshots</strong></summary>
+Most link shorteners are either expensive SaaS tools or outdated PHP scripts from 2015. Brevio is different — it's a **modern, full-stack application** built with the same technologies used by top startups: Laravel 12, React 18, TypeScript, and Tailwind CSS.
+
+You get complete control over your data, your domain, and your branding. No monthly fees. No tracking limits. No vendor lock-in. Deploy it on a $5/month VPS or your enterprise infrastructure — it scales with you.
+
+**Who is Brevio for?**
+
+- **Marketers** who need branded short links with deep analytics
+- **Developers** who want a self-hosted API they can integrate into their stack
+- **Agencies** managing links for multiple campaigns and clients
+- **Businesses** that require data privacy and on-premise hosting
+- **Open-source enthusiasts** who prefer owning their tools
+
+---
+
+## 📸 Screenshot Gallery
+
+<details open>
+<summary><strong>Click to expand / collapse</strong></summary>
 
 <br />
 
-| Dashboard | Links Management |
-|:---------:|:----------------:|
+| | |
+|:-:|:-:|
 | ![Dashboard](https://i.postimg.cc/bqzcVGR5/Screenshot-4.png) | ![Links](https://i.postimg.cc/y7V4pJTb/Screenshot-5.png) |
-
-| Link Analytics | Deep Links |
-|:--------------:|:----------:|
 | ![Analytics](https://i.postimg.cc/jRs03Wh3/Screenshot-6.png) | ![Deep Links](https://i.postimg.cc/vGQF21vq/Screenshot-7.png) |
-
-| Deep Link Analytics | QR Codes |
-|:-------------------:|:--------:|
-| ![DL Analytics](https://i.postimg.cc/QjXGYBbh/Screenshot-8.png) | ![QR Codes](https://i.postimg.cc/YtpKD437/Screenshot-9.png) |
-
-| Bio Pages | Global Stats |
-|:---------:|:------------:|
+| ![Deep Link Analytics](https://i.postimg.cc/QjXGYBbh/Screenshot-8.png) | ![QR Codes](https://i.postimg.cc/YtpKD437/Screenshot-9.png) |
 | ![Bio Pages](https://i.postimg.cc/QjXGYBbN/Screenshot-10.png) | ![Stats](https://i.postimg.cc/rq8XZdJw/Screenshot-11.png) |
-
-| Settings | Admin Login |
-|:--------:|:-----------:|
 | ![Settings](https://i.postimg.cc/ZJTts9cb/Screenshot-12.png) | ![Login](https://i.postimg.cc/D7BV92jz/Screenshot-13.png) |
 
 </details>
@@ -63,156 +71,206 @@
 
 ## ✨ Features
 
-### 🔗 URL Shortening
-- Custom aliases and auto-generated short links
-- Password protection and expiry dates
-- Geo-targeting, device-targeting, and language-targeting redirects
-- Interstitial pages with countdown timer or click-through button
-- Soft deletes with restore capability
+### 🔗 URL Shortening & Link Management
+
+Create short, branded links in seconds. Every link comes with full control and tracking.
+
+- **Custom aliases** — Choose your own short slug (e.g., `yourdomain.com/sale`) or let Brevio auto-generate one
+- **Password protection** — Require a password before redirecting visitors
+- **Expiry dates** — Automatically disable links after a set date and time
+- **Geo-targeting** — Route visitors to different destinations based on their country
+- **Device targeting** — Send mobile users to an app store and desktop users to a website
+- **Language targeting** — Redirect based on the visitor's browser language
+- **Interstitial pages** — Show a countdown page or click-through confirmation before redirecting
+- **Soft deletes** — Accidentally deleted a link? Restore it from the trash
 
 ### 🚀 Smart Deep Links
-- Conditional routing based on **device**, **OS**, **browser**, or **country**
-- Platform access restrictions (Android-only, iOS-only, mobile-only, desktop-only, etc.)
-- Fallback URL when no rule matches
-- UTM parameter injection per deep link
-- Priority-based rule engine with unlimited rules
-- Per-deep-link analytics with rule performance breakdown
+
+Go beyond simple redirects with conditional routing powered by a priority-based rule engine.
+
+- **Conditional routing** — Route visitors based on their **device**, **operating system**, **browser**, or **country**
+- **Platform restrictions** — Create links that only work on Android, iOS, mobile, or desktop
+- **Fallback URL** — Define a default destination when no rules match
+- **UTM injection** — Automatically append UTM parameters (source, medium, campaign) to each rule's destination
+- **Unlimited rules** — Stack as many routing rules as you need with drag-and-drop priority ordering
+- **Per-rule analytics** — See exactly which rules are getting triggered and how often
 
 ### 📊 Analytics & Tracking
-- Real-time click tracking: country, city, browser, OS, device, referrer, language
-- **In-app referrer detection** — detects Telegram, WhatsApp, Instagram, Facebook, Twitter/X, TikTok, Discord, Slack, LinkedIn, Pinterest, and 6 more messaging platforms via User-Agent parsing (even when Referer header is stripped)
-- UTM parameter tracking (source, medium, campaign)
-- Referrer-to-platform normalization (raw URLs → friendly names)
-- Per-link, per-deep-link, per-QR, and per-bio analytics pages
-- Global stats page with multi-filter support (Links, Bio, QR, Deep Links)
-- Interactive charts (line, bar, pie) powered by Recharts
 
-### 📱 QR Codes
-- Generate QR codes for links, deep links, or standalone content
-- Custom foreground/background colors with live preview
-- Scan tracking via redirect route
-- Per-QR analytics (scans over time, countries, browsers, devices, referrers)
+Know exactly who clicks your links, when, where, and from which platform.
 
-### 🌐 Bio Pages
-- Link-in-bio builder with **9 widget types**: Link, Heading, Text, Divider, Image, Social Links, Video, Spotify, Map
-- Live preview panel with phone frame (real-time updates as you edit)
-- Custom themes, custom CSS, SEO meta fields
-- Page view and link click tracking with full analytics
+- **Real-time click tracking** — Country, city, browser, OS, device type, referrer, language
+- **Smart referrer detection** — Identifies traffic from **Telegram, WhatsApp, Instagram, Facebook, Twitter/X, TikTok, Discord, Slack, LinkedIn, Pinterest,** and 6+ more platforms via User-Agent parsing — even when the Referer header is stripped
+- **UTM tracking** — Capture and report on source, medium, and campaign parameters
+- **Global stats dashboard** — Filter analytics across Links, Bio Pages, QR Codes, and Deep Links
+- **Interactive charts** — Line, bar, and pie charts powered by Recharts with hover tooltips
+- **Referrer normalization** — Raw URLs are automatically mapped to friendly platform names
 
-### 🔐 Security
-- Two-factor authentication (TOTP) with Google Authenticator, Authy, etc.
-- QR code setup + manual entry key
-- Encrypted secret storage (AES-256)
-- Password-protected 2FA disable
-- Laravel Sanctum API authentication
+### 📱 QR Code Generator
+
+Generate scannable QR codes for any link, deep link, or standalone content.
+
+- **Custom colors** — Set foreground and background colors with a live preview
+- **Multiple content types** — URLs, text, vCards, Wi-Fi configs, and more
+- **Scan tracking** — Every scan is tracked through a redirect route with full analytics
+- **Per-QR analytics** — View scans over time, top countries, browsers, devices, and referrers
+
+### 🌐 Bio Pages (Link-in-Bio)
+
+Build beautiful, mobile-optimized landing pages with a drag-and-drop editor.
+
+- **9 widget types** — Link, Heading, Text, Divider, Image, Social Links, Video, Spotify, Map
+- **Live preview** — See changes in real-time inside a phone-frame preview panel
+- **Custom themes** — Choose from built-in themes or write your own CSS
+- **SEO fields** — Custom title, description, and Open Graph image for each bio page
+- **View & click tracking** — Full analytics for page views and individual link clicks
+
+### 🔐 Security & Authentication
+
+Enterprise-grade security with two-factor authentication and encrypted storage.
+
+- **Two-factor authentication (2FA)** — TOTP-based with support for Google Authenticator, Authy, and all TOTP apps
+- **QR code setup** — Scan a QR code or manually enter the secret key to set up 2FA
+- **AES-256 encryption** — All sensitive data (secrets, API keys) is encrypted at rest
+- **Password-protected 2FA disable** — Prevents unauthorized users from turning off 2FA
+- **API key management** — Create, revoke, and scope API keys with granular permissions
 
 ### 🖥️ Admin Dashboard
-- Beautiful dark theme UI (gray-950 base, violet/fuchsia accents)
-- 6 stat cards with real-time counts
-- 7-day activity chart (links vs deep links)
-- Top referrers, countries, and browsers widgets
-- Recent links and deep links panels
-- Pending migration detection with one-click "Run Migrations"
 
-### 🔄 Update System
-- Check for stable releases and beta commits from GitHub
-- One-click install with progress steps (download → extract → apply → migrate → cache clear)
-- Git-pull deploy support with automatic pending migration detection
-- Version comparison and release notes display
+A clean, modern admin panel with a dark theme designed for productivity.
 
-### 🔌 REST API
-- Full CRUD API for links and QR codes
-- Authenticated via Laravel Sanctum (Bearer token)
-- JSON responses with proper validation
+- **6 real-time stat cards** — Links, Deep Links, QR Codes, Bio Pages, Total Clicks, Total Scans
+- **7-day activity chart** — Visual comparison of link vs. deep link creation over the past week
+- **Top widgets** — Most-used referrers, top countries, and popular browsers at a glance
+- **Recent activity** — Quick-access panels showing your latest links and deep links
+- **Pending migration detection** — An amber banner appears when database updates are available, with a one-click "Run Migrations" button
+
+### 🔄 Built-in Update System
+
+Keep Brevio up to date without SSH access or command-line knowledge.
+
+- **One-click updates** — Check for new versions and install directly from the admin panel
+- **Automatic process** — Download → Extract → Apply files → Run migrations → Clear caches
+- **Release channels** — Choose between stable releases and beta commits
+- **Git-pull support** — If you deploy via Git, pending migrations are auto-detected
+- **Release notes** — View what changed before you update
+
+### 🔌 REST API with Scoped Permissions
+
+Integrate Brevio into your own applications, scripts, or automation workflows.
+
+- **Full CRUD** — Create, read, update, and delete links and QR codes programmatically
+- **Scoped API keys** — Grant only the permissions each key needs (e.g., read-only links, write QR codes)
+- **Bearer token auth** — Standard `Authorization: Bearer <key>` authentication
+- **JSON responses** — Clean, consistent JSON output with proper HTTP status codes and validation errors
+- **Health check endpoint** — Public `/api/v1/ping` endpoint for uptime monitoring
+
+> See the full [REST API documentation](#-rest-api) below.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technology |
-|:------|:-----------|
-| **Backend** | Laravel 12 (PHP 8.2+) |
-| **Frontend** | React 18 + TypeScript 5 |
-| **Bridge** | Inertia.js 2 (SSR-ready) |
-| **Styling** | Tailwind CSS 3 |
-| **Build** | Vite 7 |
-| **Auth** | Laravel Breeze + Sanctum |
-| **Charts** | Recharts |
-| **QR** | qrcode.react |
-| **2FA** | pragmarx/google2fa |
-| **GeoIP** | stevebauman/location |
-| **Database** | MySQL 8.0+ |
+| Layer | Technology | Purpose |
+|:------|:-----------|:--------|
+| **Backend** | Laravel 12 (PHP 8.2+) | Routing, ORM, validation, queue, caching |
+| **Frontend** | React 18 + TypeScript 5 | Interactive UI with type safety |
+| **Bridge** | Inertia.js 2 | Server-driven SPA without a separate API layer |
+| **Styling** | Tailwind CSS 3 | Utility-first CSS with dark theme |
+| **Build** | Vite 7 | Fast dev server and optimized production builds |
+| **Auth** | Laravel Breeze + Sanctum | Session auth (web) + token auth (API) |
+| **Charts** | Recharts | Interactive line, bar, and pie charts |
+| **QR** | qrcode.react + endroid/qr-code | Client-side preview + server-side generation |
+| **2FA** | pragmarx/google2fa | TOTP two-factor authentication |
+| **GeoIP** | MaxMind GeoLite2 | Country and city detection from IP addresses |
+| **Database** | MySQL 8.0+ | Primary data store |
+
+---
+
+## 📋 Requirements
+
+Before installing Brevio, make sure your server meets these requirements:
+
+| Requirement | Minimum Version | Notes |
+|:------------|:----------------|:------|
+| **PHP** | 8.2+ | With extensions: `mbstring`, `openssl`, `pdo_mysql`, `tokenizer`, `xml`, `ctype`, `json`, `bcmath`, `gd` or `imagick` |
+| **Composer** | 2.x | PHP dependency manager |
+| **Node.js** | 18+ | With npm (for building frontend assets) |
+| **MySQL** | 8.0+ | MariaDB 10.3+ also works |
+| **Web Server** | Apache 2.4+ or Nginx 1.18+ | With `mod_rewrite` (Apache) or `try_files` (Nginx) |
 
 ---
 
 ## 📦 Installation
 
-### Prerequisites
-
-| Requirement | Version |
-|:------------|:--------|
-| PHP | 8.2 or higher |
-| Composer | 2.x |
-| Node.js | 18+ (with npm) |
-| MySQL | 8.0+ |
-
-### Step 1 — Clone the Repository
+### Option 1 — Clone from GitHub (Recommended)
 
 ```bash
+# 1. Clone the repository
 git clone https://github.com/numanrki/Brevio.git
 cd Brevio
-```
 
-### Step 2 — Install Dependencies
-
-```bash
+# 2. Install PHP dependencies
 composer install
+
+# 3. Install JavaScript dependencies
 npm install
-```
 
-### Step 3 — Environment Configuration
-
-```bash
+# 4. Create your environment file
 cp .env.example .env
+
+# 5. Generate the application encryption key
 php artisan key:generate
 ```
 
-Open `.env` and configure your database:
+### Option 2 — Download a Release
+
+1. Go to the [Releases](https://github.com/numanrki/Brevio/releases) page
+2. Download the latest `.zip` file
+3. Extract it to your web server's document root
+4. Run `composer install` and `npm install` inside the extracted folder
+5. Copy `.env.example` to `.env` and run `php artisan key:generate`
+
+### Configure the Database
+
+Open the `.env` file and fill in your MySQL credentials:
 
 ```env
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1
 DB_PORT=3306
 DB_DATABASE=brevio
-DB_USERNAME=root
-DB_PASSWORD=your_password
+DB_USERNAME=your_db_username
+DB_PASSWORD=your_db_password
 ```
 
-### Step 4 — Database Setup
+Then run the database migrations:
 
 ```bash
 php artisan migrate
 ```
 
-### Step 5 — Build Frontend Assets
+### Build the Frontend
 
 ```bash
 npm run build
 ```
 
-### Step 6 — Launch
+### Launch
 
-Visit your site in the browser. The installation wizard will guide you through initial setup, or navigate directly to `/admin/login`.
+Open your browser and navigate to your domain. Brevio will display an **installation wizard** that walks you through the initial setup (admin account, site name, etc.).
 
-> **Tip:** For local development, use `php artisan serve` and `npm run dev` in separate terminals.
+Once complete, your admin panel is available at `/admin`.
+
+> **Local development tip:** Run `php artisan serve` and `npm run dev` in separate terminals for hot-reloading during development.
 
 ---
 
 ## 🚀 Deployment
 
-### Option A — Git Pull (Recommended)
+### Deploying with Git (Recommended)
 
-If you deploy by pulling from GitHub directly on your server:
+If your server has Git access, this is the simplest way to deploy and update:
 
 ```bash
 cd /path/to/brevio
@@ -224,17 +282,43 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-Then visit **Admin → Updates** — if there are pending migrations, an amber banner will appear with a **Run Migrations** button.
+After deploying, visit **Admin → Updates** in the admin panel. If there are pending database migrations, an amber banner will appear with a **Run Migrations** button — click it to apply them.
 
-### Option B — Manual Upload
+### Deploying Manually (FTP / File Manager)
 
 1. Download the latest release from [GitHub Releases](https://github.com/numanrki/Brevio/releases)
-2. Extract to your web server
+2. Upload and extract the files to your server's web root
 3. Run `composer install --no-dev --optimize-autoloader`
 4. Run `npm install && npm run build`
-5. Configure `.env` and run `php artisan migrate`
+5. Make sure `.env` is configured, then run `php artisan migrate`
 
 ### Web Server Configuration
+
+<details>
+<summary><strong>Apache</strong></summary>
+
+Laravel ships with a `public/.htaccess` file that handles URL rewriting. Make sure `mod_rewrite` is enabled:
+
+```bash
+sudo a2enmod rewrite
+sudo systemctl restart apache2
+```
+
+Point your virtual host's `DocumentRoot` to the `public/` directory:
+
+```apache
+<VirtualHost *:80>
+    ServerName yourdomain.com
+    DocumentRoot /path/to/brevio/public
+
+    <Directory /path/to/brevio/public>
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+```
+
+</details>
 
 <details>
 <summary><strong>Nginx</strong></summary>
@@ -242,7 +326,7 @@ Then visit **Admin → Updates** — if there are pending migrations, an amber b
 ```nginx
 server {
     listen 80;
-    server_name your-domain.com;
+    server_name yourdomain.com;
     root /path/to/brevio/public;
     index index.php;
 
@@ -255,37 +339,36 @@ server {
         fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
         include fastcgi_params;
     }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
 }
 ```
 
 </details>
 
 <details>
-<summary><strong>Apache (.htaccess)</strong></summary>
+<summary><strong>Shared Hosting (cPanel / Hostinger / etc.)</strong></summary>
 
-Laravel includes a `public/.htaccess` by default. Ensure `mod_rewrite` is enabled:
+If you can't change your document root to `public/`, Brevio includes a root-level `index.php` that automatically proxies requests to `public/index.php`. Simply upload all files to your web root and it will work out of the box.
 
-```bash
-sudo a2enmod rewrite
-sudo systemctl restart apache2
-```
-
-Point your virtual host document root to the `public/` directory.
+Make sure the root `.htaccess` and `public/.htaccess` files are both present on the server.
 
 </details>
 
 ---
 
-## 🔄 Updates
+## 🔄 Update System
 
-Brevio includes a built-in update system accessible from the admin panel.
+Brevio has a built-in update system so you never need SSH access to stay current.
 
-### Automatic Updates (Admin Panel)
+### One-Click Updates (Admin Panel)
 
-1. Go to **Admin → Updates**
+1. Navigate to **Admin → Updates**
 2. Click **Check for Updates**
-3. If a new version is available, click **Install Update**
-4. The system will automatically: download → extract → apply files → run migrations → clear caches
+3. If a new version is available, review the release notes and click **Install Update**
+4. Brevio will automatically: **download → extract → apply files → run migrations → clear caches**
 
 ### Manual Updates (CLI)
 
@@ -299,103 +382,333 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-### Versioning
+### Version Scheme
 
 Brevio follows **Semantic Versioning** (`MAJOR.MINOR.PATCH`):
 
-| Type | When | Example |
-|:-----|:-----|:--------|
-| **Patch** | Bug fixes, small tweaks | `2.8.3` → `2.8.4` |
-| **Minor** | New features, improvements | `2.7.0` → `2.8.0` |
-| **Major** | Breaking changes, major milestones | `2.0.0` → `3.0.0` |
+| Change | Bump | Example |
+|:-------|:-----|:--------|
+| Bug fix, minor tweak | Patch | `2.8.3` → `2.8.4` |
+| New feature, improvement | Minor | `2.8.0` → `2.9.0` |
+| Breaking change, major milestone | Major | `2.0.0` → `3.0.0` |
 
-Check the [Releases](https://github.com/numanrki/Brevio/releases) page for the latest version and changelog.
-
----
-
-## 🔌 API Reference
-
-Brevio includes a REST API authenticated via **Laravel Sanctum** (Bearer token).
-
-### Authentication
-
-Include your API token in the `Authorization` header:
-
-```
-Authorization: Bearer YOUR_API_TOKEN
-```
-
-### Endpoints
-
-#### Links
-
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `GET` | `/api/links` | List all links |
-| `POST` | `/api/links` | Create a new link |
-| `GET` | `/api/links/{id}` | Get link details |
-| `PUT` | `/api/links/{id}` | Update a link |
-| `DELETE` | `/api/links/{id}` | Delete a link |
-
-#### QR Codes
-
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `GET` | `/api/qr-codes` | List all QR codes |
-| `POST` | `/api/qr-codes` | Create a QR code |
-| `GET` | `/api/qr-codes/{id}` | Get QR code details |
-| `PUT` | `/api/qr-codes/{id}` | Update a QR code |
-| `DELETE` | `/api/qr-codes/{id}` | Delete a QR code |
-
-#### Account
-
-| Method | Endpoint | Description |
-|:-------|:---------|:------------|
-| `GET` | `/api/account` | Get account info |
-| `PUT` | `/api/account` | Update account |
+See all versions on the [Releases](https://github.com/numanrki/Brevio/releases) page.
 
 ---
 
-## 📁 Project Structure
+## 🔌 REST API
+
+Brevio provides a fully-featured REST API that lets you manage links and QR codes programmatically. Use it to integrate short link creation into your own apps, automate campaigns, or build custom dashboards.
+
+### Getting Started
+
+#### 1. Create an API Key
+
+1. Log in to your Brevio admin panel
+2. Go to **Admin → API Keys**
+3. Click **Create API Key**
+4. Give it a name (e.g., "My App") and select the permission scopes it needs
+5. Click **Create** — your API key will be displayed **once**. Copy it and store it securely.
+
+#### 2. Authenticate Your Requests
+
+Include the API key as a `Bearer` token in the `Authorization` header of every request:
 
 ```
-brevio/
-├── app/
-│   ├── Http/Controllers/
-│   │   ├── Admin/          # Admin panel controllers
-│   │   ├── Api/            # REST API controllers
-│   │   └── RedirectController.php
-│   ├── Models/             # Eloquent models (23+)
-│   └── Services/           # AnalyticsService, etc.
-├── resources/js/
-│   ├── Pages/
-│   │   ├── Admin/          # Admin panel pages (TSX)
-│   │   ├── Auth/           # Login, register, 2FA
-│   │   └── Bio/            # Public bio page
-│   ├── Components/         # Shared React components
-│   ├── Layouts/            # AdminLayout, DashboardLayout
-│   └── types/              # TypeScript definitions
-├── routes/
-│   ├── web.php             # Web routes
-│   ├── api.php             # API routes
-│   └── auth.php            # Auth routes
-├── database/migrations/    # All database migrations
-├── config/app.php          # App config + version
-└── public/                 # Compiled assets + entry point
+Authorization: Bearer brev_your_api_key_here
+Accept: application/json
+Content-Type: application/json
 ```
+
+#### 3. Base URL
+
+All API endpoints are prefixed with `/api/v1/`. For example, if your Brevio installation is at `https://yourdomain.com`, the full base URL is:
+
+```
+https://yourdomain.com/api/v1/
+```
+
+### Permission Scopes
+
+When creating an API key, you choose which scopes (permissions) it has. Only grant what is needed.
+
+| Scope | Permission |
+|:------|:-----------|
+| `links:read` | View links |
+| `links:write` | Create, update, and delete links |
+| `qr:read` | View QR codes |
+| `qr:write` | Create, update, and delete QR codes |
+| `bio:read` | View bio pages |
+| `bio:write` | Create, update, and delete bio pages |
+| `deep-links:read` | View deep links |
+| `deep-links:write` | Create, update, and delete deep links |
+| `pixels:read` | View tracking pixels |
+| `pixels:write` | Create, update, and delete pixels |
+| `stats:read` | View statistics and analytics |
+| `account:read` | View account information |
+
+### Health Check
+
+A public endpoint that requires no authentication. Use it for uptime monitoring.
+
+```
+GET /api/v1/ping
+```
+
+**Response:**
+
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-04-01T12:00:00+00:00"
+}
+```
+
+### Links
+
+#### List All Links
+
+```
+GET /api/v1/links
+```
+
+**Query Parameters:**
+
+| Parameter | Type | Description |
+|:----------|:-----|:------------|
+| `search` | string | Filter links by alias or URL |
+| `per_page` | integer | Results per page (default: 15) |
+| `page` | integer | Page number |
+
+**Required scope:** `links:read`
+
+**Example Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "alias": "my-link",
+      "url": "https://example.com/very-long-url",
+      "short_url": "https://yourdomain.com/my-link",
+      "title": "My Link",
+      "description": "A short description",
+      "is_active": true,
+      "total_clicks": 142,
+      "expiry_date": null,
+      "created_at": "2026-03-15T10:30:00+00:00"
+    }
+  ],
+  "current_page": 1,
+  "last_page": 3,
+  "per_page": 15,
+  "total": 42
+}
+```
+
+#### Create a Link
+
+```
+POST /api/v1/links
+```
+
+**Required scope:** `links:write`
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|:------|:-----|:---------|:------------|
+| `url` | string | Yes | The destination URL (max 2048 chars) |
+| `alias` | string | No | Custom short slug. Auto-generated if omitted |
+| `title` | string | No | Link title (max 255 chars) |
+| `description` | string | No | Link description (max 500 chars) |
+| `is_active` | boolean | No | Whether the link is active (default: true) |
+| `expiry_date` | datetime | No | Auto-disable after this date (must be in the future) |
+
+**Example Request:**
+
+```bash
+curl -X POST https://yourdomain.com/api/v1/links \
+  -H "Authorization: Bearer brev_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "url": "https://example.com/my-product",
+    "alias": "product",
+    "title": "Product Page"
+  }'
+```
+
+**Example Response (201 Created):**
+
+```json
+{
+  "data": {
+    "id": 43,
+    "alias": "product",
+    "url": "https://example.com/my-product",
+    "short_url": "https://yourdomain.com/product",
+    "title": "Product Page",
+    "is_active": true,
+    "total_clicks": 0,
+    "created_at": "2026-04-01T12:00:00+00:00"
+  }
+}
+```
+
+#### Get a Link
+
+```
+GET /api/v1/links/{id}
+```
+
+**Required scope:** `links:read`
+
+#### Update a Link
+
+```
+PUT /api/v1/links/{id}
+```
+
+**Required scope:** `links:write`
+
+**Request Body:** Same fields as Create (all optional).
+
+#### Delete a Link
+
+```
+DELETE /api/v1/links/{id}
+```
+
+**Required scope:** `links:write`
+
+**Response:**
+
+```json
+{
+  "message": "Link deleted successfully."
+}
+```
+
+### QR Codes
+
+#### List All QR Codes
+
+```
+GET /api/v1/qr-codes
+```
+
+**Required scope:** `qr:read`
+
+**Query Parameters:**
+
+| Parameter | Type | Description |
+|:----------|:-----|:------------|
+| `per_page` | integer | Results per page (default: 15) |
+| `page` | integer | Page number |
+
+#### Create a QR Code
+
+```
+POST /api/v1/qr-codes
+```
+
+**Required scope:** `qr:write`
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|:------|:-----|:---------|:------------|
+| `name` | string | Yes | QR code name (max 255 chars) |
+| `type` | string | No | Content type (e.g., `url`, `text`, `vcard`) |
+| `data` | object | Yes | QR code content data |
+| `style` | object | No | Color and style customization |
+
+**Example Request:**
+
+```bash
+curl -X POST https://yourdomain.com/api/v1/qr-codes \
+  -H "Authorization: Bearer brev_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "name": "Website QR",
+    "type": "url",
+    "data": { "url": "https://example.com" },
+    "style": { "foreground": "#7c3aed", "background": "#ffffff" }
+  }'
+```
+
+#### Get a QR Code
+
+```
+GET /api/v1/qr-codes/{id}
+```
+
+**Required scope:** `qr:read`
+
+#### Update a QR Code
+
+```
+PUT /api/v1/qr-codes/{id}
+```
+
+**Required scope:** `qr:write`
+
+#### Delete a QR Code
+
+```
+DELETE /api/v1/qr-codes/{id}
+```
+
+**Required scope:** `qr:write`
+
+### Error Responses
+
+All errors follow a consistent format:
+
+| HTTP Status | Meaning |
+|:------------|:--------|
+| `401 Unauthorized` | Missing or invalid API key |
+| `403 Forbidden` | API key is disabled, expired, or missing the required scope |
+| `404 Not Found` | Resource does not exist or belongs to another user |
+| `422 Unprocessable Entity` | Validation failed — check the `errors` object in the response |
+
+**Example error response:**
+
+```json
+{
+  "message": "Missing required scope: links:write",
+}
+```
+
+### Rate Limiting
+
+API requests are subject to rate limiting. If you exceed the limit, you'll receive a `429 Too Many Requests` response. Wait for the `Retry-After` header value (in seconds) before making another request.
+
+### Tips & Best Practices
+
+- **Store your API key securely.** Treat it like a password. Never commit it to version control or expose it in client-side code.
+- **Use the minimum scopes required.** If your integration only reads links, don't grant write permissions.
+- **Set an expiry date** on API keys used for temporary integrations or testing.
+- **Always send `Accept: application/json`** to ensure you receive JSON error messages instead of HTML.
+- **Use the health check** (`/api/v1/ping`) in your monitoring to verify API availability.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+Brevio is open-source software licensed under the **[MIT License](LICENSE)**. You are free to use, modify, and distribute it for personal or commercial projects.
 
 ---
 
-## 📬 Contact
+## ⭐ Support the Project
+
+If Brevio helps you, consider giving it a **star** on GitHub — it helps others discover the project.
 
 <p align="center">
-  <strong>Developed & maintained by Numan</strong>
+  <a href="https://github.com/numanrki/Brevio"><img src="https://img.shields.io/github/stars/numanrki/Brevio?style=social" alt="Star on GitHub" /></a>
 </p>
 
 <p align="center">
