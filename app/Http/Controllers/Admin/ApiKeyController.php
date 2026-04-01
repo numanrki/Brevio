@@ -28,49 +28,60 @@ class ApiKeyController extends Controller
         'account:read'     => 'View account info',
     ];
 
-    private function hasEncryptedColumn(): bool
+    /** Cache which optional columns actually exist in the DB */
+    private static ?array $columns = null;
+
+    private function col(string $name): bool
     {
-        static $result = null;
-        if ($result === null) {
-            try {
-                $result = Schema::hasColumn('api_keys', 'key_encrypted');
-            } catch (\Throwable) {
-                $result = false;
+        if (self::$columns === null) {
+            self::$columns = [];
+            foreach (['is_active', 'key_encrypted', 'last_used_at', 'expires_at'] as $c) {
+                try {
+                    self::$columns[$c] = Schema::hasColumn('api_keys', $c);
+                } catch (\Throwable) {
+                    self::$columns[$c] = false;
+                }
             }
         }
-        return $result;
+        return self::$columns[$name] ?? false;
     }
 
     public function index()
     {
         try {
+            // Only select columns that exist
+            $selectCols = ['id', 'name', 'key_prefix', 'scopes', 'created_at'];
+            if ($this->col('is_active'))    $selectCols[] = 'is_active';
+            if ($this->col('last_used_at')) $selectCols[] = 'last_used_at';
+            if ($this->col('expires_at'))   $selectCols[] = 'expires_at';
+
             $keys = DB::table('api_keys')
-                ->select(['id', 'name', 'key_prefix', 'scopes', 'is_active', 'last_used_at', 'expires_at', 'created_at'])
+                ->select($selectCols)
                 ->where('user_id', auth()->id())
                 ->orderByDesc('created_at')
                 ->get()
                 ->map(function ($key) {
-                    $scopes = $key->scopes;
+                    $scopes = $key->scopes ?? '[]';
                     if (is_string($scopes)) {
                         $scopes = json_decode($scopes, true) ?: [];
-                    }
-                    if (!is_array($scopes)) {
-                        $scopes = [];
                     }
 
                     return [
                         'id'           => $key->id,
                         'name'         => $key->name ?? 'Unnamed',
                         'key_prefix'   => $key->key_prefix ?? '****',
-                        'scopes'       => $scopes,
-                        'is_active'    => (bool) $key->is_active,
-                        'last_used_at' => $key->last_used_at ? \Carbon\Carbon::parse($key->last_used_at)->diffForHumans() : null,
-                        'expires_at'   => $key->expires_at ? \Carbon\Carbon::parse($key->expires_at)->format('M d, Y') : null,
-                        'created_at'   => $key->created_at ? \Carbon\Carbon::parse($key->created_at)->format('M d, Y') : 'Unknown',
+                        'scopes'       => is_array($scopes) ? $scopes : [],
+                        'is_active'    => (bool) ($key->is_active ?? 1),
+                        'last_used_at' => isset($key->last_used_at) && $key->last_used_at
+                            ? \Carbon\Carbon::parse($key->last_used_at)->diffForHumans() : null,
+                        'expires_at'   => isset($key->expires_at) && $key->expires_at
+                            ? \Carbon\Carbon::parse($key->expires_at)->format('M d, Y') : null,
+                        'created_at'   => $key->created_at
+                            ? \Carbon\Carbon::parse($key->created_at)->format('M d, Y') : 'Unknown',
                     ];
                 });
         } catch (\Throwable $e) {
-            Log::error('ApiKeyController@index failed: ' . $e->getMessage());
+            Log::error('ApiKeyController@index: ' . $e->getMessage());
             $keys = collect([]);
         }
 
@@ -89,30 +100,35 @@ class ApiKeyController extends Controller
             'expires_in' => 'nullable|string|in:30d,60d,90d,1y,never',
         ]);
 
-        $expiresAt = match ($validated['expires_in'] ?? 'never') {
-            '30d'   => now()->addDays(30)->format('Y-m-d H:i:s'),
-            '60d'   => now()->addDays(60)->format('Y-m-d H:i:s'),
-            '90d'   => now()->addDays(90)->format('Y-m-d H:i:s'),
-            '1y'    => now()->addYear()->format('Y-m-d H:i:s'),
-            default => null,
-        };
-
         $plainKey = 'brev_' . Str::random(48);
         $nowStr = now()->format('Y-m-d H:i:s');
 
+        // Only include columns that exist in the table
         $insertData = [
             'user_id'    => auth()->id(),
             'name'       => $validated['name'],
             'key'        => hash('sha256', $plainKey),
             'key_prefix' => substr($plainKey, 0, 12),
             'scopes'     => json_encode($validated['scopes']),
-            'is_active'  => 1,
-            'expires_at' => $expiresAt,
             'created_at' => $nowStr,
             'updated_at' => $nowStr,
         ];
 
-        if ($this->hasEncryptedColumn()) {
+        if ($this->col('is_active')) {
+            $insertData['is_active'] = 1;
+        }
+
+        if ($this->col('expires_at')) {
+            $insertData['expires_at'] = match ($validated['expires_in'] ?? 'never') {
+                '30d'   => now()->addDays(30)->format('Y-m-d H:i:s'),
+                '60d'   => now()->addDays(60)->format('Y-m-d H:i:s'),
+                '90d'   => now()->addDays(90)->format('Y-m-d H:i:s'),
+                '1y'    => now()->addYear()->format('Y-m-d H:i:s'),
+                default => null,
+            };
+        }
+
+        if ($this->col('key_encrypted')) {
             try {
                 $insertData['key_encrypted'] = Crypt::encryptString($plainKey);
             } catch (\Throwable) {
@@ -123,7 +139,7 @@ class ApiKeyController extends Controller
         try {
             DB::table('api_keys')->insert($insertData);
         } catch (\Throwable $e) {
-            Log::error('ApiKeyController@store: ' . $e->getMessage() . ' | Data keys: ' . implode(',', array_keys($insertData)));
+            Log::error('ApiKeyController@store: ' . $e->getMessage());
             return redirect()->back()->with('error', 'DB Error: ' . $e->getMessage());
         }
 
@@ -139,7 +155,7 @@ class ApiKeyController extends Controller
                 ->where('user_id', auth()->id())
                 ->delete();
         } catch (\Throwable $e) {
-            Log::error('ApiKeyController@destroy failed: ' . $e->getMessage());
+            Log::error('ApiKeyController@destroy: ' . $e->getMessage());
         }
 
         return redirect()->back()->with('success', 'API key revoked successfully.');
@@ -155,7 +171,7 @@ class ApiKeyController extends Controller
             'updated_at' => now()->format('Y-m-d H:i:s'),
         ];
 
-        if ($this->hasEncryptedColumn()) {
+        if ($this->col('key_encrypted')) {
             try {
                 $updateData['key_encrypted'] = Crypt::encryptString($plainKey);
             } catch (\Throwable) {
@@ -180,6 +196,10 @@ class ApiKeyController extends Controller
     public function toggle($id)
     {
         try {
+            if (!$this->col('is_active')) {
+                return redirect()->back()->with('error', 'Toggle not available. Run migrations first.');
+            }
+
             $apiKey = DB::table('api_keys')
                 ->where('id', $id)
                 ->where('user_id', auth()->id())
@@ -199,10 +219,9 @@ class ApiKeyController extends Controller
                 ]);
 
             $status = $newStatus ? 'enabled' : 'disabled';
-
             return redirect()->back()->with('success', "API key {$status} successfully.");
         } catch (\Throwable $e) {
-            Log::error('ApiKeyController@toggle failed: ' . $e->getMessage());
+            Log::error('ApiKeyController@toggle: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Toggle Error: ' . $e->getMessage());
         }
     }
@@ -210,10 +229,10 @@ class ApiKeyController extends Controller
     public function reveal($id)
     {
         try {
-            if (!$this->hasEncryptedColumn()) {
+            if (!$this->col('key_encrypted')) {
                 return response()->json([
                     'key' => null,
-                    'message' => 'Key viewing not supported. Regenerate to enable.',
+                    'message' => 'Key viewing not available. Run migrations first.',
                 ], 404);
             }
 
@@ -222,23 +241,17 @@ class ApiKeyController extends Controller
                 ->where('user_id', auth()->id())
                 ->first(['id', 'key_encrypted']);
 
-            if (!$apiKey) {
-                return response()->json(['message' => 'API key not found.'], 404);
-            }
-
-            $encryptedKey = $apiKey->key_encrypted ?? null;
-
-            if (empty($encryptedKey)) {
+            if (!$apiKey || empty($apiKey->key_encrypted)) {
                 return response()->json([
                     'key' => null,
                     'message' => 'Key not available. Regenerate to enable viewing.',
                 ], 404);
             }
 
-            $key = Crypt::decryptString($encryptedKey);
+            $key = Crypt::decryptString($apiKey->key_encrypted);
             return response()->json(['key' => $key]);
         } catch (\Throwable $e) {
-            Log::error('ApiKeyController@reveal failed: ' . $e->getMessage());
+            Log::error('ApiKeyController@reveal: ' . $e->getMessage());
             return response()->json([
                 'key' => null,
                 'message' => 'Key not available. Regenerate to enable viewing.',
