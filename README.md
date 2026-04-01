@@ -398,7 +398,7 @@ See all versions on the [Releases](https://github.com/numanrki/Brevio/releases) 
 
 ## 🔌 REST API
 
-Brevio provides a fully-featured REST API that lets you manage links and QR codes programmatically. Use it to integrate short link creation into your own apps, automate campaigns, or build custom dashboards.
+Brevio provides a fully-featured REST API that lets you manage links, QR codes, and bio pages programmatically. Use it to integrate short link creation into your own apps, automate campaigns, or build custom dashboards.
 
 ### Getting Started
 
@@ -663,6 +663,169 @@ DELETE /api/v1/qr-codes/{id}
 ```
 
 **Required scope:** `qr:write`
+
+### Bio Pages
+
+#### List All Bio Pages
+
+```
+GET /api/v1/bio
+```
+
+**Required scope:** `bio:read`
+
+**Query Parameters:**
+
+| Parameter | Type | Description |
+|:----------|:-----|:------------|
+| `per_page` | integer | Results per page (default: 15) |
+| `page` | integer | Page number |
+
+**Example Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "name": "My Links",
+      "alias": "john",
+      "bio_url": "https://yourdomain.com/bio/john",
+      "avatar": null,
+      "seo_title": "John's Links",
+      "seo_description": "All my links in one place",
+      "is_active": true,
+      "views": 324,
+      "widgets_count": 5,
+      "created_at": "2026-03-15T10:30:00+00:00"
+    }
+  ],
+  "current_page": 1,
+  "last_page": 1,
+  "per_page": 15,
+  "total": 1
+}
+```
+
+#### Create a Bio Page
+
+```
+POST /api/v1/bio
+```
+
+**Required scope:** `bio:write`
+
+**Request Body:**
+
+| Field | Type | Required | Description |
+|:------|:-----|:---------|:------------|
+| `name` | string | Yes | Display name shown on the bio page (max 255 chars) |
+| `alias` | string | Yes | URL slug - the page will be at `/bio/{alias}` (max 255 chars, must be unique) |
+| `avatar` | string | No | URL to an avatar image |
+| `theme` | object | No | Theme customization (colors, fonts, etc.) |
+| `custom_css` | string | No | Custom CSS to apply to the bio page |
+| `seo_title` | string | No | Custom page title for SEO (max 255 chars) |
+| `seo_description` | string | No | Meta description for SEO |
+| `is_active` | boolean | No | Whether the page is publicly visible (default: true) |
+| `widgets` | array | No | Array of widgets to add to the page (see widget format below) |
+
+**Widget format:**
+
+Each widget in the `widgets` array should have:
+
+| Field | Type | Required | Description |
+|:------|:-----|:---------|:------------|
+| `type` | string | Yes | Widget type: `link`, `heading`, `text`, `divider`, `image`, `social`, `video`, `spotify`, `map` |
+| `content` | object | Yes | Widget content (varies by type - see examples below) |
+| `position` | integer | No | Display order (0 = first). Auto-assigned if omitted |
+| `is_active` | boolean | No | Whether this widget is visible (default: true) |
+
+**Widget content examples:**
+
+```json
+// Link widget
+{ "type": "link", "content": { "url": "https://example.com", "label": "My Website" } }
+
+// Heading widget
+{ "type": "heading", "content": { "text": "Welcome!" } }
+
+// Text widget
+{ "type": "text", "content": { "text": "This is my bio page." } }
+
+// Social widget
+{ "type": "social", "content": { "twitter": "https://twitter.com/you", "github": "https://github.com/you" } }
+```
+
+**Example Request:**
+
+```bash
+curl -X POST https://yourdomain.com/api/v1/bio \
+  -H "Authorization: Bearer brev_your_api_key_here" \
+  -H "Content-Type: application/json" \
+  -H "Accept: application/json" \
+  -d '{
+    "name": "My Links",
+    "alias": "john",
+    "seo_title": "John - All My Links",
+    "widgets": [
+      { "type": "heading", "content": { "text": "Welcome!" }, "position": 0 },
+      { "type": "link", "content": { "url": "https://example.com", "label": "My Website" }, "position": 1 },
+      { "type": "link", "content": { "url": "https://github.com/you", "label": "GitHub" }, "position": 2 }
+    ]
+  }'
+```
+
+**Example Response (201 Created):**
+
+```json
+{
+  "data": {
+    "id": 2,
+    "name": "My Links",
+    "alias": "john",
+    "bio_url": "https://yourdomain.com/bio/john",
+    "is_active": true,
+    "views": 0,
+    "created_at": "2026-04-01T12:00:00+00:00"
+  }
+}
+```
+
+#### Get a Bio Page
+
+```
+GET /api/v1/bio/{id}
+```
+
+**Required scope:** `bio:read`
+
+Returns the full bio page with all widgets.
+
+#### Update a Bio Page
+
+```
+PUT /api/v1/bio/{id}
+```
+
+**Required scope:** `bio:write`
+
+**Request Body:** Same fields as Create (all optional). If you include `widgets`, the existing widgets will be **replaced** with the new ones.
+
+#### Delete a Bio Page
+
+```
+DELETE /api/v1/bio/{id}
+```
+
+**Required scope:** `bio:write`
+
+**Response:**
+
+```json
+{
+  "message": "Bio page deleted successfully."
+}
+```
 
 ### Error Responses
 

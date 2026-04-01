@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\BioController;
 use App\Http\Controllers\Api\LinkController;
 use App\Http\Controllers\Api\LinkAnalyticsController;
 use App\Http\Controllers\Api\QrCodeController;
@@ -38,5 +39,16 @@ Route::prefix('v1')->group(function () {
         Route::post('/qr-codes', [QrCodeController::class, 'store']);
         Route::put('/qr-codes/{qrCode}', [QrCodeController::class, 'update']);
         Route::delete('/qr-codes/{qrCode}', [QrCodeController::class, 'destroy']);
+    });
+
+    // Bio Pages
+    Route::middleware('api.scope:bio:read')->group(function () {
+        Route::get('/bio', [BioController::class, 'index']);
+        Route::get('/bio/{bio}', [BioController::class, 'show']);
+    });
+    Route::middleware('api.scope:bio:write')->group(function () {
+        Route::post('/bio', [BioController::class, 'store']);
+        Route::put('/bio/{bio}', [BioController::class, 'update']);
+        Route::delete('/bio/{bio}', [BioController::class, 'destroy']);
     });
 });
