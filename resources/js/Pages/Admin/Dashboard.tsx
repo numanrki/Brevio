@@ -72,8 +72,8 @@ export default function Dashboard({ stats, clicks_over_time, top_referrers, top_
                                     {formatNumber(stats[card.key as keyof typeof stats])}
                                 </p>
                             </div>
-                            <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${card.color} flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity`}>
-                                <svg className="w-4.5 h-4.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                            <div className={`w-7 h-7 rounded-md bg-gradient-to-br ${card.color} flex items-center justify-center opacity-60 group-hover:opacity-90 transition-opacity`}>
+                                <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d={card.icon} />
                                 </svg>
                             </div>
