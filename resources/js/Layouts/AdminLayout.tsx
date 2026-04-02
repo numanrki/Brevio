@@ -14,12 +14,15 @@ interface NavItem {
     children?: { name: string; href: string }[];
 }
 
-const navigation: NavItem[] = [
+const mainNavigation: NavItem[] = [
+    // Overview
     { name: 'Dashboard', href: url('/admin'), icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+    // Link Management
     { name: 'Links', href: url('/admin/links'), icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1' },
     { name: 'Deep Links', href: url('/admin/deep-links'), icon: 'M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14' },
     { name: 'Bio Pages', href: url('/admin/bio'), icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
     { name: 'QR Codes', href: url('/admin/qr-codes'), icon: 'M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z' },
+    // Analytics & Tracking
     {
         name: 'Pixels',
         href: url('/admin/pixels'),
@@ -31,12 +34,16 @@ const navigation: NavItem[] = [
     },
     { name: 'Stats', href: url('/admin/stats'), icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
     { name: 'Live Users', href: url('/admin/live-users'), icon: 'M5.636 18.364a9 9 0 010-12.728m12.728 0a9 9 0 010 12.728M9.172 15.828a4 4 0 010-7.656m5.656 0a4 4 0 010 7.656M12 12h.01' },
+    // Platform Management
     { name: 'Domains', href: url('/admin/domains'), icon: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9' },
     { name: 'Pages', href: url('/admin/pages'), icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
-    { name: 'Reports', href: url('/admin/reports'), icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z' },
     { name: 'Ads & Timer', href: url('/admin/ads'), icon: 'M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2' },
-    { name: 'Settings', href: url('/admin/settings'), icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
+    { name: 'Reports', href: url('/admin/reports'), icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z' },
     { name: 'API', href: url('/admin/api-keys'), icon: 'M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z' },
+];
+
+const bottomNavigation: NavItem[] = [
+    { name: 'Settings', href: url('/admin/settings'), icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
     { name: 'Updates', href: url('/admin/updates'), icon: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15' },
 ];
 
@@ -308,7 +315,7 @@ function CacheClearButton() {
 function SidebarContent({ currentPath, onClose, user }: { currentPath: string; onClose?: () => void; user: User }) {
     const [openSubmenu, setOpenSubmenu] = useState<string | null>(() => {
         // Auto-open submenu if current path matches a child
-        for (const item of navigation) {
+        for (const item of mainNavigation) {
             if (item.children) {
                 for (const child of item.children) {
                     if (currentPath === child.href || currentPath.startsWith(child.href + '/')) {
@@ -343,8 +350,9 @@ function SidebarContent({ currentPath, onClose, user }: { currentPath: string; o
             </div>
 
             {/* Navigation */}
-            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                {navigation.map((item) => {
+            <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto flex flex-col">
+                <div className="flex-1 space-y-1">
+                {mainNavigation.map((item) => {
                     if (item.children) {
                         const isChildActive = item.children.some(
                             (child) => currentPath === child.href || currentPath.startsWith(child.href + '/')
@@ -411,6 +419,30 @@ function SidebarContent({ currentPath, onClose, user }: { currentPath: string; o
                         </Link>
                     );
                 })}
+                </div>
+
+                {/* System */}
+                <div className="pt-3 mt-3 border-t border-gray-800/60 space-y-1">
+                    {bottomNavigation.map((item) => {
+                        const isActive = currentPath === item.href || currentPath.startsWith(item.href + '/');
+                        return (
+                            <Link
+                                key={item.name}
+                                href={item.href}
+                                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                    isActive
+                                        ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20'
+                                        : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                                }`}
+                            >
+                                <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                    <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
+                                </svg>
+                                {item.name}
+                            </Link>
+                        );
+                    })}
+                </div>
             </nav>
 
             {/* Bottom section */}
