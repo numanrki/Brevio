@@ -43,6 +43,8 @@ class ImageTrackerController extends Controller
         $token = Str::random(32);
         $ext = $file->getClientOriginalExtension();
         $filename = $token . '.' . $ext;
+        $originalName = $file->getClientOriginalName();
+        $mimeType = $file->getMimeType();
 
         // Store in public/content/tracked-images/ (same pattern as avatars, bio images)
         $destDir = public_path('content/tracked-images');
@@ -55,8 +57,8 @@ class ImageTrackerController extends Controller
             'user_id' => auth()->id(),
             'name' => $request->name,
             'filename' => $filename,
-            'original_name' => $file->getClientOriginalName(),
-            'mime_type' => $file->getMimeType(),
+            'original_name' => $originalName,
+            'mime_type' => $mimeType,
             'token' => $token,
         ]);
 
