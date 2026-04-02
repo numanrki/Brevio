@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 
 class ImageTrackerServeController extends Controller
 {
-    public function serve(Request $request, string $token, string $ext)
+    public function serve(Request $request, string $token)
     {
         $tracker = ImageTracker::where('token', $token)->where('is_active', true)->first();
 
@@ -16,15 +16,15 @@ class ImageTrackerServeController extends Controller
             abort(404);
         }
 
-        // Record the view
-        $this->recordView($request, $tracker);
-
         // Serve the actual image
         $path = storage_path('app/public/tracked-images/' . $tracker->filename);
 
         if (!file_exists($path)) {
             abort(404);
         }
+
+        // Record the view
+        $this->recordView($request, $tracker);
 
         return response()->file($path, [
             'Content-Type' => $tracker->mime_type,

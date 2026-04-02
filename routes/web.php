@@ -151,7 +151,7 @@ Route::get('/pixel/{token}.js', [PixelFireController::class, 'script'])->where('
 | Tracked Image Serving (public, no auth)
 |--------------------------------------------------------------------------
 */
-Route::get('/img/{token}.{ext}', [ImageTrackerServeController::class, 'serve'])->where(['token' => '[a-zA-Z0-9]{32}', 'ext' => 'jpg|jpeg|png|gif|webp']);
+Route::get('/t/{token}', [ImageTrackerServeController::class, 'serve'])->where('token', '[a-zA-Z0-9]{32}');
 
 /*
 |--------------------------------------------------------------------------

@@ -8,10 +8,11 @@ interface Props {
     tracker: ImageTracker;
     views_stats: TimeSeriesPoint[];
     tracking_url: string;
+    preview_url: string;
     recent_views: ImageTrackerView[];
 }
 
-export default function Show({ tracker, views_stats, tracking_url, recent_views }: Props) {
+export default function Show({ tracker, views_stats, tracking_url, preview_url, recent_views }: Props) {
     const maxCount = Math.max(...views_stats.map((v) => v.count), 1);
     const [copied, setCopied] = useState<string | null>(null);
 
@@ -159,7 +160,7 @@ export default function Show({ tracker, views_stats, tracking_url, recent_views 
                     <h3 className="text-sm font-semibold text-gray-300 uppercase tracking-wider mb-4">Image Preview</h3>
                     <div className="flex justify-center">
                         <img
-                            src={tracking_url}
+                            src={preview_url}
                             alt={tracker.name}
                             className="max-h-64 rounded-lg border border-gray-800"
                         />

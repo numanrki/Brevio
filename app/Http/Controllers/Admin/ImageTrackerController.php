@@ -69,8 +69,8 @@ class ImageTrackerController extends Controller
             ->orderBy('date')
             ->get();
 
-        $ext = pathinfo($imageTracker->filename, PATHINFO_EXTENSION);
-        $trackingUrl = url("/img/{$imageTracker->token}.{$ext}");
+        $trackingUrl = url("/t/{$imageTracker->token}");
+        $previewUrl = asset('storage/tracked-images/' . $imageTracker->filename);
 
         $recentViews = $imageTracker->views()
             ->latest('created_at')
@@ -81,6 +81,7 @@ class ImageTrackerController extends Controller
             'tracker' => $imageTracker,
             'views_stats' => $viewsStats,
             'tracking_url' => $trackingUrl,
+            'preview_url' => $previewUrl,
             'recent_views' => $recentViews,
         ]);
     }

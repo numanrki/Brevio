@@ -21,8 +21,7 @@ export default function Index({ trackers, filters }: Props) {
     }, [search]);
 
     const copyUrl = (tracker: ImageTracker) => {
-        const ext = tracker.filename.split('.').pop();
-        const trackingUrl = `${window.location.origin}/img/${tracker.token}.${ext}`;
+        const trackingUrl = `${window.location.origin}/t/${tracker.token}`;
         navigator.clipboard.writeText(trackingUrl);
         setCopiedId(tracker.id);
         setTimeout(() => setCopiedId(null), 2000);
