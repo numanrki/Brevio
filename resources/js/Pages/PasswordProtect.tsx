@@ -1,6 +1,7 @@
 import { Head, router } from '@inertiajs/react';
 import { FormEvent, useState, useEffect } from 'react';
 import { url } from '@/utils';
+import Heartbeat from '@/Components/Heartbeat';
 
 interface Props {
     alias: string;
@@ -23,6 +24,7 @@ export default function PasswordProtect({ alias, error, expiry_date, noindex }: 
 
     return (
         <>
+            <Heartbeat />
             <Head title="Password Required">
                 {noindex && <meta name="robots" content="noindex, nofollow" />}
             </Head>

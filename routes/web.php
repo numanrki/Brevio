@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BioPageController;
+use App\Http\Controllers\HeartbeatController;
 use App\Http\Controllers\ImageTrackerServeController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\PixelFireController;
@@ -55,6 +56,10 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
 
     // Statistics
     Route::get('stats', [Admin\StatsController::class, 'index'])->name('stats');
+
+    // Live Users
+    Route::get('live-users', [Admin\LiveUsersController::class, 'index'])->name('live-users.index');
+    Route::get('live-users/poll', [Admin\LiveUsersController::class, 'poll'])->name('live-users.poll');
 
     // Domains
     Route::resource('domains', Admin\DomainController::class);
@@ -153,6 +158,13 @@ Route::get('/pixel/{token}.js', [PixelFireController::class, 'script'])->where('
 */
 Route::get('/t/{token}', [ImageTrackerServeController::class, 'serve'])->where('token', '[a-zA-Z0-9]{32}');
 Route::get('/img/{token}.{ext}', [ImageTrackerServeController::class, 'serve'])->where(['token' => '[a-zA-Z0-9]{32}', 'ext' => 'jpg|jpeg|png|gif|webp']);
+
+/*
+|--------------------------------------------------------------------------
+| Live Visitor Heartbeat (public, no auth)
+|--------------------------------------------------------------------------
+*/
+Route::post('/heartbeat', [HeartbeatController::class, 'ping'])->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class);
 
 /*
 |--------------------------------------------------------------------------

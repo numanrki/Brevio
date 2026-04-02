@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react';
 import { useState, useEffect, useCallback } from 'react';
+import Heartbeat from '@/Components/Heartbeat';
 
 interface Props {
     destination: string;
@@ -41,6 +42,7 @@ export default function Interstitial({ destination, title, timer_duration, show_
 
     return (
         <>
+            <Heartbeat />
             <Head title={title || 'Redirecting...'}>
                 {noindex && <meta name="robots" content="noindex, nofollow" />}
             </Head>

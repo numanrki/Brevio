@@ -1,4 +1,5 @@
 import { Head } from '@inertiajs/react';
+import Heartbeat from '@/Components/Heartbeat';
 
 interface Props {
     alias: string;
@@ -9,6 +10,7 @@ interface Props {
 export default function LinkExpired({ alias, expired_at, noindex }: Props) {
     return (
         <>
+            <Heartbeat />
             <Head title="Link Expired">
                 {noindex && <meta name="robots" content="noindex, nofollow" />}
             </Head>

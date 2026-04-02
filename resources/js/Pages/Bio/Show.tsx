@@ -1,6 +1,7 @@
 import { Head } from '@inertiajs/react';
 import { useCallback } from 'react';
 import { SocialIcon, SOCIAL_ICON_MAP } from '@/Components/SocialIcons';
+import Heartbeat from '@/Components/Heartbeat';
 
 interface SocialPlatform {
     name: string;
@@ -111,6 +112,7 @@ export default function Show({ bio, trackUrl, noindex }: Props) {
 
     return (
         <>
+            <Heartbeat />
             <Head>
                 <title>{pageTitle}</title>
                 {bio.seo_description && <meta name="description" content={bio.seo_description} />}
