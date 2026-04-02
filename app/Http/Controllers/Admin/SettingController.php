@@ -37,6 +37,8 @@ class SettingController extends Controller
             'facebook_url', 'twitter_url',
             'google_analytics_id', 'custom_head_code', 'custom_footer_code',
             'google_client_id', 'google_client_secret', 'google_login_enabled',
+            'noindex_bio_pages', 'noindex_short_links', 'noindex_interstitial',
+            'noindex_password_pages', 'noindex_expired_pages', 'noindex_deep_links',
         ];
 
         foreach ($allowedKeys as $key) {

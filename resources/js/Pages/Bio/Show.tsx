@@ -32,9 +32,10 @@ interface Bio {
 interface Props {
     bio: Bio;
     trackUrl?: string;
+    noindex?: boolean;
 }
 
-export default function Show({ bio, trackUrl }: Props) {
+export default function Show({ bio, trackUrl, noindex }: Props) {
     const theme = bio.theme || {
         background: '#0f0f1a',
         textColor: '#ffffff',
@@ -113,6 +114,7 @@ export default function Show({ bio, trackUrl }: Props) {
             <Head>
                 <title>{pageTitle}</title>
                 {bio.seo_description && <meta name="description" content={bio.seo_description} />}
+                {noindex && <meta name="robots" content="noindex, nofollow" />}
                 <meta property="og:title" content={pageTitle} />
                 {bio.seo_description && <meta property="og:description" content={bio.seo_description} />}
             </Head>

@@ -3,6 +3,7 @@ import { Head } from '@inertiajs/react';
 interface Props {
     name: string;
     allowed_devices: string[];
+    noindex?: boolean;
 }
 
 const deviceLabels: Record<string, string> = {
@@ -16,10 +17,12 @@ const deviceLabels: Record<string, string> = {
     desktop: 'Desktop',
 };
 
-export default function DeepLinkRestricted({ name, allowed_devices }: Props) {
+export default function DeepLinkRestricted({ name, allowed_devices, noindex }: Props) {
     return (
         <>
-            <Head title="Link Not Available" />
+            <Head title="Link Not Available">
+                {noindex && <meta name="robots" content="noindex, nofollow" />}
+            </Head>
             <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
                 <div className="max-w-md w-full text-center">
                     <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-red-500/10 flex items-center justify-center">

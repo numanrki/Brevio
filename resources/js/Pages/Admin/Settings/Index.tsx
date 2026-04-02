@@ -86,6 +86,12 @@ export default function Index({ settings, has2fa, callbackUrl }: Props) {
     });
     // Add checkbox keys
     initialData['google_login_enabled'] = settings['google_login_enabled'] ?? '';
+    initialData['noindex_bio_pages'] = settings['noindex_bio_pages'] ?? '';
+    initialData['noindex_short_links'] = settings['noindex_short_links'] ?? '';
+    initialData['noindex_interstitial'] = settings['noindex_interstitial'] ?? '';
+    initialData['noindex_password_pages'] = settings['noindex_password_pages'] ?? '';
+    initialData['noindex_expired_pages'] = settings['noindex_expired_pages'] ?? '';
+    initialData['noindex_deep_links'] = settings['noindex_deep_links'] ?? '';
 
     const { data, setData, post, processing, errors, recentlySuccessful } = useForm(initialData);
 
@@ -202,6 +208,44 @@ export default function Index({ settings, has2fa, callbackUrl }: Props) {
 
                 {/* Security — 2FA */}
                 <TwoFactorSection initialEnabled={has2fa} />
+
+                {/* Robots / SEO */}
+                <div className="rounded-xl bg-gray-900 border border-gray-800 overflow-hidden">
+                    <div className="px-6 py-5 border-b border-gray-800 flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+                            <svg className="w-5 h-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 003 12c0-1.605.42-3.113 1.157-4.418" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 className="text-lg font-semibold text-white">Robots / SEO</h2>
+                            <p className="text-sm text-gray-500 mt-0.5">Control which public pages search engines can index. Checked pages will have a <code className="text-xs bg-gray-800 px-1.5 py-0.5 rounded">noindex</code> meta tag.</p>
+                        </div>
+                    </div>
+                    <div className="p-6 space-y-4">
+                        {[
+                            { key: 'noindex_bio_pages', label: 'Bio Pages', desc: 'Prevent indexing of all public bio/link-in-bio pages.' },
+                            { key: 'noindex_short_links', label: 'Short Link Redirects', desc: 'Add noindex to interstitial/timer pages shown before redirect.' },
+                            { key: 'noindex_interstitial', label: 'Interstitial Pages', desc: 'Prevent indexing of ad interstitial pages.' },
+                            { key: 'noindex_password_pages', label: 'Password Protected Pages', desc: 'Prevent indexing of password-protected link pages.' },
+                            { key: 'noindex_expired_pages', label: 'Expired Link Pages', desc: 'Prevent indexing of expired link notification pages.' },
+                            { key: 'noindex_deep_links', label: 'Deep Link Restricted Pages', desc: 'Prevent indexing of deep link device-restricted pages.' },
+                        ].map((item) => (
+                            <label key={item.key} className="flex items-start gap-3 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={data[item.key] === '1'}
+                                    onChange={(e) => setValue(item.key, e.target.checked ? '1' : '')}
+                                    className="w-4 h-4 mt-0.5 rounded border-gray-700 bg-gray-950 text-orange-500 focus:ring-orange-500/40 focus:ring-offset-0"
+                                />
+                                <div>
+                                    <span className="text-sm text-gray-300 font-medium">{item.label}</span>
+                                    <p className="text-xs text-gray-500 mt-0.5">{item.desc}</p>
+                                </div>
+                            </label>
+                        ))}
+                    </div>
+                </div>
 
                 {/* Submit */}
                 <div className="flex items-center justify-end gap-3">

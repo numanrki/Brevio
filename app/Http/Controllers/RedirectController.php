@@ -40,6 +40,7 @@ class RedirectController extends Controller
             return Inertia::render('LinkExpired', [
                 'alias' => $alias,
                 'expired_at' => $url->expiry_date?->toIso8601String(),
+                'noindex' => (bool) Setting::get('noindex_expired_pages'),
             ]);
         }
 
@@ -48,6 +49,7 @@ class RedirectController extends Controller
             return Inertia::render('PasswordProtect', [
                 'alias' => $alias,
                 'expiry_date' => $url->expiry_date?->toIso8601String(),
+                'noindex' => (bool) Setting::get('noindex_password_pages'),
             ]);
         }
 
@@ -83,6 +85,7 @@ class RedirectController extends Controller
                 'ad_below' => $settings['interstitial_ad_below'] ?? null,
                 'ad_sidebar' => $settings['interstitial_ad_sidebar'] ?? null,
                 'expiry_date' => $url->expiry_date?->toIso8601String(),
+                'noindex' => (bool) Setting::get('noindex_interstitial'),
             ]);
         }
 
@@ -98,6 +101,7 @@ class RedirectController extends Controller
             return Inertia::render('LinkExpired', [
                 'alias' => $deepLink->alias,
                 'expired_at' => $deepLink->expiry_date?->toIso8601String(),
+                'noindex' => (bool) Setting::get('noindex_expired_pages'),
             ]);
         }
 
@@ -134,6 +138,7 @@ class RedirectController extends Controller
                 return Inertia::render('DeepLinkRestricted', [
                     'name' => $deepLink->name,
                     'allowed_devices' => $allowed,
+                    'noindex' => (bool) Setting::get('noindex_deep_links'),
                 ]);
             }
         }
@@ -287,6 +292,7 @@ class RedirectController extends Controller
             'alias' => $alias,
             'error' => 'Incorrect password. Please try again.',
             'expiry_date' => $url->expiry_date?->toIso8601String(),
+            'noindex' => (bool) Setting::get('noindex_password_pages'),
         ]);
     }
 

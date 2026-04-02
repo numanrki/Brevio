@@ -6,9 +6,10 @@ interface Props {
     alias: string;
     error?: string;
     expiry_date?: string | null;
+    noindex?: boolean;
 }
 
-export default function PasswordProtect({ alias, error, expiry_date }: Props) {
+export default function PasswordProtect({ alias, error, expiry_date, noindex }: Props) {
     const [password, setPassword] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
@@ -22,7 +23,9 @@ export default function PasswordProtect({ alias, error, expiry_date }: Props) {
 
     return (
         <>
-            <Head title="Password Required" />
+            <Head title="Password Required">
+                {noindex && <meta name="robots" content="noindex, nofollow" />}
+            </Head>
             <div style={{ minHeight: '100vh', background: '#0a0a0f', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif', padding: '20px' }}>
                 <div style={{ width: '100%', maxWidth: '400px' }}>
                     {/* Lock Icon */}

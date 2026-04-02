@@ -10,9 +10,10 @@ interface Props {
     ad_below?: string | null;
     ad_sidebar?: string | null;
     expiry_date?: string | null;
+    noindex?: boolean;
 }
 
-export default function Interstitial({ destination, title, timer_duration, show_button, ad_above, ad_below, ad_sidebar, expiry_date }: Props) {
+export default function Interstitial({ destination, title, timer_duration, show_button, ad_above, ad_below, ad_sidebar, expiry_date, noindex }: Props) {
     const [secondsLeft, setSecondsLeft] = useState(timer_duration);
     const [redirecting, setRedirecting] = useState(false);
 
@@ -40,7 +41,9 @@ export default function Interstitial({ destination, title, timer_duration, show_
 
     return (
         <>
-            <Head title={title || 'Redirecting...'} />
+            <Head title={title || 'Redirecting...'}>
+                {noindex && <meta name="robots" content="noindex, nofollow" />}
+            </Head>
             <div style={{ minHeight: '100vh', background: '#0a0a0f', fontFamily: 'system-ui, sans-serif', color: '#ffffff' }}>
                 {/* Top progress bar */}
                 <div style={{ position: 'fixed', top: 0, left: 0, right: 0, height: '3px', background: '#1f1f2e', zIndex: 50 }}>

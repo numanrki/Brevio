@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bio;
+use App\Models\Setting;
 use App\Services\VisitorTracker;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -25,6 +26,7 @@ class BioPageController extends Controller
         return Inertia::render('Bio/Show', [
             'bio' => $bio,
             'trackUrl' => url('/bio/' . $alias . '/track'),
+            'noindex' => (bool) Setting::get('noindex_bio_pages'),
         ]);
     }
 

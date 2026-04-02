@@ -3,12 +3,15 @@ import { Head } from '@inertiajs/react';
 interface Props {
     alias: string;
     expired_at?: string | null;
+    noindex?: boolean;
 }
 
-export default function LinkExpired({ alias, expired_at }: Props) {
+export default function LinkExpired({ alias, expired_at, noindex }: Props) {
     return (
         <>
-            <Head title="Link Expired" />
+            <Head title="Link Expired">
+                {noindex && <meta name="robots" content="noindex, nofollow" />}
+            </Head>
             <div style={{ minHeight: '100vh', background: '#0a0a0f', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'system-ui, sans-serif', padding: '20px' }}>
                 <div style={{ textAlign: 'center', maxWidth: '400px' }}>
                     {/* Expired Icon */}

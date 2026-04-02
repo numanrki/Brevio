@@ -187,26 +187,32 @@ HTML;
         if (str_contains($ua, 'iPhone')) return 'iPhone';
         if (str_contains($ua, 'iPad')) return 'iPad';
 
-        // Samsung
-        if (preg_match('/SM-[A-Z]\d{3,4}/i', $ua, $m)) return 'Samsung ' . $m[0];
+        // Samsung (SM-A546B, SM-G998B, SM-S928U, etc.)
+        if (preg_match('/SM-[A-Z]\d{2,4}[A-Z]?\b/i', $ua, $m)) return 'Samsung ' . strtoupper($m[0]);
         if (preg_match('/Samsung\s+(Galaxy\s+\S+)/i', $ua, $m)) return 'Samsung ' . $m[1];
 
         // Google Pixel
-        if (preg_match('/Pixel\s*\d*/i', $ua, $m)) return 'Google ' . trim($m[0]);
+        if (preg_match('/Pixel\s*\d*\s*\w*/i', $ua, $m)) return 'Google ' . trim($m[0]);
 
         // OnePlus
+        if (preg_match('/(?:ONEPLUS\s*)?(?:A\d{4}|IN\d{4}|KB\d{4}|CPH\d{4})/i', $ua, $m)) return 'OnePlus ' . trim($m[0]);
         if (preg_match('/OnePlus\s*\S+/i', $ua, $m)) return trim($m[0]);
 
         // Xiaomi / Redmi / POCO
-        if (preg_match('/(Redmi\s+\S+|POCO\s+\S+|Mi\s+\d\S*)/i', $ua, $m)) return 'Xiaomi ' . trim($m[1]);
+        if (preg_match('/(Redmi\s+Note\s+\S+|Redmi\s+\S+|POCO\s+\S+|Mi\s+\d\S*)/i', $ua, $m)) return 'Xiaomi ' . trim($m[1]);
+        if (preg_match('/Xiaomi\s+(\S+)/i', $ua, $m)) return 'Xiaomi ' . $m[1];
 
         // Huawei
         if (preg_match('/HUAWEI\s+(\S+)/i', $ua, $m)) return 'Huawei ' . $m[1];
 
+        // Oppo / Vivo / Realme
+        if (preg_match('/(?:CPH|RMX)\d{4}/i', $ua, $m)) return trim($m[0]);
+        if (preg_match('/(OPPO|Vivo|Realme)\s+(\S+)/i', $ua, $m)) return $m[1] . ' ' . $m[2];
+
         // Generic Android model: "Build/..." preceded by model name
         if (preg_match('/;\s*([^;)]{2,40})\s+Build\//i', $ua, $m)) {
             $model = trim($m[1]);
-            if (strlen($model) > 2 && $model !== 'Linux') return $model;
+            if (strlen($model) > 2 && !in_array($model, ['Linux', 'Android', 'wv'])) return $model;
         }
 
         // Mac
