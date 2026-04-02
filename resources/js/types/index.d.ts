@@ -171,6 +171,34 @@ export interface PixelFire {
     created_at: string;
 }
 
+export interface ImageTracker {
+    id: number;
+    user_id: number;
+    name: string;
+    filename: string;
+    original_name: string;
+    mime_type: string;
+    token: string;
+    total_views: number;
+    views_count?: number;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
+
+export interface ImageTrackerView {
+    id: number;
+    image_tracker_id: number;
+    country?: string;
+    city?: string;
+    browser?: string;
+    os?: string;
+    device?: string;
+    referrer?: string;
+    is_unique: boolean;
+    created_at: string;
+}
+
 export interface Report {
     id: number;
     url_id: number;

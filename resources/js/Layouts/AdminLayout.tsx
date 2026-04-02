@@ -7,13 +7,28 @@ interface AdminLayoutProps extends PropsWithChildren {
     header?: string;
 }
 
-const navigation = [
+interface NavItem {
+    name: string;
+    href: string;
+    icon: string;
+    children?: { name: string; href: string }[];
+}
+
+const navigation: NavItem[] = [
     { name: 'Dashboard', href: url('/admin'), icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
     { name: 'Links', href: url('/admin/links'), icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1' },
     { name: 'Deep Links', href: url('/admin/deep-links'), icon: 'M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14' },
     { name: 'Bio Pages', href: url('/admin/bio'), icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
     { name: 'QR Codes', href: url('/admin/qr-codes'), icon: 'M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z' },
-    { name: 'Pixels', href: url('/admin/pixels'), icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z' },
+    {
+        name: 'Pixels',
+        href: url('/admin/pixels'),
+        icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z',
+        children: [
+            { name: 'Tracking Pixels', href: url('/admin/pixels') },
+            { name: 'Image Trackers', href: url('/admin/image-trackers') },
+        ],
+    },
     { name: 'Stats', href: url('/admin/stats'), icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z' },
     { name: 'Domains', href: url('/admin/domains'), icon: 'M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9' },
     { name: 'Pages', href: url('/admin/pages'), icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
@@ -290,6 +305,20 @@ function CacheClearButton() {
 }
 
 function SidebarContent({ currentPath, onClose, user }: { currentPath: string; onClose?: () => void; user: User }) {
+    const [openSubmenu, setOpenSubmenu] = useState<string | null>(() => {
+        // Auto-open submenu if current path matches a child
+        for (const item of navigation) {
+            if (item.children) {
+                for (const child of item.children) {
+                    if (currentPath === child.href || currentPath.startsWith(child.href + '/')) {
+                        return item.name;
+                    }
+                }
+            }
+        }
+        return null;
+    });
+
     return (
         <div className="flex flex-col h-full">
             {/* Logo */}
@@ -315,6 +344,54 @@ function SidebarContent({ currentPath, onClose, user }: { currentPath: string; o
             {/* Navigation */}
             <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
                 {navigation.map((item) => {
+                    if (item.children) {
+                        const isChildActive = item.children.some(
+                            (child) => currentPath === child.href || currentPath.startsWith(child.href + '/')
+                        );
+                        const isOpen = openSubmenu === item.name;
+
+                        return (
+                            <div key={item.name}>
+                                <button
+                                    onClick={() => setOpenSubmenu(isOpen ? null : item.name)}
+                                    className={`flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                        isChildActive
+                                            ? 'bg-violet-500/10 text-violet-400 border border-violet-500/20'
+                                            : 'text-gray-400 hover:text-white hover:bg-gray-800/50'
+                                    }`}
+                                >
+                                    <svg className="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
+                                    </svg>
+                                    {item.name}
+                                    <svg className={`w-4 h-4 ml-auto transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </button>
+                                {isOpen && (
+                                    <div className="mt-1 ml-8 space-y-0.5">
+                                        {item.children.map((child) => {
+                                            const isActive = currentPath === child.href || currentPath.startsWith(child.href + '/');
+                                            return (
+                                                <Link
+                                                    key={child.name}
+                                                    href={child.href}
+                                                    className={`block px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
+                                                        isActive
+                                                            ? 'text-violet-400 bg-violet-500/5'
+                                                            : 'text-gray-500 hover:text-white hover:bg-gray-800/30'
+                                                    }`}
+                                                >
+                                                    {child.name}
+                                                </Link>
+                                            );
+                                        })}
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    }
+
                     const isActive = currentPath === item.href || (item.href !== url('/admin') && currentPath.startsWith(item.href));
                     return (
                         <Link

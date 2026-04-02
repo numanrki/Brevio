@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BioPageController;
+use App\Http\Controllers\ImageTrackerServeController;
 use App\Http\Controllers\InstallController;
 use App\Http\Controllers\PixelFireController;
 use App\Http\Controllers\QrScanController;
@@ -66,6 +67,9 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     // Tracking Pixels
     Route::get('pixels/{pixel}/analytics', [Admin\PixelController::class, 'analytics'])->name('pixels.analytics');
     Route::resource('pixels', Admin\PixelController::class);
+
+    // Image Trackers
+    Route::resource('image-trackers', Admin\ImageTrackerController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
 
     // Pages
     Route::resource('pages', Admin\PageController::class);
@@ -141,6 +145,13 @@ Route::get('/qr/{id}', [QrScanController::class, 'handle'])->name('qr.scan')->wh
 */
 Route::get('/pixel/{token}.gif', [PixelFireController::class, 'image'])->where('token', '[a-zA-Z0-9]{32}');
 Route::get('/pixel/{token}.js', [PixelFireController::class, 'script'])->where('token', '[a-zA-Z0-9]{32}');
+
+/*
+|--------------------------------------------------------------------------
+| Tracked Image Serving (public, no auth)
+|--------------------------------------------------------------------------
+*/
+Route::get('/img/{token}.{ext}', [ImageTrackerServeController::class, 'serve'])->where(['token' => '[a-zA-Z0-9]{32}', 'ext' => 'jpg|jpeg|png|gif|webp']);
 
 /*
 |--------------------------------------------------------------------------
