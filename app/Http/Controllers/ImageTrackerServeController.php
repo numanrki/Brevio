@@ -5,14 +5,23 @@ namespace App\Http\Controllers;
 use App\Models\ImageTracker;
 use App\Models\ImageTrackerView;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 
 class ImageTrackerServeController extends Controller
 {
     public function serve(Request $request, string $token)
     {
+        // Check if table exists
+        if (!Schema::hasTable('image_trackers')) {
+            Log::error('Image Tracker: image_trackers table does not exist. Run migrations.');
+            abort(404);
+        }
+
         $tracker = ImageTracker::where('token', $token)->where('is_active', true)->first();
 
         if (!$tracker) {
+            Log::warning("Image Tracker: no active tracker found for token={$token}");
             abort(404);
         }
 
@@ -20,6 +29,7 @@ class ImageTrackerServeController extends Controller
         $path = storage_path('app/public/tracked-images/' . $tracker->filename);
 
         if (!file_exists($path)) {
+            Log::warning("Image Tracker: file not found at {$path}");
             abort(404);
         }
 
