@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LiveVisitor;
 use App\Models\QrCode;
 use App\Services\VisitorTracker;
 use Illuminate\Http\Request;
@@ -22,6 +23,9 @@ class QrScanController extends Controller
 
         // Increment the scans counter
         $qrCode->increment('scans');
+
+        // Record live visitor
+        LiveVisitor::recordVisit($request, 'qr_code', '/qr/' . $id);
 
         // Redirect to the QR code content URL
         $content = $qrCode->data['content'] ?? null;

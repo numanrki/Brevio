@@ -112,7 +112,7 @@ export default function Show({ bio, trackUrl, noindex }: Props) {
 
     return (
         <>
-            <Heartbeat />
+            <Heartbeat pageType="bio" />
             <Head>
                 <title>{pageTitle}</title>
                 {bio.seo_description && <meta name="description" content={bio.seo_description} />}

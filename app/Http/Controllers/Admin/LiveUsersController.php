@@ -33,6 +33,7 @@ class LiveUsersController extends Controller
             return [
                 'total_active' => 0,
                 'by_country' => [],
+                'by_page_type' => [],
                 'by_browser' => [],
                 'by_os' => [],
                 'by_device' => [],
@@ -49,6 +50,11 @@ class LiveUsersController extends Controller
             ->whereNotNull('country')->where('country', '!=', '')
             ->selectRaw('country, COUNT(*) as count')
             ->groupBy('country')->orderByDesc('count')->get()->toArray();
+
+        $byPageType = LiveVisitor::where('last_seen_at', '>=', $cutoff)
+            ->whereNotNull('page_type')->where('page_type', '!=', '')
+            ->selectRaw('page_type as name, COUNT(*) as count')
+            ->groupBy('page_type')->orderByDesc('count')->get()->toArray();
 
         $byBrowser = LiveVisitor::where('last_seen_at', '>=', $cutoff)
             ->whereNotNull('browser')->where('browser', '!=', '')
@@ -73,6 +79,7 @@ class LiveUsersController extends Controller
         return [
             'total_active' => LiveVisitor::where('last_seen_at', '>=', $cutoff)->count(),
             'by_country' => $byCountry,
+            'by_page_type' => $byPageType,
             'by_browser' => $byBrowser,
             'by_os' => $byOs,
             'by_device' => $byDevice,

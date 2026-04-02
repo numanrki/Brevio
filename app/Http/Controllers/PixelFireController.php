@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\LiveVisitor;
 use App\Models\Pixel;
 use App\Models\PixelFire;
 use Illuminate\Http\Request;
@@ -100,6 +101,9 @@ JS;
             ->exists();
 
         $pixel->increment('total_fires');
+
+        // Record live visitor
+        LiveVisitor::recordVisit($request, 'pixel', '/pixel/' . $token);
 
         // Collect tracking params from the JS pixel
         $query = $request->query();

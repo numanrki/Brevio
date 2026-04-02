@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Bio;
+use App\Models\LiveVisitor;
 use App\Models\Setting;
 use App\Services\VisitorTracker;
 use Illuminate\Http\Request;
@@ -19,6 +20,9 @@ class BioPageController extends Controller
 
         // Increment views counter
         $bio->increment('views');
+
+        // Record live visitor
+        LiveVisitor::recordVisit($request, 'bio', '/bio/' . $alias);
 
         // Track detailed visit
         VisitorTracker::track(Bio::class, $bio->id, 'page_view', $request);

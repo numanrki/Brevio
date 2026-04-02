@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\ImageTracker;
 use App\Models\ImageTrackerView;
+use App\Models\LiveVisitor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
@@ -43,6 +44,9 @@ class ImageTrackerServeController extends Controller
 
         // Record the view
         $this->recordView($request, $tracker);
+
+        // Record live visitor
+        LiveVisitor::recordVisit($request, 'image_tracker', '/t/' . $token);
 
         // If a social media bot is fetching, return HTML with Open Graph tags for rich preview
         if ($this->isSocialBot($request->userAgent() ?? '')) {

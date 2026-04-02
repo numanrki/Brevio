@@ -11,6 +11,30 @@ import {
 
 const GEO_URL = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json';
 
+/** ISO-alpha2 → country name */
+const COUNTRY_NAMES: Record<string, string> = {
+    AF:'Afghanistan',AL:'Albania',DZ:'Algeria',AD:'Andorra',AO:'Angola',AG:'Antigua & Barbuda',AR:'Argentina',AM:'Armenia',AU:'Australia',AT:'Austria',
+    AZ:'Azerbaijan',BS:'Bahamas',BH:'Bahrain',BD:'Bangladesh',BB:'Barbados',BY:'Belarus',BE:'Belgium',BZ:'Belize',BJ:'Benin',BT:'Bhutan',
+    BO:'Bolivia',BA:'Bosnia & Herzegovina',BW:'Botswana',BR:'Brazil',BN:'Brunei',BG:'Bulgaria',BF:'Burkina Faso',BI:'Burundi',KH:'Cambodia',CM:'Cameroon',
+    CA:'Canada',CV:'Cape Verde',CF:'Central African Rep.',TD:'Chad',CL:'Chile',CN:'China',CO:'Colombia',KM:'Comoros',CG:'Congo',CD:'DR Congo',
+    CR:'Costa Rica',CI:'Côte d\'Ivoire',HR:'Croatia',CU:'Cuba',CY:'Cyprus',CZ:'Czechia',DK:'Denmark',DJ:'Djibouti',DM:'Dominica',DO:'Dominican Rep.',
+    EC:'Ecuador',EG:'Egypt',SV:'El Salvador',GQ:'Eq. Guinea',ER:'Eritrea',EE:'Estonia',SZ:'Eswatini',ET:'Ethiopia',FJ:'Fiji',FI:'Finland',
+    FR:'France',GA:'Gabon',GM:'Gambia',GE:'Georgia',DE:'Germany',GH:'Ghana',GR:'Greece',GD:'Grenada',GT:'Guatemala',GN:'Guinea',
+    GW:'Guinea-Bissau',GY:'Guyana',HT:'Haiti',HN:'Honduras',HU:'Hungary',IS:'Iceland',IN:'India',ID:'Indonesia',IR:'Iran',IQ:'Iraq',
+    IE:'Ireland',IL:'Israel',IT:'Italy',JM:'Jamaica',JP:'Japan',JO:'Jordan',KZ:'Kazakhstan',KE:'Kenya',KI:'Kiribati',KP:'North Korea',
+    KR:'South Korea',KW:'Kuwait',KG:'Kyrgyzstan',LA:'Laos',LV:'Latvia',LB:'Lebanon',LS:'Lesotho',LR:'Liberia',LY:'Libya',LI:'Liechtenstein',
+    LT:'Lithuania',LU:'Luxembourg',MG:'Madagascar',MW:'Malawi',MY:'Malaysia',MV:'Maldives',ML:'Mali',MT:'Malta',MH:'Marshall Is.',MR:'Mauritania',
+    MU:'Mauritius',MX:'Mexico',FM:'Micronesia',MD:'Moldova',MC:'Monaco',MN:'Mongolia',ME:'Montenegro',MA:'Morocco',MZ:'Mozambique',MM:'Myanmar',
+    NA:'Namibia',NR:'Nauru',NP:'Nepal',NL:'Netherlands',NZ:'New Zealand',NI:'Nicaragua',NE:'Niger',NG:'Nigeria',MK:'North Macedonia',NO:'Norway',
+    OM:'Oman',PK:'Pakistan',PW:'Palau',PS:'Palestine',PA:'Panama',PG:'Papua New Guinea',PY:'Paraguay',PE:'Peru',PH:'Philippines',PL:'Poland',
+    PT:'Portugal',QA:'Qatar',RO:'Romania',RU:'Russia',RW:'Rwanda',KN:'St. Kitts & Nevis',LC:'St. Lucia',VC:'St. Vincent',WS:'Samoa',SM:'San Marino',
+    ST:'São Tomé & Príncipe',SA:'Saudi Arabia',SN:'Senegal',RS:'Serbia',SC:'Seychelles',SL:'Sierra Leone',SG:'Singapore',SK:'Slovakia',SI:'Slovenia',SB:'Solomon Is.',
+    SO:'Somalia',ZA:'South Africa',SS:'South Sudan',ES:'Spain',LK:'Sri Lanka',SD:'Sudan',SR:'Suriname',SE:'Sweden',CH:'Switzerland',SY:'Syria',
+    TW:'Taiwan',TJ:'Tajikistan',TZ:'Tanzania',TH:'Thailand',TL:'Timor-Leste',TG:'Togo',TO:'Tonga',TT:'Trinidad & Tobago',TN:'Tunisia',TR:'Turkey',
+    TM:'Turkmenistan',TV:'Tuvalu',UG:'Uganda',UA:'Ukraine',AE:'UAE',GB:'United Kingdom',US:'United States',UY:'Uruguay',UZ:'Uzbekistan',VU:'Vanuatu',
+    VE:'Venezuela',VN:'Vietnam',YE:'Yemen',ZM:'Zambia',ZW:'Zimbabwe',XK:'Kosovo',
+};
+
 /** ISO-alpha2 → ISO-numeric mapping (for matching topojson country IDs) */
 const ALPHA2_TO_NUMERIC: Record<string, string> = {
     AF:'004',AL:'008',DZ:'012',AD:'020',AO:'024',AG:'028',AR:'032',AM:'051',AU:'036',AT:'040',
@@ -42,11 +66,21 @@ interface PageData { page: string; count: number }
 interface Props {
     total_active: number;
     by_country: CountryData[];
+    by_page_type: NamedData[];
     by_browser: NamedData[];
     by_os: NamedData[];
     by_device: NamedData[];
     active_pages: PageData[];
 }
+
+const PAGE_TYPES = [
+    { key: 'short_link', label: 'Short Links', icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', color: 'from-violet-500 to-purple-600' },
+    { key: 'bio', label: 'Bio Pages', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', color: 'from-emerald-500 to-green-600' },
+    { key: 'qr_code', label: 'QR Codes', icon: 'M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z', color: 'from-amber-500 to-orange-600' },
+    { key: 'deep_link', label: 'Deep Links', icon: 'M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14', color: 'from-teal-500 to-cyan-600' },
+    { key: 'image_tracker', label: 'Image Trackers', icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z', color: 'from-fuchsia-500 to-pink-600' },
+    { key: 'pixel', label: 'Pixels', icon: 'M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z', color: 'from-cyan-500 to-blue-600' },
+] as const;
 
 export default function LiveUsers(initial: Props) {
     const [data, setData] = useState<Props>(initial);
@@ -79,28 +113,31 @@ export default function LiveUsers(initial: Props) {
         if (c.count > maxCount) maxCount = c.count;
     });
 
+    // Build reverse numeric→alpha2 lookup
+    const numericToAlpha2: Record<string, string> = {};
+    for (const [alpha2, numeric] of Object.entries(ALPHA2_TO_NUMERIC)) {
+        numericToAlpha2[numeric] = alpha2;
+    }
+
     const getColor = (numericId: string): string => {
-        // Find the alpha2 code for this numeric ID
-        for (const [alpha2, numeric] of Object.entries(ALPHA2_TO_NUMERIC)) {
-            if (numeric === numericId && countryMap[alpha2]) {
-                const intensity = countryMap[alpha2] / maxCount;
-                // From gray-800 to violet-500
-                const r = Math.round(31 + intensity * (108 - 31));
-                const g = Math.round(41 + intensity * (92 - 41));
-                const b = Math.round(55 + intensity * (231 - 55));
-                return `rgb(${r}, ${g}, ${b})`;
-            }
+        const alpha2 = numericToAlpha2[numericId];
+        if (alpha2 && countryMap[alpha2]) {
+            const intensity = countryMap[alpha2] / maxCount;
+            const r = Math.round(31 + intensity * (108 - 31));
+            const g = Math.round(41 + intensity * (92 - 41));
+            const b = Math.round(55 + intensity * (231 - 55));
+            return `rgb(${r}, ${g}, ${b})`;
         }
         return '#1f2937'; // gray-800
     };
 
-    const getTooltip = (numericId: string): string => {
-        for (const [alpha2, numeric] of Object.entries(ALPHA2_TO_NUMERIC)) {
-            if (numeric === numericId && countryMap[alpha2]) {
-                return `${alpha2}: ${countryMap[alpha2]} visitor${countryMap[alpha2] > 1 ? 's' : ''}`;
-            }
-        }
-        return '';
+    const getTooltipText = (numericId: string): string => {
+        const alpha2 = numericToAlpha2[numericId];
+        const name = alpha2 ? (COUNTRY_NAMES[alpha2] || alpha2) : '';
+        if (!name) return '';
+        const count = alpha2 ? (countryMap[alpha2] || 0) : 0;
+        if (count > 0) return `${name} — ${count} visitor${count > 1 ? 's' : ''}`;
+        return name;
     };
 
     const [tooltip, setTooltip] = useState('');
@@ -138,8 +175,8 @@ export default function LiveUsers(initial: Props) {
                                 <div className="space-y-2">
                                     {data.by_country.slice(0, 10).map((c) => (
                                         <div key={c.country} className="flex items-center justify-between">
-                                            <span className="text-sm text-gray-300">{c.country}</span>
-                                            <span className="text-sm font-medium text-white bg-gray-800 px-2 py-0.5 rounded-md">{c.count}</span>
+                                            <span className="text-sm text-gray-300 truncate" title={COUNTRY_NAMES[c.country] || c.country}>{COUNTRY_NAMES[c.country] || c.country}</span>
+                                            <span className="text-sm font-medium text-white bg-gray-800 px-2 py-0.5 rounded-md flex-shrink-0">{c.count}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -183,7 +220,8 @@ export default function LiveUsers(initial: Props) {
                                     <Geographies geography={GEO_URL}>
                                         {({ geographies }) =>
                                             geographies.map((geo) => {
-                                                const tip = getTooltip(geo.id);
+                                                const tip = getTooltipText(geo.id);
+                                                const hasVisitors = !!numericToAlpha2[geo.id] && !!countryMap[numericToAlpha2[geo.id]];
                                                 return (
                                                     <Geography
                                                         key={geo.rsmKey}
@@ -198,10 +236,16 @@ export default function LiveUsers(initial: Props) {
                                                                 setTooltipPos({ x: e.clientX - (rect?.left || 0), y: e.clientY - (rect?.top || 0) });
                                                             }
                                                         }}
+                                                        onMouseMove={(e) => {
+                                                            if (tip) {
+                                                                const rect = (e.target as SVGElement).closest('svg')?.getBoundingClientRect();
+                                                                setTooltipPos({ x: e.clientX - (rect?.left || 0), y: e.clientY - (rect?.top || 0) });
+                                                            }
+                                                        }}
                                                         onMouseLeave={() => setTooltip('')}
                                                         style={{
                                                             default: { outline: 'none' },
-                                                            hover: { fill: '#8b5cf6', outline: 'none', cursor: tip ? 'pointer' : 'default' },
+                                                            hover: { fill: hasVisitors ? '#8b5cf6' : '#374151', outline: 'none', cursor: 'pointer' },
                                                             pressed: { outline: 'none' },
                                                         }}
                                                     />
@@ -213,6 +257,29 @@ export default function LiveUsers(initial: Props) {
                             </ComposableMap>
                         </div>
                     </div>
+                </div>
+
+                {/* Page Type Breakdown */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-4">
+                    {PAGE_TYPES.map((pt) => {
+                        const count = data.by_page_type.find((p) => p.name === pt.key)?.count || 0;
+                        return (
+                            <div key={pt.key} className="relative overflow-hidden rounded-xl bg-gray-900 border border-gray-800 p-4 group hover:border-gray-700 transition-colors">
+                                <div className="flex items-start justify-between">
+                                    <div>
+                                        <p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{pt.label}</p>
+                                        <p className="mt-1 text-2xl font-bold text-white">{count}</p>
+                                    </div>
+                                    <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${pt.color} flex items-center justify-center opacity-60 group-hover:opacity-90 transition-opacity`}>
+                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d={pt.icon} />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div className={`absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r ${pt.color} opacity-0 group-hover:opacity-100 transition-opacity`} />
+                            </div>
+                        );
+                    })}
                 </div>
 
                 {/* Bottom Row: Browser, OS, Device, Active Pages */}

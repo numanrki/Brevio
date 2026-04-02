@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Click;
 use App\Models\DeepLink;
 use App\Models\DeepLinkClick;
+use App\Models\LiveVisitor;
 use App\Models\PixelFire;
 use App\Models\Setting;
 use App\Models\Url;
@@ -55,6 +56,9 @@ class RedirectController extends Controller
 
         // Parse User-Agent
         $userAgent = $request->userAgent() ?? '';
+
+        // Record live visitor
+        LiveVisitor::recordVisit($request, 'short_link', '/' . $alias);
 
         // Skip tracking for bots
         if (!$this->isBot($userAgent)) {
@@ -110,6 +114,9 @@ class RedirectController extends Controller
         if ($this->isBot($userAgent)) {
             return redirect()->away($deepLink->fallback_url);
         }
+
+        // Record live visitor
+        LiveVisitor::recordVisit($request, 'deep_link', '/' . $deepLink->alias);
 
         $browser = $this->parseBrowser($userAgent);
         $os = $this->parseOs($userAgent);

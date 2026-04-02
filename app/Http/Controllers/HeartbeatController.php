@@ -47,6 +47,7 @@ class HeartbeatController extends Controller
                 'country' => $country,
                 'city' => $city,
                 'page' => mb_substr($request->input('page', ''), 0, 500),
+                'page_type' => mb_substr($request->input('page_type', ''), 0, 20) ?: null,
                 'browser' => $this->parseBrowser($userAgent),
                 'os' => $this->parseOs($userAgent),
                 'device' => $this->parseDevice($userAgent),

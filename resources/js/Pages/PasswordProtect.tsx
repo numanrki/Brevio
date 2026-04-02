@@ -24,7 +24,7 @@ export default function PasswordProtect({ alias, error, expiry_date, noindex }: 
 
     return (
         <>
-            <Heartbeat />
+            <Heartbeat pageType="short_link" />
             <Head title="Password Required">
                 {noindex && <meta name="robots" content="noindex, nofollow" />}
             </Head>

@@ -4,12 +4,12 @@ import { useEffect } from 'react';
  * Sends a heartbeat ping to track live visitors.
  * Include this component in any public page to enable live tracking.
  */
-export default function Heartbeat() {
+export default function Heartbeat({ pageType }: { pageType?: string }) {
     useEffect(() => {
         const baseUrl = document.querySelector('meta[name="base-url"]')?.getAttribute('content') || '';
 
         const sendPing = () => {
-            const payload = JSON.stringify({ page: window.location.pathname });
+            const payload = JSON.stringify({ page: window.location.pathname, page_type: pageType || '' });
             // Use sendBeacon for reliability (works even on page unload)
             if (navigator.sendBeacon) {
                 navigator.sendBeacon(baseUrl + '/heartbeat', new Blob([payload], { type: 'application/json' }));

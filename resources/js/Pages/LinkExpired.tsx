@@ -10,7 +10,7 @@ interface Props {
 export default function LinkExpired({ alias, expired_at, noindex }: Props) {
     return (
         <>
-            <Heartbeat />
+            <Heartbeat pageType="short_link" />
             <Head title="Link Expired">
                 {noindex && <meta name="robots" content="noindex, nofollow" />}
             </Head>
