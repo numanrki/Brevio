@@ -21,7 +21,8 @@ class HeartbeatController extends Controller
         }
 
         $ip = $request->ip();
-        $sessionId = hash('sha256', $ip . '|' . $userAgent);
+        $page = mb_substr($request->input('page', ''), 0, 500);
+        $sessionId = hash('sha256', $ip . '|' . $userAgent . '|' . $page);
 
         $country = null;
         $city = null;
@@ -46,7 +47,7 @@ class HeartbeatController extends Controller
                 'ip' => $request->ip(),
                 'country' => $country,
                 'city' => $city,
-                'page' => mb_substr($request->input('page', ''), 0, 500),
+                'page' => $page,
                 'page_type' => mb_substr($request->input('page_type', ''), 0, 20) ?: null,
                 'browser' => $this->parseBrowser($userAgent),
                 'os' => $this->parseOs($userAgent),

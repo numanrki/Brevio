@@ -44,7 +44,8 @@ class LiveVisitor extends Model
             if (self::isBot($userAgent)) return;
 
             $ip = $request->ip();
-            $sessionId = hash('sha256', $ip . '|' . $userAgent);
+            $pagePath = $page ?: $request->path();
+            $sessionId = hash('sha256', $ip . '|' . $userAgent . '|' . $pagePath);
 
             $country = null;
             $city = null;
