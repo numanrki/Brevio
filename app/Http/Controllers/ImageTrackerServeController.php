@@ -25,11 +25,22 @@ class ImageTrackerServeController extends Controller
             abort(404);
         }
 
-        // Serve the actual image
-        $path = storage_path('app/public/tracked-images/' . $tracker->filename);
+        // Check both new (public/content/) and old (storage/) locations
+        $newPath = public_path('content/tracked-images/' . $tracker->filename);
+        $oldPath = storage_path('app/public/tracked-images/' . $tracker->filename);
 
-        if (!file_exists($path)) {
-            Log::warning("Image Tracker: file not found at {$path}");
+        if (file_exists($newPath)) {
+            $path = $newPath;
+        } elseif (file_exists($oldPath)) {
+            // Auto-migrate file from old storage location to new public location
+            $destDir = public_path('content/tracked-images');
+            if (!is_dir($destDir)) {
+                @mkdir($destDir, 0755, true);
+            }
+            @copy($oldPath, $newPath);
+            $path = file_exists($newPath) ? $newPath : $oldPath;
+        } else {
+            Log::warning("Image Tracker: file not found for token={$token}, filename={$tracker->filename}");
             abort(404);
         }
 

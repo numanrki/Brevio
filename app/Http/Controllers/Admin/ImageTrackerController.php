@@ -44,7 +44,12 @@ class ImageTrackerController extends Controller
         $ext = $file->getClientOriginalExtension();
         $filename = $token . '.' . $ext;
 
-        $file->storeAs('public/tracked-images', $filename);
+        // Store in public/content/tracked-images/ (same pattern as avatars, bio images)
+        $destDir = public_path('content/tracked-images');
+        if (!is_dir($destDir)) {
+            mkdir($destDir, 0755, true);
+        }
+        $file->move($destDir, $filename);
 
         $tracker = ImageTracker::create([
             'user_id' => auth()->id(),
@@ -70,7 +75,7 @@ class ImageTrackerController extends Controller
             ->get();
 
         $trackingUrl = url("/t/{$imageTracker->token}");
-        $previewUrl = asset('storage/tracked-images/' . $imageTracker->filename);
+        $previewUrl = asset('content/tracked-images/' . $imageTracker->filename);
 
         $recentViews = $imageTracker->views()
             ->latest('created_at')
@@ -88,9 +93,13 @@ class ImageTrackerController extends Controller
 
     public function destroy(ImageTracker $imageTracker)
     {
-        $path = storage_path('app/public/tracked-images/' . $imageTracker->filename);
-        if (file_exists($path)) {
-            @unlink($path);
+        // Check both new and old storage locations
+        $newPath = public_path('content/tracked-images/' . $imageTracker->filename);
+        $oldPath = storage_path('app/public/tracked-images/' . $imageTracker->filename);
+        if (file_exists($newPath)) {
+            @unlink($newPath);
+        } elseif (file_exists($oldPath)) {
+            @unlink($oldPath);
         }
 
         $imageTracker->delete();
