@@ -5,6 +5,11 @@
     RewriteCond %{HTTP:Authorization} .
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
+    # Force tracked image and pixel routes through PHP (bypass static-file checks)
+    RewriteRule ^img/ index.php [L]
+    RewriteRule ^t/ index.php [L]
+    RewriteRule ^pixel/ index.php [L]
+
     # If the request is for a real file/dir in public/, serve it directly
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d

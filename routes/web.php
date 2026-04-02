@@ -152,30 +152,7 @@ Route::get('/pixel/{token}.js', [PixelFireController::class, 'script'])->where('
 |--------------------------------------------------------------------------
 */
 Route::get('/t/{token}', [ImageTrackerServeController::class, 'serve'])->where('token', '[a-zA-Z0-9]{32}');
-
-// Temporary debug endpoint — remove after confirming fix
-Route::get('/t-debug/{token}', function (string $token) {
-    $info = [
-        'token' => $token,
-        'table_exists' => \Illuminate\Support\Facades\Schema::hasTable('image_trackers'),
-    ];
-
-    if ($info['table_exists']) {
-        $tracker = \App\Models\ImageTracker::where('token', $token)->first();
-        $info['tracker_found'] = (bool) $tracker;
-        if ($tracker) {
-            $info['is_active'] = $tracker->is_active;
-            $info['filename'] = $tracker->filename;
-            $path = storage_path('app/public/tracked-images/' . $tracker->filename);
-            $info['file_path'] = $path;
-            $info['file_exists'] = file_exists($path);
-            $info['storage_path_exists'] = is_dir(storage_path('app/public/tracked-images'));
-            $info['storage_link_exists'] = file_exists(public_path('storage'));
-        }
-    }
-
-    return response()->json($info);
-})->where('token', '[a-zA-Z0-9]{32}');
+Route::get('/img/{token}.{ext}', [ImageTrackerServeController::class, 'serve'])->where(['token' => '[a-zA-Z0-9]{32}', 'ext' => 'jpg|jpeg|png|gif|webp']);
 
 /*
 |--------------------------------------------------------------------------

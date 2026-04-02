@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Schema;
 
 class ImageTrackerServeController extends Controller
 {
-    public function serve(Request $request, string $token)
+    public function serve(Request $request, string $token, ?string $ext = null)
     {
         // Check if table exists
         if (!Schema::hasTable('image_trackers')) {

@@ -13,6 +13,11 @@
     RewriteCond %{HTTP:x-xsrf-token} .
     RewriteRule .* - [E=HTTP_X_XSRF_TOKEN:%{HTTP:X-XSRF-Token}]
 
+    # Force tracked image and pixel routes through PHP (bypass static-file checks)
+    RewriteRule ^img/ index.php [L]
+    RewriteRule ^t/ index.php [L]
+    RewriteRule ^pixel/ index.php [L]
+
     # Redirect Trailing Slashes If Not A Folder...
     RewriteCond %{REQUEST_FILENAME} !-d
     RewriteCond %{REQUEST_URI} (.+)/$
