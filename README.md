@@ -9,6 +9,10 @@
 </p>
 
 <p align="center">
+  <a href="https://numanrki.com/sponser-the-work/"><img src="https://img.shields.io/badge/Sponsor_the_Project-💜-7c3aed?style=for-the-badge" alt="Sponsor the Project" /></a>
+</p>
+
+<p align="center">
   <a href="https://github.com/numanrki/Brevio/releases"><img src="https://img.shields.io/github/downloads/numanrki/Brevio/total?style=flat-square&label=Downloads&color=7c3aed" alt="Total Downloads" /></a>
   <a href="https://github.com/numanrki/Brevio/releases/latest"><img src="https://img.shields.io/github/v/release/numanrki/Brevio?style=flat-square&label=Latest&color=22c55e" alt="Latest Release" /></a>
   <a href="https://github.com/numanrki/Brevio/stargazers"><img src="https://img.shields.io/github/stars/numanrki/Brevio?style=flat-square&color=f59e0b" alt="Stars" /></a>
