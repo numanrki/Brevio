@@ -7,6 +7,7 @@ use App\Models\Bio;
 use App\Models\Click;
 use App\Models\DeepLink;
 use App\Models\DeepLinkClick;
+use App\Models\Pixel;
 use App\Models\QrCode;
 use App\Models\Report;
 use App\Models\Url;
@@ -82,7 +83,7 @@ class DashboardController extends Controller
                 'total_bio_pages' => Bio::count(),
                 'total_qr_codes' => QrCode::count(),
                 'total_deep_links' => DeepLink::count(),
-                'total_dl_clicks' => (int) DeepLink::sum('total_clicks'),
+                'total_pixels' => Pixel::count(),
             ],
             'clicks_over_time' => $clicksOverTime,
             'top_referrers' => $topReferrers,

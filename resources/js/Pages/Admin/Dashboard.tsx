@@ -17,7 +17,7 @@ interface DashboardProps {
         total_bio_pages: number;
         total_qr_codes: number;
         total_deep_links: number;
-        total_dl_clicks: number;
+        total_pixels: number;
     };
     clicks_over_time: ClickPoint[];
     top_referrers: BreakdownItem[];
@@ -32,7 +32,7 @@ const statCards = [
     { key: 'total_links', label: 'Total Links', icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', color: 'from-violet-500 to-purple-600' },
     { key: 'total_clicks', label: 'Link Clicks', icon: 'M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122', color: 'from-cyan-500 to-blue-600' },
     { key: 'total_deep_links', label: 'Deep Links', icon: 'M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14', color: 'from-teal-500 to-emerald-600' },
-    { key: 'total_dl_clicks', label: 'Deep Link Clicks', icon: 'M13 10V3L4 14h7v7l9-11h-7z', color: 'from-fuchsia-500 to-pink-600' },
+    { key: 'total_pixels', label: 'Tracking Pixels', icon: 'M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01', color: 'from-fuchsia-500 to-pink-600' },
     { key: 'total_bio_pages', label: 'Bio Pages', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z', color: 'from-emerald-500 to-green-600' },
     { key: 'total_qr_codes', label: 'QR Codes', icon: 'M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z', color: 'from-amber-500 to-orange-600' },
 ] as const;
