@@ -35,8 +35,28 @@ class PixelFireController extends Controller
     {
         $this->fire($request, $token);
 
-        $js = "/* Brevio Pixel */\n(function(){var d=new Date();var i=new Image();i.src='" .
-            url("/pixel/{$token}.gif") . "?t='+d.getTime();})();";
+        $baseUrl = url("/pixel/{$token}.gif");
+
+        $js = <<<JS
+/* Brevio Pixel */
+(function(){
+  var d=new Date();
+  var p=[];
+  p.push('t='+d.getTime());
+  p.push('url='+encodeURIComponent(window.location.href));
+  p.push('ref='+encodeURIComponent(document.referrer||''));
+  p.push('title='+encodeURIComponent(document.title||''));
+  p.push('sw='+screen.width+'&sh='+screen.height);
+  p.push('lang='+(navigator.language||''));
+  try{p.push('tz='+encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone));}catch(e){}
+  var u=new URLSearchParams(window.location.search);
+  ['utm_source','utm_medium','utm_campaign','utm_term','utm_content'].forEach(function(k){
+    if(u.get(k))p.push(k+'='+encodeURIComponent(u.get(k)));
+  });
+  var i=new Image();
+  i.src='{$baseUrl}?'+p.join('&');
+})();
+JS;
 
         return response($js, 200, [
             'Content-Type' => 'application/javascript',
@@ -81,10 +101,14 @@ class PixelFireController extends Controller
 
         $pixel->increment('total_fires');
 
-        // Collect any custom params from the query string (exclude standard ones)
-        $customParams = collect($request->query())
-            ->except(['t', '_', 'utm_source', 'utm_medium', 'utm_campaign'])
-            ->toArray();
+        // Collect tracking params from the JS pixel
+        $query = $request->query();
+        $utmParams = collect($query)->only(['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'])->filter()->toArray();
+        $extraParams = collect($query)->only(['url', 'title', 'sw', 'sh', 'lang', 'tz'])->filter()->toArray();
+        $customParams = array_merge($utmParams, $extraParams);
+
+        // Use referrer from JS pixel if available, otherwise from header
+        $referrer = !empty($query['ref']) ? $query['ref'] : $request->header('referer');
 
         PixelFire::create([
             'pixel_id' => $pixel->id,
@@ -94,7 +118,7 @@ class PixelFireController extends Controller
             'browser' => $browser,
             'os' => $os,
             'device' => $device,
-            'referrer' => $request->header('referer'),
+            'referrer' => $referrer,
             'user_agent' => $userAgent,
             'params' => !empty($customParams) ? $customParams : null,
             'is_unique' => $isUnique,

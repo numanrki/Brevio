@@ -77,26 +77,63 @@ export default function Show({ pixel, fires_stats, embed_codes }: Props) {
 
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <p className="text-xs font-medium text-gray-400">Image Pixel (recommended)</p>
-                            <button onClick={() => copyCode(embed_codes.image, 'image')} className="text-xs text-violet-400 hover:text-violet-300 transition-colors">
-                                {copied === 'image' ? 'Copied!' : 'Copy'}
+                            <p className="text-xs font-medium text-gray-400">Image Pixel <span className="text-gray-600">(works in emails &amp; HTML)</span></p>
+                            <button
+                                onClick={() => copyCode(embed_codes.image, 'image')}
+                                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                                    copied === 'image'
+                                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                        : 'bg-gray-800 text-gray-300 hover:text-white hover:bg-gray-700 border border-gray-700'
+                                }`}
+                            >
+                                {copied === 'image' ? (
+                                    <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>Copied!</>
+                                ) : (
+                                    <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>Copy Code</>
+                                )}
                             </button>
                         </div>
-                        <pre className="px-4 py-3 bg-gray-950 border border-gray-800 rounded-lg text-xs text-gray-300 overflow-x-auto whitespace-pre-wrap break-all">
+                        <pre className="px-4 py-3 bg-gray-950 border border-gray-800 rounded-lg text-xs text-gray-300 overflow-x-auto whitespace-pre-wrap break-all select-all">
                             {embed_codes.image}
                         </pre>
                     </div>
 
                     <div>
                         <div className="flex items-center justify-between mb-2">
-                            <p className="text-xs font-medium text-gray-400">JavaScript Snippet</p>
-                            <button onClick={() => copyCode(embed_codes.script, 'script')} className="text-xs text-violet-400 hover:text-violet-300 transition-colors">
-                                {copied === 'script' ? 'Copied!' : 'Copy'}
+                            <p className="text-xs font-medium text-gray-400">JavaScript Snippet <span className="text-emerald-400">(recommended — tracks more data)</span></p>
+                            <button
+                                onClick={() => copyCode(embed_codes.script, 'script')}
+                                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition-all ${
+                                    copied === 'script'
+                                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
+                                        : 'bg-violet-600 text-white hover:bg-violet-500 border border-violet-600'
+                                }`}
+                            >
+                                {copied === 'script' ? (
+                                    <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>Copied!</>
+                                ) : (
+                                    <><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>Copy Code</>
+                                )}
                             </button>
                         </div>
-                        <pre className="px-4 py-3 bg-gray-950 border border-gray-800 rounded-lg text-xs text-gray-300 overflow-x-auto whitespace-pre-wrap break-all">
+                        <pre className="px-4 py-3 bg-gray-950 border border-gray-800 rounded-lg text-xs text-gray-300 overflow-x-auto whitespace-pre-wrap break-all select-all">
                             {embed_codes.script}
                         </pre>
+                    </div>
+
+                    <div className="rounded-lg bg-gray-950/50 border border-gray-800/50 p-4">
+                        <p className="text-xs font-medium text-gray-400 mb-2">What gets tracked</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs text-gray-500">
+                            <span>Page URL &amp; Title</span>
+                            <span>Country &amp; City</span>
+                            <span>Browser &amp; OS</span>
+                            <span>Device Type</span>
+                            <span>Screen Resolution</span>
+                            <span>Language &amp; Timezone</span>
+                            <span>Referrer Source</span>
+                            <span>UTM Parameters</span>
+                            <span>Unique vs Repeat</span>
+                        </div>
                     </div>
                 </div>
 

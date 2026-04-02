@@ -51,9 +51,9 @@ class PixelController extends Controller
         $validated['pixel_id'] = 'brevio_' . Str::random(8);
         $validated['token'] = Str::random(32);
 
-        Pixel::create($validated);
+        $pixel = Pixel::create($validated);
 
-        return redirect()->route('admin.pixels.index')->with('success', 'Pixel created successfully.');
+        return redirect()->route('admin.pixels.show', $pixel)->with('success', 'Pixel created! Copy the embed code below and add it to your website.');
     }
 
     public function show(Pixel $pixel)

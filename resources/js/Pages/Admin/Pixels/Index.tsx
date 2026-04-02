@@ -12,6 +12,15 @@ interface Props {
 
 export default function Index({ pixels, filters }: Props) {
     const [search, setSearch] = useState(filters.search || '');
+    const [copiedId, setCopiedId] = useState<number | null>(null);
+
+    const copyPixelCode = (px: Pixel) => {
+        const base = window.location.origin;
+        const code = `<script src="${base}/pixel/${px.token}.js" async></script>`;
+        navigator.clipboard.writeText(code);
+        setCopiedId(px.id);
+        setTimeout(() => setCopiedId(null), 2000);
+    };
 
     const applyFilters = useCallback(
         (overrides: Record<string, string> = {}) => {
@@ -111,6 +120,17 @@ export default function Index({ pixels, filters }: Props) {
                                         </td>
                                         <td className="px-4 py-3 text-right">
                                             <div className="flex items-center justify-end gap-1">
+                                                <button
+                                                    onClick={() => copyPixelCode(px)}
+                                                    className={`p-1.5 transition-colors ${copiedId === px.id ? 'text-emerald-400' : 'text-gray-500 hover:text-violet-400'}`}
+                                                    title={copiedId === px.id ? 'Copied!' : 'Copy embed code'}
+                                                >
+                                                    {copiedId === px.id ? (
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                                    ) : (
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                                    )}
+                                                </button>
                                                 <Link href={url(`/admin/pixels/${px.id}/analytics`)} className="p-1.5 text-gray-500 hover:text-white transition-colors" title="Analytics">
                                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
                                                 </Link>
