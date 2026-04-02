@@ -82,7 +82,7 @@ class ImageTrackerController extends Controller
         $recentViews = $imageTracker->views()
             ->latest('created_at')
             ->limit(20)
-            ->get(['id', 'country', 'city', 'browser', 'os', 'device', 'is_unique', 'created_at']);
+            ->get(['id', 'country', 'city', 'browser', 'os', 'device', 'device_model', 'is_unique', 'created_at']);
 
         return Inertia::render('Admin/Pixels/ImageTrackers/Show', [
             'tracker' => $imageTracker,

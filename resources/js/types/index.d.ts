@@ -194,6 +194,7 @@ export interface ImageTrackerView {
     browser?: string;
     os?: string;
     device?: string;
+    device_model?: string;
     referrer?: string;
     is_unique: boolean;
     created_at: string;

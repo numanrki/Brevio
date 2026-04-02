@@ -200,6 +200,7 @@ export default function Show({ tracker, views_stats, tracking_url, preview_url, 
                                         <th className="pb-3 font-medium">Browser</th>
                                         <th className="pb-3 font-medium">OS</th>
                                         <th className="pb-3 font-medium">Device</th>
+                                        <th className="pb-3 font-medium">Model</th>
                                         <th className="pb-3 font-medium text-center">Unique</th>
                                         <th className="pb-3 font-medium text-right">When</th>
                                     </tr>
@@ -219,6 +220,7 @@ export default function Show({ tracker, views_stats, tracking_url, preview_url, 
                                             <td className="py-2.5">
                                                 <span className="px-2 py-0.5 bg-gray-800 rounded text-xs">{view.device || 'Unknown'}</span>
                                             </td>
+                                            <td className="py-2.5 text-xs text-gray-400">{view.device_model || <span className="text-gray-600">—</span>}</td>
                                             <td className="py-2.5 text-center">
                                                 {view.is_unique ? (
                                                     <span className="text-emerald-400 text-xs">Yes</span>

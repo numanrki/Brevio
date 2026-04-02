@@ -17,6 +17,7 @@ class ImageTrackerView extends Model
         'browser',
         'os',
         'device',
+        'device_model',
         'referrer',
         'user_agent',
         'is_unique',
