@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://numanrki.com/sponser-the-work/"><img src="https://img.shields.io/badge/Sponsor_the_Project-💜-7c3aed?style=for-the-badge" alt="Sponsor the Project" /></a>
+  <a href="http://go.numanrki.com/GitHub"><img src="https://img.shields.io/badge/Sponsor_the_Project-💜-7c3aed?style=for-the-badge" alt="Sponsor the Project" /></a>
 </p>
 
 <p align="center">
